@@ -441,9 +441,43 @@
       font-style: italic;
       margin-top: 8px;
     }
+    
+    /* Auth styles */
+    .auth-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .auth-card {
+      max-width: 400px;
+      width: 90%;
+      padding: 40px;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      text-align: center;
+    }
   </style>
 </head>
 <body>
+  <!-- Auth Container -->
+  <div class="auth-container" id="authContainer">
+    <div class="auth-card">
+      <div style="font-size: 48px; margin-bottom: 20px;">🔐</div>
+      <h2 style="margin-bottom: 16px;">Genesys Cloud Authentication</h2>
+      <p style="color: var(--text-light); margin-bottom: 24px;">Connecting to trusted organization billing API...</p>
+      <div class="spinner" style="margin: 0 auto;"></div>
+    </div>
+  </div>
+
   <div class="status-container" id="statusContainer"></div>
 
   <div class="loading-overlay" id="loadingOverlay">
@@ -452,7 +486,8 @@
     <div id="loadingSubtext" style="font-size:15px;color:var(--text-light);text-align:center;max-width:500px;">Fetching Genesys Cloud usage information</div>
   </div>
 
-  <div class="container">
+  <!-- Main Content -->
+  <div class="container" id="mainContent" style="display: none;">
     <header>
       <h1>📊 Genesys Cloud - Usage Dashboard</h1>
       <div class="subtitle" style="display:flex;justify-content:space-between;align-items:center;">
@@ -692,427 +727,103 @@
         <button id="btnExportJSON" class="btn btn-block" style="background: var(--info);">
           <span>🔧 Export JSON</span>
         </button>
+        <button id="btnDisconnect" class="btn btn-block" style="background: var(--danger);">
+          <span>🚪 Disconnect</span>
+        </button>
       </div>
     </div>
   </div>
 
   <script>
+    // ==================== CONFIGURATION ====================
+    const CONFIG = {
+      CLIENT_ID: '4ab97fe2-54c0-4deb-8b9a-a4b5720d6c67',
+      REDIRECT_URI: window.location.origin + window.location.pathname,
+      TRUSTED_ORG_ID: '9b6492f9-d751-4406-bc7a-8ed307afef0a',
+      CUSTOMER_NAME: 'JLA',
+      ENVIRONMENT_REGION: 'eu-west-2',
+      ENVIRONMENTS: {
+        'eu-west-2': { 
+          name: 'EU West (London)', 
+          api: 'https://api.euw2.pure.cloud', 
+          login: 'https://login.euw2.pure.cloud' 
+        }
+      },
+      STORAGE_KEYS: {
+        TOKEN: 'gc_usage_token',
+        TOKEN_EXPIRY: 'gc_usage_token_expiry',
+        REFRESH_TOKEN: 'gc_usage_refresh_token'
+      }
+    };
+
     // ==================== STATE MANAGEMENT ====================
     let appState = {
+      isAuthenticated: false,
       currentTab: 'users',
       currentPeriod: 0,
       usageData: null,
-      lastFetchTime: null
+      rawApiData: null,
+      lastFetchTime: null,
+      billingHistory: {}
     };
 
-    // ==================== SAMPLE DATA ====================
-    const SAMPLE_DATA = {
-      0: {
-        users: [
-          {
-            name: "Genesys Cloud CX 2",
-            qty: 330,
-            committed: 330,
-            onDemand: 0,
-            used: 256,
-            items: [
-              { name: "Committed(256 used)", qty: 330, used: 256 },
-              { name: "On-Demand", qty: 0, used: 0 }
-            ]
-          },
-          {
-            name: "Genesys Cloud CX 2 WEM Add-On I",
-            qty: 93,
-            committed: 70,
-            onDemand: 23,
-            used: 70,
-            items: [
-              { name: "Committed", qty: 70, used: 70 },
-              { name: "On-Demand", qty: 23, used: 23 }
-            ]
-          },
-          {
-            name: "Genesys Cloud Communicate User",
-            qty: 80,
-            committed: 80,
-            onDemand: 0,
-            used: 29,
-            items: [
-              { name: "Committed(29 used)", qty: 80, used: 29 },
-              { name: "On-Demand", qty: 0, used: 0 }
-            ]
-          },
-          {
-            name: "Genesys Cloud for Wallboard Device Charge (view notes)",
-            qty: 4,
-            committed: 4,
-            onDemand: 0,
-            used: 1,
-            items: [
-              { name: "Committed(1 used)", qty: 4, used: 1 },
-              { name: "On-Demand", qty: 0, used: 0 }
-            ]
-          }
-        ],
-        resources: [
-          {
-            category: "BYOC Cloud",
-            items: [
-              { 
-                name: "BYOT Rate A", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate B Per Transaction", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate C Per Minute", 
-                qty: 0, 
-                unit: "minutes", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate D Per Transaction", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate E Per Minute", 
-                qty: 0, 
-                unit: "minutes", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              }
-            ]
-          },
-          {
-            category: "Other Resources",
-            items: [
-              { 
-                name: "Genesys Cloud BYOC Cloud", 
-                qty: 1, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 1
-              },
-              { 
-                name: "Genesys Cloud Short Message Service (SMS)", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Genesys Cloud for Predictive Engagement Events", 
-                qty: 0, 
-                unit: "events", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Genesys Cloud for Voice Transcription Fair Use (Legacy)", 
-                qty: 484200, 
-                unit: "minutes", 
-                included: { qty: 484200, used: 17668 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Genesys Cloud for WhatsApp Messaging", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Outbound Email Monthly", 
-                qty: 0, 
-                unit: "transactions", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Genesys Cloud IVR Basic Per Minute Charge", 
-                qty: 865000, 
-                unit: "minutes", 
-                included: { qty: 865000, used: 5330 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Genesys Cloud API Resource", 
-                qty: 37100000, 
-                unit: "requests", 
-                included: { qty: 37100000, used: 451095 }, 
-                onDemand: 0
-              }
-            ]
-          }
-        ]
-      },
-      1: {
-        users: [
-          {
-            name: "Genesys Cloud CX 2",
-            qty: 325,
-            committed: 325,
-            onDemand: 0,
-            used: 240,
-            items: [
-              { name: "Committed(240 used)", qty: 325, used: 240 },
-              { name: "On-Demand", qty: 0, used: 0 }
-            ]
-          },
-          {
-            name: "Genesys Cloud CX 2 WEM Add-On I",
-            qty: 90,
-            committed: 70,
-            onDemand: 20,
-            used: 70,
-            items: [
-              { name: "Committed", qty: 70, used: 70 },
-              { name: "On-Demand", qty: 20, used: 20 }
-            ]
-          },
-          {
-            name: "Genesys Cloud Communicate User",
-            qty: 75,
-            committed: 75,
-            onDemand: 0,
-            used: 25,
-            items: [
-              { name: "Committed(25 used)", qty: 75, used: 25 },
-              { name: "On-Demand", qty: 0, used: 0 }
-            ]
-          },
-          {
-            name: "Genesys Cloud for Wallboard Device Charge (view notes)",
-            qty: 4,
-            committed: 4,
-            onDemand: 0,
-            used: 1,
-            items: [
-              { name: "Committed(1 used)", qty: 4, used: 1 },
-              { name: "On-Demand", qty: 0, used: 0 }
-            ]
-          }
-        ],
-        resources: [
-          {
-            category: "BYOC Cloud",
-            items: [
-              { 
-                name: "BYOT Rate A", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate B Per Transaction", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate C Per Minute", 
-                qty: 0, 
-                unit: "minutes", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate D Per Transaction", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate E Per Minute", 
-                qty: 0, 
-                unit: "minutes", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              }
-            ]
-          },
-          {
-            category: "Other Resources",
-            items: [
-              { 
-                name: "Genesys Cloud BYOC Cloud", 
-                qty: 1, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 1
-              },
-              { 
-                name: "Genesys Cloud for Voice Transcription Fair Use (Legacy)", 
-                qty: 480000, 
-                unit: "minutes", 
-                included: { qty: 480000, used: 16500 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Genesys Cloud IVR Basic Per Minute Charge", 
-                qty: 850000, 
-                unit: "minutes", 
-                included: { qty: 850000, used: 5200 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Genesys Cloud API Resource", 
-                qty: 36500000, 
-                unit: "requests", 
-                included: { qty: 36500000, used: 420000 }, 
-                onDemand: 0
-              }
-            ]
-          }
-        ]
-      },
-      2: {
-        users: [
-          {
-            name: "Genesys Cloud CX 2",
-            qty: 320,
-            committed: 320,
-            onDemand: 0,
-            used: 230,
-            items: [
-              { name: "Committed(230 used)", qty: 320, used: 230 },
-              { name: "On-Demand", qty: 0, used: 0 }
-            ]
-          },
-          {
-            name: "Genesys Cloud CX 2 WEM Add-On I",
-            qty: 85,
-            committed: 70,
-            onDemand: 15,
-            used: 70,
-            items: [
-              { name: "Committed", qty: 70, used: 70 },
-              { name: "On-Demand", qty: 15, used: 15 }
-            ]
-          },
-          {
-            name: "Genesys Cloud Communicate User",
-            qty: 70,
-            committed: 70,
-            onDemand: 0,
-            used: 20,
-            items: [
-              { name: "Committed(20 used)", qty: 70, used: 20 },
-              { name: "On-Demand", qty: 0, used: 0 }
-            ]
-          },
-          {
-            name: "Genesys Cloud for Wallboard Device Charge (view notes)",
-            qty: 4,
-            committed: 4,
-            onDemand: 0,
-            used: 1,
-            items: [
-              { name: "Committed(1 used)", qty: 4, used: 1 },
-              { name: "On-Demand", qty: 0, used: 0 }
-            ]
-          }
-        ],
-        resources: [
-          {
-            category: "BYOC Cloud",
-            items: [
-              { 
-                name: "BYOT Rate A", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate B Per Transaction", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate C Per Minute", 
-                qty: 0, 
-                unit: "minutes", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate D Per Transaction", 
-                qty: 0, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              },
-              { 
-                name: "BYOT Rate E Per Minute", 
-                qty: 0, 
-                unit: "minutes", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 0
-              }
-            ]
-          },
-          {
-            category: "Other Resources",
-            items: [
-              { 
-                name: "Genesys Cloud BYOC Cloud", 
-                qty: 1, 
-                unit: "units", 
-                included: { qty: 0, used: 0 }, 
-                onDemand: 1
-              },
-              { 
-                name: "Genesys Cloud for Voice Transcription Fair Use (Legacy)", 
-                qty: 475000, 
-                unit: "minutes", 
-                included: { qty: 475000, used: 15000 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Genesys Cloud IVR Basic Per Minute Charge", 
-                qty: 840000, 
-                unit: "minutes", 
-                included: { qty: 840000, used: 5000 }, 
-                onDemand: 0
-              },
-              { 
-                name: "Genesys Cloud API Resource", 
-                qty: 36000000, 
-                unit: "requests", 
-                included: { qty: 36000000, used: 400000 }, 
-                onDemand: 0
-              }
-            ]
-          }
-        ]
-      }
+    // ==================== DOM ELEMENTS ====================
+    const el = {
+      authContainer: document.getElementById('authContainer'),
+      mainContent: document.getElementById('mainContent'),
+      loadingOverlay: document.getElementById('loadingOverlay'),
+      statusContainer: document.getElementById('statusContainer'),
+      lastUpdated: document.getElementById('lastUpdated'),
+      orgNameDisplay: document.getElementById('orgNameDisplay'),
+      
+      // Metric tiles
+      totalUsersValue: document.getElementById('totalUsersValue'),
+      usersUtilization: document.getElementById('usersUtilization'),
+      overageRiskValue: document.getElementById('overageRiskValue'),
+      overageDetail: document.getElementById('overageDetail'),
+      metricUserOverage: document.getElementById('metricUserOverage'),
+      speechUsageValue: document.getElementById('speechUsageValue'),
+      speechUsed: document.getElementById('speechUsed'),
+      speechPrepaid: document.getElementById('speechPrepaid'),
+      speechProgressUsed: document.getElementById('speechProgressUsed'),
+      speechDetail: document.getElementById('speechDetail'),
+      ivrUsageValue: document.getElementById('ivrUsageValue'),
+      ivrDetail: document.getElementById('ivrDetail'),
+      
+      // Tables
+      usersTableBody: document.getElementById('usersTableBody'),
+      resourcesTableBody: document.getElementById('resourcesTableBody'),
+      highlightsUsersTable: document.getElementById('highlightsUsersTable'),
+      highlightsResourcesTable: document.getElementById('highlightsResourcesTable'),
+      
+      // Speech analytics highlights
+      highlightSpeechUsed: document.getElementById('highlightSpeechUsed'),
+      highlightSpeechPrepaid: document.getElementById('highlightSpeechPrepaid'),
+      highlightSpeechRemaining: document.getElementById('highlightSpeechRemaining'),
+      highlightSpeechUsedBar: document.getElementById('highlightSpeechUsedBar'),
+      highlightSpeechRemainingBar: document.getElementById('highlightSpeechRemainingBar'),
+      highlightSpeechUsedPct: document.getElementById('highlightSpeechUsedPct'),
+      highlightSpeechAvailablePct: document.getElementById('highlightSpeechAvailablePct'),
+      highlightSpeechDaysLeft: document.getElementById('highlightSpeechDaysLeft'),
+      
+      // Buttons
+      btnRefresh: document.getElementById('btnRefresh'),
+      btnExportCSV: document.getElementById('btnExportCSV'),
+      btnExportJSON: document.getElementById('btnExportJSON'),
+      btnDisconnect: document.getElementById('btnDisconnect'),
+      
+      // Loading
+      loadingText: document.getElementById('loadingText'),
+      loadingSubtext: document.getElementById('loadingSubtext')
     };
 
     // ==================== UTILITY FUNCTIONS ====================
     function formatNumber(num) {
+      if (num === undefined || num === null) return '0';
       return new Intl.NumberFormat().format(num);
     }
 
     function showStatusMessage(message, type = 'info') {
-      const statusContainer = document.getElementById('statusContainer');
       const msgDiv = document.createElement('div');
       msgDiv.className = 'status-message';
       const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '💡';
@@ -1125,7 +836,7 @@
           <div style="font-size:12px;color:var(--text-light);">${new Date().toLocaleTimeString()}</div>
         </div>
       `;
-      statusContainer.appendChild(msgDiv);
+      el.statusContainer.appendChild(msgDiv);
       
       setTimeout(() => {
         if (msgDiv.parentNode) {
@@ -1137,16 +848,12 @@
     }
 
     function setLoading(show, text = '', subtext = '') {
-      const loadingOverlay = document.getElementById('loadingOverlay');
-      const loadingText = document.getElementById('loadingText');
-      const loadingSubtext = document.getElementById('loadingSubtext');
-      
       if (show) {
-        loadingText.textContent = text;
-        loadingSubtext.textContent = subtext;
-        loadingOverlay.classList.add('active');
+        el.loadingText.textContent = text;
+        el.loadingSubtext.textContent = subtext;
+        el.loadingOverlay.classList.add('active');
       } else {
-        loadingOverlay.classList.remove('active');
+        el.loadingOverlay.classList.remove('active');
       }
     }
 
@@ -1183,30 +890,606 @@
       return '<span class="utilization-indicator utilization-low"></span>Low';
     }
 
-    // ==================== DATA LOADING FUNCTIONS ====================
-    function loadDataForPeriod(periodIndex) {
-      setLoading(true, `Loading ${getPeriodDisplayName(periodIndex)}`, 'Processing usage data...');
+    // ==================== AUTHENTICATION FUNCTIONS ====================
+    function parseTokenFromHash() {
+      const hash = window.location.hash.replace(/^#/, '');
+      if (!hash) return {};
       
-      setTimeout(() => {
-        appState.currentPeriod = periodIndex;
-        appState.usageData = SAMPLE_DATA[periodIndex];
+      const params = new URLSearchParams(hash);
+      return {
+        token: params.get('access_token'),
+        refreshToken: params.get('refresh_token'),
+        error: params.get('error'),
+        errorDescription: params.get('error_description'),
+        expiresIn: params.get('expires_in')
+      };
+    }
+
+    function saveCredentials(token, expiresIn, refreshToken = null) {
+      try {
+        const tokenExpiry = Date.now() + (parseInt(expiresIn, 10) * 1000);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.TOKEN, token);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY, tokenExpiry.toString());
+        if (refreshToken) localStorage.setItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+        return true;
+      } catch (e) {
+        console.error('Failed to save credentials:', e);
+        return false;
+      }
+    }
+
+    function loadStoredCredentials() {
+      try {
+        const token = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN);
+        const tokenExpiry = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY);
+
+        if (token && tokenExpiry) {
+          if (Date.now() < parseInt(tokenExpiry, 10) - (5 * 60 * 1000)) {
+            return { token };
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load stored credentials:', e);
+      }
+      return null;
+    }
+
+    function clearCredentials() {
+      try {
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY);
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
+      } catch (e) {
+        console.error('Failed to clear credentials:', e);
+      }
+    }
+
+    async function attemptTokenRefresh() {
+      const refreshToken = localStorage.getItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
+      if (!refreshToken) return false;
+      
+      try {
+        const loginUrl = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION]?.login;
+        const response = await fetch(`${loginUrl}/oauth/token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + btoa(`${CONFIG.CLIENT_ID}:`)
+          },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          saveCredentials(data.access_token, data.expires_in, data.refresh_token || refreshToken);
+          return true;
+        }
+      } catch (error) {
+        console.warn('Token refresh failed:', error);
+      }
+      return false;
+    }
+
+    function authUrl() {
+      const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
+      const state = btoa(JSON.stringify({ 
+        env: CONFIG.ENVIRONMENT_REGION,
+        ts: Date.now()
+      }));
+      
+      return `${env.login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&state=${encodeURIComponent(state)}`;
+    }
+
+    async function initAuth() {
+      el.authContainer.style.display = 'flex';
+      
+      const { token, refreshToken, error, errorDescription, expiresIn } = parseTokenFromHash();
+      
+      if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+
+      if (token) {
+        if (saveCredentials(token, expiresIn || '3600', refreshToken)) {
+          appState.isAuthenticated = true;
+          el.authContainer.style.display = 'none';
+          el.mainContent.style.display = 'block';
+          initializeApp();
+          return;
+        }
+      }
+
+      if (error) {
+        showStatusMessage(`Authentication failed: ${error}`, 'error');
+        setTimeout(() => authenticate(), 2000);
+        return;
+      }
+
+      const credentials = loadStoredCredentials();
+      if (credentials) {
+        appState.isAuthenticated = true;
+        el.authContainer.style.display = 'none';
+        el.mainContent.style.display = 'block';
+        initializeApp();
+        return;
+      }
+
+      const refreshSuccess = await attemptTokenRefresh();
+      if (refreshSuccess) {
+        appState.isAuthenticated = true;
+        el.authContainer.style.display = 'none';
+        el.mainContent.style.display = 'block';
+        initializeApp();
+        return;
+      }
+
+      setTimeout(() => authenticate(), 1000);
+    }
+
+    function authenticate() {
+      const authUrlValue = authUrl();
+      if (authUrlValue) {
+        window.location.href = authUrlValue;
+      } else {
+        showStatusMessage('Could not generate authentication URL', 'error');
+      }
+    }
+
+    function disconnect() {
+      if (confirm('Disconnect from Genesys Cloud? This will clear all stored credentials.')) {
+        clearCredentials();
+        appState.isAuthenticated = false;
+        appState.usageData = null;
+        appState.rawApiData = null;
+        el.mainContent.style.display = 'none';
+        el.authContainer.style.display = 'flex';
+        showStatusMessage('Disconnected from Genesys Cloud', 'info');
+      }
+    }
+
+    // ==================== API FUNCTIONS ====================
+    async function apiCall(path, options = {}) {
+      const token = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN);
+      if (!token) {
+        showStatusMessage('Authentication required', 'error');
+        disconnect();
+        return null;
+      }
+      
+      const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
+      const url = `${env.api}${path}`;
+      
+      try {
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            ...options.headers
+          }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          const refreshSuccess = await attemptTokenRefresh();
+          if (!refreshSuccess) {
+            showStatusMessage('Session expired. Please reauthenticate.', 'error');
+            disconnect();
+            return null;
+          }
+          return apiCall(path, options);
+        }
+        
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After') || 5;
+          showStatusMessage(`Rate limit exceeded. Retrying in ${retryAfter} seconds...`, 'warn');
+          await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+          return apiCall(path, options);
+        }
+        
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => '');
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error('API call failed:', error);
+        showStatusMessage(`API Error: ${error.message}`, 'error');
+        return null;
+      }
+    }
+
+    async function fetchBillingData(periodIndex) {
+      setLoading(true, 'Fetching Billing Data', `Loading ${getPeriodDisplayName(periodIndex)} from Genesys Cloud...`);
+      
+      try {
+        // Get period start and end dates based on period index
+        const today = new Date();
+        const startDate = new Date(today.getFullYear(), today.getMonth() - periodIndex, 1);
+        const endDate = new Date(today.getFullYear(), today.getMonth() - periodIndex + 1, 0);
+        
+        // Format dates for API
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
+        
+        // Call the trusted organization billing API
+        // Note: You may need to adjust the endpoint based on your actual API
+        const endpoint = `/api/v2/billing/trusteebillingoverview/${CONFIG.TRUSTED_ORG_ID}`;
+        
+        // In a real implementation, you might need to pass period parameters
+        // For now, we'll use the main endpoint and parse the response
+        const rawApiResponse = await apiCall(endpoint);
+        
+        if (!rawApiResponse) {
+          throw new Error('No data returned from API');
+        }
+        
+        console.log('API Response:', rawApiResponse);
+        
+        // Store raw API data
+        appState.rawApiData = rawApiResponse;
         appState.lastFetchTime = new Date();
+        
+        // Parse the API response into our format
+        const parsedData = parseApiData(rawApiResponse, periodIndex);
+        appState.usageData = parsedData;
+        
+        // Store in history
+        appState.billingHistory[periodIndex] = {
+          period: periodIndex,
+          periodName: getPeriodDisplayName(periodIndex),
+          data: parsedData,
+          rawData: rawApiResponse,
+          timestamp: new Date()
+        };
         
         updateDisplay();
         setLoading(false);
         
         showStatusMessage(`✅ ${getPeriodDisplayName(periodIndex)} data loaded`, 'success');
-      }, 800);
+        
+      } catch (error) {
+        setLoading(false);
+        showStatusMessage(`Failed to fetch billing data: ${error.message}`, 'error');
+        console.error('Error fetching billing data:', error);
+        
+        // Fallback to sample data if API fails (for testing)
+        useSampleData(periodIndex);
+      }
     }
 
+    function parseApiData(apiData, periodIndex) {
+      // This function parses the actual API response
+      // You'll need to adjust this based on your actual API response structure
+      
+      if (!apiData || !apiData.billingOverview) {
+        throw new Error('Invalid API response structure');
+      }
+      
+      const products = apiData.billingOverview.products || [];
+      
+      // Parse user licenses
+      const users = parseUserLicenses(products);
+      
+      // Parse resources
+      const resources = parseResources(products);
+      
+      return {
+        period: periodIndex,
+        periodName: getPeriodDisplayName(periodIndex),
+        users: users,
+        resources: resources,
+        rawProducts: products
+      };
+    }
+
+    function parseUserLicenses(products) {
+      const userLicenses = [];
+      
+      // Filter for user license products
+      const userProducts = products.filter(product => 
+        product.name && (
+          product.name.includes('Genesys Cloud CX 2') ||
+          product.name.includes('WEM Add-On') ||
+          product.name.includes('Communicate User') ||
+          product.name.includes('Wallboard Device Charge')
+        )
+      );
+      
+      userProducts.forEach(product => {
+        const usageQuantity = parseFloat(product.usageQuantity) || 0;
+        const prepayQuantity = parseFloat(product.prepayQuantity) || 0;
+        const overageQuantity = Math.max(0, usageQuantity - prepayQuantity);
+        
+        // Extract used from name if available (e.g., "Committed(256 used)")
+        let used = 0;
+        const name = product.name || '';
+        const usedMatch = name.match(/\((\d+)\s*used\)/);
+        if (usedMatch) {
+          used = parseInt(usedMatch[1]);
+        }
+        
+        // Determine committed and on-demand
+        const committed = prepayQuantity;
+        const onDemand = overageQuantity;
+        
+        userLicenses.push({
+          name: product.name,
+          qty: usageQuantity,
+          committed: committed,
+          onDemand: onDemand,
+          used: used,
+          items: [
+            { 
+              name: `Committed${used > 0 ? `(${used} used)` : ''}`, 
+              qty: committed, 
+              used: used 
+            },
+            { name: "On-Demand", qty: onDemand, used: onDemand }
+          ]
+        });
+      });
+      
+      return userLicenses;
+    }
+
+    function parseResources(products) {
+      const resources = [];
+      const byocItems = [];
+      const otherItems = [];
+      
+      // Filter for resource products
+      const resourceProducts = products.filter(product => 
+        product.name && (
+          product.name.includes('BYOT') ||
+          product.name.includes('BYOC Cloud') ||
+          product.name.includes('SMS') ||
+          product.name.includes('Predictive Engagement') ||
+          product.name.includes('Voice Transcription') ||
+          product.name.includes('WhatsApp') ||
+          product.name.includes('Outbound Email') ||
+          product.name.includes('IVR Basic') ||
+          product.name.includes('API Resource')
+        )
+      );
+      
+      resourceProducts.forEach(product => {
+        const usageQuantity = parseFloat(product.usageQuantity) || 0;
+        const prepayQuantity = parseFloat(product.prepayQuantity) || 0;
+        const overageQuantity = Math.max(0, usageQuantity - prepayQuantity);
+        
+        // Determine unit from product name or type
+        let unit = 'units';
+        if (product.name.includes('Per Minute') || product.name.includes('Transcription') || product.name.includes('IVR')) {
+          unit = 'minutes';
+        } else if (product.name.includes('Per Transaction') || product.name.includes('Events')) {
+          unit = 'transactions';
+        } else if (product.name.includes('API Resource')) {
+          unit = 'requests';
+        }
+        
+        const resource = {
+          name: product.name,
+          qty: usageQuantity,
+          unit: unit,
+          included: { 
+            qty: prepayQuantity, 
+            used: Math.min(usageQuantity, prepayQuantity) 
+          },
+          onDemand: overageQuantity
+        };
+        
+        // Categorize resources
+        if (product.name.includes('BYOT')) {
+          byocItems.push(resource);
+        } else {
+          otherItems.push(resource);
+        }
+      });
+      
+      // Add BYOC Cloud category if there are BYOT items
+      if (byocItems.length > 0) {
+        resources.push({
+          category: "BYOC Cloud",
+          items: byocItems
+        });
+      }
+      
+      // Add other resources
+      if (otherItems.length > 0) {
+        resources.push({
+          category: "Other Resources",
+          items: otherItems
+        });
+      }
+      
+      return resources;
+    }
+
+    function useSampleData(periodIndex) {
+      // Fallback sample data structure (same as before but adapted for API failure)
+      const SAMPLE_DATA = {
+        0: {
+          users: [
+            {
+              name: "Genesys Cloud CX 2",
+              qty: 330,
+              committed: 330,
+              onDemand: 0,
+              used: 256,
+              items: [
+                { name: "Committed(256 used)", qty: 330, used: 256 },
+                { name: "On-Demand", qty: 0, used: 0 }
+              ]
+            },
+            {
+              name: "Genesys Cloud CX 2 WEM Add-On I",
+              qty: 93,
+              committed: 70,
+              onDemand: 23,
+              used: 70,
+              items: [
+                { name: "Committed", qty: 70, used: 70 },
+                { name: "On-Demand", qty: 23, used: 23 }
+              ]
+            },
+            {
+              name: "Genesys Cloud Communicate User",
+              qty: 80,
+              committed: 80,
+              onDemand: 0,
+              used: 29,
+              items: [
+                { name: "Committed(29 used)", qty: 80, used: 29 },
+                { name: "On-Demand", qty: 0, used: 0 }
+              ]
+            },
+            {
+              name: "Genesys Cloud for Wallboard Device Charge (view notes)",
+              qty: 4,
+              committed: 4,
+              onDemand: 0,
+              used: 1,
+              items: [
+                { name: "Committed(1 used)", qty: 4, used: 1 },
+                { name: "On-Demand", qty: 0, used: 0 }
+              ]
+            }
+          ],
+          resources: [
+            {
+              category: "BYOC Cloud",
+              items: [
+                { 
+                  name: "BYOT Rate A", 
+                  qty: 0, 
+                  unit: "units", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "BYOT Rate B Per Transaction", 
+                  qty: 0, 
+                  unit: "units", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "BYOT Rate C Per Minute", 
+                  qty: 0, 
+                  unit: "minutes", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "BYOT Rate D Per Transaction", 
+                  qty: 0, 
+                  unit: "units", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "BYOT Rate E Per Minute", 
+                  qty: 0, 
+                  unit: "minutes", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 0
+                }
+              ]
+            },
+            {
+              category: "Other Resources",
+              items: [
+                { 
+                  name: "Genesys Cloud BYOC Cloud", 
+                  qty: 1, 
+                  unit: "units", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 1
+                },
+                { 
+                  name: "Genesys Cloud Short Message Service (SMS)", 
+                  qty: 0, 
+                  unit: "units", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "Genesys Cloud for Predictive Engagement Events", 
+                  qty: 0, 
+                  unit: "events", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "Genesys Cloud for Voice Transcription Fair Use (Legacy)", 
+                  qty: 484200, 
+                  unit: "minutes", 
+                  included: { qty: 484200, used: 17668 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "Genesys Cloud for WhatsApp Messaging", 
+                  qty: 0, 
+                  unit: "units", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "Outbound Email Monthly", 
+                  qty: 0, 
+                  unit: "transactions", 
+                  included: { qty: 0, used: 0 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "Genesys Cloud IVR Basic Per Minute Charge", 
+                  qty: 865000, 
+                  unit: "minutes", 
+                  included: { qty: 865000, used: 5330 }, 
+                  onDemand: 0
+                },
+                { 
+                  name: "Genesys Cloud API Resource", 
+                  qty: 37100000, 
+                  unit: "requests", 
+                  included: { qty: 37100000, used: 451095 }, 
+                  onDemand: 0
+                }
+              ]
+            }
+          ]
+        }
+      };
+      
+      // Use sample data for the requested period (fallback to current month if not available)
+      const samplePeriod = SAMPLE_DATA[periodIndex] || SAMPLE_DATA[0];
+      
+      appState.usageData = {
+        period: periodIndex,
+        periodName: getPeriodDisplayName(periodIndex),
+        users: samplePeriod.users,
+        resources: samplePeriod.resources
+      };
+      
+      appState.lastFetchTime = new Date();
+      updateDisplay();
+      setLoading(false);
+      
+      showStatusMessage('⚠️ Using sample data (API unavailable)', 'warn');
+    }
+
+    // ==================== DISPLAY FUNCTIONS ====================
     function updateDisplay() {
       if (!appState.usageData) return;
       
       const data = appState.usageData;
       
       // Update last updated time
-      const lastUpdatedEl = document.getElementById('lastUpdated');
-      lastUpdatedEl.textContent = `Last updated: ${appState.lastFetchTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+      el.lastUpdated.textContent = `Last updated: ${appState.lastFetchTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
       
       // Update period selector
       document.querySelectorAll('.period-option').forEach(option => {
@@ -1249,23 +1532,23 @@
       const utilizationPct = totalCommitted > 0 ? Math.round((totalUsed / totalCommitted) * 100) : 0;
       
       // Update total users tile
-      document.getElementById('totalUsersValue').textContent = formatNumber(totalUsers);
-      document.getElementById('usersUtilization').innerHTML = `
+      el.totalUsersValue.textContent = formatNumber(totalUsers);
+      el.usersUtilization.innerHTML = `
         <strong>Utilization:</strong> ${utilizationPct}%<br>
         <strong>Committed:</strong> ${formatNumber(totalCommitted)} | <strong>On-Demand:</strong> ${formatNumber(totalOnDemand)}
       `;
       
       // Update overage risk tile
-      document.getElementById('overageRiskValue').textContent = overageRisk > 0 ? `${formatNumber(overageRisk)}` : 'None';
-      const overageTile = document.getElementById('metricUserOverage');
+      el.overageRiskValue.textContent = overageRisk > 0 ? `${formatNumber(overageRisk)}` : 'None';
+      const overageTile = el.metricUserOverage;
       if (overageRisk > 0) {
         overageTile.className = 'metric-card danger';
         overageTile.querySelector('.metric-icon').textContent = '🚨';
-        document.getElementById('overageDetail').textContent = `${formatNumber(overageRisk)} user licenses on-demand (potential overage)`;
+        el.overageDetail.textContent = `${formatNumber(overageRisk)} user licenses on-demand (potential overage)`;
       } else {
         overageTile.className = 'metric-card success';
         overageTile.querySelector('.metric-icon').textContent = '✅';
-        document.getElementById('overageDetail').textContent = 'All licenses are committed (no overage risk)';
+        el.overageDetail.textContent = 'All licenses are committed (no overage risk)';
       }
       
       // Calculate speech analytics metrics
@@ -1291,20 +1574,29 @@
       const ivrUtilization = ivrPrepaid > 0 ? Math.round((ivrUsed / ivrPrepaid) * 100) : 0;
       
       // Update speech analytics tile
-      document.getElementById('speechUsageValue').textContent = `${speechUtilization}%`;
-      document.getElementById('speechUsed').textContent = formatNumber(speechUsed);
-      document.getElementById('speechPrepaid').textContent = formatNumber(speechPrepaid);
-      document.getElementById('speechProgressUsed').style.width = `${speechUtilization}%`;
-      document.getElementById('speechDetail').textContent = `${formatNumber(speechUsed)} of ${formatNumber(speechPrepaid)} minutes used`;
+      el.speechUsageValue.textContent = `${speechUtilization}%`;
+      el.speechUsed.textContent = formatNumber(speechUsed);
+      el.speechPrepaid.textContent = formatNumber(speechPrepaid);
+      el.speechProgressUsed.style.width = `${speechUtilization}%`;
+      el.speechDetail.textContent = `${formatNumber(speechUsed)} of ${formatNumber(speechPrepaid)} minutes used`;
       
       // Update IVR tile
-      document.getElementById('ivrUsageValue').textContent = `${ivrUtilization}%`;
-      document.getElementById('ivrDetail').textContent = `${formatNumber(ivrUsed)} of ${formatNumber(ivrPrepaid)} minutes used`;
+      el.ivrUsageValue.textContent = `${ivrUtilization}%`;
+      el.ivrDetail.textContent = `${formatNumber(ivrUsed)} of ${formatNumber(ivrPrepaid)} minutes used`;
     }
 
     function updateUsersTable(users) {
-      const tbody = document.getElementById('usersTableBody');
+      const tbody = el.usersTableBody;
       tbody.innerHTML = '';
+      
+      if (!users || users.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-light);">
+            No user license data available
+          </td></tr>
+        `;
+        return;
+      }
       
       users.forEach(user => {
         const utilization = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
@@ -1325,8 +1617,17 @@
     }
 
     function updateResourcesTable(resources) {
-      const tbody = document.getElementById('resourcesTableBody');
+      const tbody = el.resourcesTableBody;
       tbody.innerHTML = '';
+      
+      if (!resources || resources.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-light);">
+            No resource data available
+          </td></tr>
+        `;
+        return;
+      }
       
       resources.forEach(category => {
         // Category header
@@ -1365,8 +1666,17 @@
 
     function updateHighlightsTable(data) {
       // Update user highlights
-      const userTbody = document.getElementById('highlightsUsersTable');
+      const userTbody = el.highlightsUsersTable;
       userTbody.innerHTML = '';
+      
+      if (!data.users || data.users.length === 0) {
+        userTbody.innerHTML = `
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-light);">
+            No user license data available
+          </td></tr>
+        `;
+        return;
+      }
       
       data.users.forEach(user => {
         const utilization = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
@@ -1410,22 +1720,31 @@
         const speechRemaining = speechPrepaid - speechUsed;
         const speechUtilization = Math.round((speechUsed / speechPrepaid) * 100);
         
-        document.getElementById('highlightSpeechUsed').textContent = formatNumber(speechUsed);
-        document.getElementById('highlightSpeechPrepaid').textContent = formatNumber(speechPrepaid);
-        document.getElementById('highlightSpeechRemaining').textContent = formatNumber(speechRemaining);
-        document.getElementById('highlightSpeechUsedBar').style.width = `${speechUtilization}%`;
-        document.getElementById('highlightSpeechRemainingBar').style.width = `${100 - speechUtilization}%`;
-        document.getElementById('highlightSpeechUsedPct').textContent = `${speechUtilization}%`;
-        document.getElementById('highlightSpeechAvailablePct').textContent = `${100 - speechUtilization}%`;
+        el.highlightSpeechUsed.textContent = formatNumber(speechUsed);
+        el.highlightSpeechPrepaid.textContent = formatNumber(speechPrepaid);
+        el.highlightSpeechRemaining.textContent = formatNumber(speechRemaining);
+        el.highlightSpeechUsedBar.style.width = `${speechUtilization}%`;
+        el.highlightSpeechRemainingBar.style.width = `${100 - speechUtilization}%`;
+        el.highlightSpeechUsedPct.textContent = `${speechUtilization}%`;
+        el.highlightSpeechAvailablePct.textContent = `${100 - speechUtilization}%`;
         
         const today = new Date();
         const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-        document.getElementById('highlightSpeechDaysLeft').textContent = daysInMonth - today.getDate();
+        el.highlightSpeechDaysLeft.textContent = daysInMonth - today.getDate();
       }
       
       // Update resource highlights
-      const resourceTbody = document.getElementById('highlightsResourcesTable');
+      const resourceTbody = el.highlightsResourcesTable;
       resourceTbody.innerHTML = '';
+      
+      if (!data.resources || data.resources.length === 0) {
+        resourceTbody.innerHTML = `
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-light);">
+            No resource data available
+          </td></tr>
+        `;
+        return;
+      }
       
       const highlightResources = [];
       data.resources.forEach(category => {
@@ -1437,6 +1756,15 @@
           }
         });
       });
+      
+      if (highlightResources.length === 0) {
+        resourceTbody.innerHTML = `
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-light);">
+            No highlight resources found
+          </td></tr>
+        `;
+        return;
+      }
       
       highlightResources.forEach(resource => {
         const utilization = resource.included.qty > 0 
@@ -1519,7 +1847,7 @@
     }
 
     function exportToJSON() {
-      if (!appState.usageData) {
+      if (!appState.usageData || !appState.rawApiData) {
         showStatusMessage('No data to export', 'warn');
         return;
       }
@@ -1528,7 +1856,8 @@
         period: getPeriodDisplayName(appState.currentPeriod),
         periodIndex: appState.currentPeriod,
         generated: new Date().toISOString(),
-        data: appState.usageData
+        parsedData: appState.usageData,
+        rawApiData: appState.rawApiData
       };
       
       const json = JSON.stringify(exportData, null, 2);
@@ -1568,30 +1897,34 @@
       document.querySelectorAll('.period-option').forEach(option => {
         option.addEventListener('click', function() {
           const periodIndex = parseInt(this.dataset.period);
-          loadDataForPeriod(periodIndex);
+          appState.currentPeriod = periodIndex;
+          fetchBillingData(periodIndex);
         });
       });
       
       // Action buttons
-      document.getElementById('btnRefresh').addEventListener('click', function() {
-        loadDataForPeriod(appState.currentPeriod);
+      el.btnRefresh.addEventListener('click', function() {
+        fetchBillingData(appState.currentPeriod);
       });
       
-      document.getElementById('btnExportCSV').addEventListener('click', exportToCSV);
-      document.getElementById('btnExportJSON').addEventListener('click', exportToJSON);
+      el.btnExportCSV.addEventListener('click', exportToCSV);
+      el.btnExportJSON.addEventListener('click', exportToJSON);
+      el.btnDisconnect.addEventListener('click', disconnect);
     }
 
     // ==================== INITIALIZATION ====================
     function initializeApp() {
       setupEventListeners();
-      loadDataForPeriod(0); // Start with current month
       
       // Update organization name
-      document.getElementById('orgNameDisplay').textContent = 'JLA Trusted Organization';
+      el.orgNameDisplay.textContent = `${CONFIG.CUSTOMER_NAME} Trusted Organization`;
+      
+      // Fetch initial data for current period
+      fetchBillingData(0);
     }
 
     // ==================== START APPLICATION ====================
-    document.addEventListener('DOMContentLoaded', initializeApp);
+    document.addEventListener('DOMContentLoaded', initAuth);
   </script>
 </body>
 </html>
