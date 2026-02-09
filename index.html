@@ -13,8 +13,11 @@
       --chart-yellow:#f6c23e; --chart-red:#e74a3b; --chart-purple:#6f42c1;
     }
 
+    body, h1, h2, h3, h4, h5, h6, p, div, span, label, button, input, select, textarea, th, td, li, ul, ol, details, summary, pre, code{
+      font-family:'Aptos','Segoe UI',Arial,sans-serif;
+    }
+
     body{
-      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
       margin:0; padding:0;
       background:var(--light-bg);color:var(--text-color);
       line-height:1.6;
@@ -58,7 +61,7 @@
     select,input,button{
       padding:12px;border:1px solid var(--border-color);
       border-radius:8px;background:var(--card-bg);font-size:15px;width:100%;
-      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+      font-family:'Aptos','Segoe UI',Arial,sans-serif;
     }
 
     button{
@@ -95,14 +98,13 @@
       max-height:600px;overflow-y:auto;
     }
 
-    /* Applied Aptos font to all table elements */
-    table{width:100%;border-collapse:collapse; font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;}
+    table{width:100%;border-collapse:collapse; font-family:'Aptos','Segoe UI',Arial,sans-serif;}
     th{
       background-color:var(--primary-color);color:white;font-weight:600;
       position:sticky;top:0;z-index:10;white-space:nowrap;padding:18px;text-align:center;
-      font-size:14px; font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+      font-size:14px; font-family:'Aptos','Segoe UI',Arial,sans-serif;
     }
-    td{padding:16px 18px;border-bottom:1px solid var(--border-color);font-size:14px;text-align:center; font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;}
+    td{padding:16px 18px;border-bottom:1px solid var(--border-color);font-size:14px;text-align:center; font-family:'Aptos','Segoe UI',Arial,sans-serif;}
     tr:hover{background-color:var(--pill)}
 
     .tabs{
@@ -115,7 +117,7 @@
       border-bottom:2px solid transparent;font-size:16px;
       font-weight:600;color:var(--text-light);cursor:pointer;
       transition:all 0.3s;flex:1;text-align:center;
-      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+      font-family:'Aptos','Segoe UI',Arial,sans-serif;
     }
 
     .tab:hover{color:var(--primary-color)}
@@ -241,7 +243,7 @@
       font-size: 32px;
       font-weight: 700;
       margin: 8px 0;
-      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+      font-family:'Aptos','Segoe UI',Arial,sans-serif;
     }
     
     .metric-label {
@@ -388,7 +390,7 @@
     }
     
     .number-cell {
-      font-family: 'Aptos', monospace, 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+      font-family: 'Aptos', monospace, 'Segoe UI', Arial, sans-serif;
     }
     
     .highlight-row {
@@ -456,7 +458,7 @@
       text-align: right !important;
     }
     
-    /* Auth styles */
+    /* Auth styles - UPDATED to match Conversation Explorer */
     .auth-container {
       display: none;
       position: fixed;
@@ -484,16 +486,36 @@
     .utilization-high-text { color: var(--danger); font-weight: 600; }
     .utilization-medium-text { color: var(--warning); font-weight: 600; }
     .utilization-low-text { color: var(--success); font-weight: 600; }
+    
+    /* Signin button style from Conversation Explorer */
+    #signinBtn {
+      display: none;
+      margin: 20px auto;
+      padding: 12px 24px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+      font-family:'Aptos','Segoe UI',Arial,sans-serif;
+    }
+    
+    #signinBtn:hover {
+      background: var(--secondary-color);
+    }
   </style>
 </head>
 <body>
-  <!-- Auth Container -->
-  <div class="auth-container" id="authContainer">
-    <div class="auth-card">
-      <div style="font-size: 48px; margin-bottom: 20px;">🔐</div>
-      <h2 style="margin-bottom: 16px;">Genesys Cloud Authentication</h2>
-      <p style="color: var(--text-light); margin-bottom: 24px;">Connecting to trusted organization billing API...</p>
-      <div class="spinner" style="margin: 0 auto;"></div>
+  <!-- Auth Container - SIMPLIFIED like Conversation Explorer -->
+  <button id="signinBtn">Sign in to Genesys Cloud</button>
+  
+  <div id="authStatus" class="card" style="display:none;">
+    <div style="text-align:center;padding:20px;">
+      <div style="font-size:18px;color:var(--secondary-color);margin-bottom:8px;">🔐 Authenticating…</div>
+      <div style="color:var(--text-light);">Connecting to Genesys Cloud</div>
     </div>
   </div>
 
@@ -506,7 +528,7 @@
   </div>
 
   <!-- Main Content -->
-  <div class="container" id="mainContent" style="display: none;">
+  <div class="container" id="mainContent" style="display:none;">
     <header>
       <h1>📊 Genesys Cloud - Usage Dashboard</h1>
       <div class="subtitle" style="display:flex;justify-content:space-between;align-items:center;">
@@ -603,7 +625,7 @@
               </tr>
             </thead>
             <tbody id="usersTableBody">
-              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">
+              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
                 Loading user data...
               </td></tr>
             </tbody>
@@ -630,7 +652,7 @@
               </tr>
             </thead>
             <tbody id="resourcesTableBody">
-              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">
+              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
                 Loading resource data...
               </td></tr>
             </tbody>
@@ -661,7 +683,7 @@
                 </tr>
               </thead>
               <tbody id="highlightsUsersTable">
-                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
                   Analyzing user license data...
                 </td></tr>
               </tbody>
@@ -727,7 +749,7 @@
                 </tr>
               </thead>
               <tbody id="highlightsResourcesTable">
-                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
                   Analyzing resource usage...
                 </td></tr>
               </tbody>
@@ -771,11 +793,6 @@
           api: 'https://api.euw2.pure.cloud', 
           login: 'https://login.euw2.pure.cloud' 
         }
-      },
-      STORAGE_KEYS: {
-        TOKEN: 'gc_usage_token',
-        TOKEN_EXPIRY: 'gc_usage_token_expiry',
-        REFRESH_TOKEN: 'gc_usage_refresh_token'
       }
     };
 
@@ -792,7 +809,8 @@
 
     // ==================== DOM ELEMENTS ====================
     const el = {
-      authContainer: document.getElementById('authContainer'),
+      signinBtn: document.getElementById('signinBtn'),
+      authStatus: document.getElementById('authStatus'),
       mainContent: document.getElementById('mainContent'),
       loadingOverlay: document.getElementById('loadingOverlay'),
       statusContainer: document.getElementById('statusContainer'),
@@ -923,178 +941,76 @@
       return 'utilization-low-text';
     }
 
-    // ==================== AUTHENTICATION FUNCTIONS ====================
-    function parseTokenFromHash() {
-      const hash = window.location.hash.replace(/^#/, '');
-      if (!hash) return {};
-      
-      const params = new URLSearchParams(hash);
-      return {
-        token: params.get('access_token'),
-        refreshToken: params.get('refresh_token'),
-        error: params.get('error'),
-        errorDescription: params.get('error_description'),
-        expiresIn: params.get('expires_in')
+    // ==================== AUTHENTICATION FUNCTIONS - UPDATED ====================
+    function parseTokenFromHash(){
+      const params = new URLSearchParams(location.hash.replace(/^#/, ''));
+      return { 
+        token: params.get('access_token'), 
+        error: params.get('error'), 
+        errorDescription: params.get('error_description') 
       };
     }
-
-    function saveCredentials(token, expiresIn, refreshToken = null) {
-      try {
-        const tokenExpiry = Date.now() + (parseInt(expiresIn, 10) * 1000);
-        localStorage.setItem(CONFIG.STORAGE_KEYS.TOKEN, token);
-        localStorage.setItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY, tokenExpiry.toString());
-        if (refreshToken) localStorage.setItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-        return true;
-      } catch (e) {
-        console.error('Failed to save credentials:', e);
-        return false;
-      }
+    
+    function authUrl(){
+      return `${CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION].login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`;
     }
-
-    function loadStoredCredentials() {
-      try {
-        const token = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN);
-        const tokenExpiry = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY);
-
-        if (token && tokenExpiry) {
-          if (Date.now() < parseInt(tokenExpiry, 10) - (5 * 60 * 1000)) {
-            return { token };
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to load stored credentials:', e);
-      }
-      return null;
-    }
-
-    function clearCredentials() {
-      try {
-        localStorage.removeItem(CONFIG.STORAGE_KEYS.TOKEN);
-        localStorage.removeItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY);
-        localStorage.removeItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
-      } catch (e) {
-        console.error('Failed to clear credentials:', e);
-      }
-    }
-
-    async function attemptTokenRefresh() {
-      const refreshToken = localStorage.getItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
-      if (!refreshToken) return false;
+    
+    function initAuth(){
+      const {token, error} = parseTokenFromHash();
       
-      try {
-        const loginUrl = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION]?.login;
-        const response = await fetch(`${loginUrl}/oauth/token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Basic ' + btoa(`${CONFIG.CLIENT_ID}:`)
-          },
-          body: new URLSearchParams({
-            grant_type: 'refresh_token',
-            refresh_token: refreshToken
-          })
-        });
+      // Clear hash from URL
+      if(location.hash) history.replaceState(null,'',location.pathname);
 
-        if (response.ok) {
-          const data = await response.json();
-          saveCredentials(data.access_token, data.expires_in, data.refresh_token || refreshToken);
-          return true;
-        }
-      } catch (error) {
-        console.warn('Token refresh failed:', error);
-      }
-      return false;
-    }
-
-    function authUrl() {
-      const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
-      const state = btoa(JSON.stringify({ 
-        env: CONFIG.ENVIRONMENT_REGION,
-        ts: Date.now()
-      }));
-      
-      // Using resource owner password credentials or implicit flow
-      const scopes = encodeURIComponent('billing:trusteebillingoverview:read');
-      
-      return `${env.login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&state=${encodeURIComponent(state)}&scope=${scopes}`;
-    }
-
-    async function initAuth() {
-      // Show auth container immediately
-      el.authContainer.style.display = 'flex';
-      
-      // Check for token in URL hash (callback from OAuth)
-      const { token, refreshToken, error, errorDescription, expiresIn } = parseTokenFromHash();
-      
-      // Clear the hash from URL
-      if (window.location.hash) {
-        history.replaceState(null, '', window.location.pathname + window.location.search);
-      }
-
-      if (token) {
+      if(token){
         // Token found in URL (OAuth callback)
-        if (saveCredentials(token, expiresIn || '3600', refreshToken)) {
-          appState.isAuthenticated = true;
-          el.authContainer.style.display = 'none';
-          el.mainContent.style.display = 'block';
-          initializeApp();
-          return;
-        }
-      }
-
-      if (error) {
-        showStatusMessage(`Authentication failed: ${errorDescription || error}`, 'error');
-        setTimeout(() => authenticate(), 2000);
-        return;
-      }
-
-      // Try to use stored credentials
-      const credentials = loadStoredCredentials();
-      if (credentials) {
-        appState.isAuthenticated = true;
-        el.authContainer.style.display = 'none';
-        el.mainContent.style.display = 'block';
+        sessionStorage.removeItem('gc_auto_auth_attempted');
+        state.token = token; 
+        showMain(); 
+        setupEventListeners();
         initializeApp();
         return;
       }
 
-      // Try to refresh token
-      const refreshSuccess = await attemptTokenRefresh();
-      if (refreshSuccess) {
-        appState.isAuthenticated = true;
-        el.authContainer.style.display = 'none';
-        el.mainContent.style.display = 'block';
-        initializeApp();
+      const attempted = sessionStorage.getItem('gc_auto_auth_attempted');
+      if(!attempted && !error){
+        // First attempt - auto auth
+        sessionStorage.setItem('gc_auto_auth_attempted','1');
+        location.assign(authUrl());
         return;
       }
 
-      // No valid credentials, start OAuth flow
-      setTimeout(() => authenticate(), 1000);
+      // Show signin button if auto auth failed
+      el.signinBtn.style.display = 'block';
+      el.signinBtn.onclick = () => { 
+        sessionStorage.setItem('gc_auto_auth_attempted','1'); 
+        location.assign(authUrl()); 
+      };
+      el.authStatus.style.display = 'none';
     }
+    
+    // NEW: Added state object for token
+    let state = { token: null };
 
-    function authenticate() {
-      const authUrlValue = authUrl();
-      if (authUrlValue) {
-        window.location.href = authUrlValue;
-      } else {
-        showStatusMessage('Could not generate authentication URL', 'error');
-      }
+    function showMain(){ 
+      el.authStatus.style.display='none'; 
+      el.signinBtn.style.display='none';
+      el.mainContent.style.display='block'; 
     }
 
     function disconnect() {
-      clearCredentials();
+      sessionStorage.removeItem('gc_auto_auth_attempted');
+      state.token = null;
       appState.isAuthenticated = false;
       appState.usageData = null;
       appState.rawApiData = null;
       el.mainContent.style.display = 'none';
-      el.authContainer.style.display = 'flex';
+      el.signinBtn.style.display = 'block';
       showStatusMessage('Disconnected from Genesys Cloud', 'info');
     }
 
     // ==================== API FUNCTIONS ====================
     async function apiCall(path, options = {}) {
-      const token = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN);
-      if (!token) {
+      if(!state.token) {
         showStatusMessage('Authentication required', 'error');
         disconnect();
         return null;
@@ -1107,39 +1023,26 @@
         const response = await fetch(url, {
           ...options,
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${state.token}`,
             'Content-Type': 'application/json',
             ...options.headers
           }
         });
 
-        if (response.status === 401) {
-          // Token expired, try to refresh
-          const refreshSuccess = await attemptTokenRefresh();
-          if (!refreshSuccess) {
-            showStatusMessage('Session expired. Please reauthenticate.', 'error');
-            disconnect();
-            return null;
-          }
-          // Retry with new token
-          return apiCall(path, options);
-        }
-        
-        if (response.status === 403) {
-          // Permission denied - likely missing scope
-          showStatusMessage('Permission denied. Missing billing:trusteebillingoverview:read scope.', 'error');
-          // Try sample data instead
+        if(response.status === 401 || response.status === 403) {
+          showStatusMessage('Session expired. Please reauthenticate.', 'error');
+          disconnect();
           return null;
         }
         
-        if (response.status === 429) {
+        if(response.status === 429) {
           const retryAfter = response.headers.get('Retry-After') || 5;
           showStatusMessage(`Rate limit exceeded. Retrying in ${retryAfter} seconds...`, 'warn');
           await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
           return apiCall(path, options);
         }
         
-        if (!response.ok) {
+        if(!response.ok) {
           const errorText = await response.text().catch(() => '');
           throw new Error(`API Error: ${response.status} ${response.statusText}`);
         }
@@ -1629,7 +1532,7 @@
       
       if (!users || users.length === 0) {
         tbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
+          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
             No user license data available
           </td></tr>
         `;
@@ -1644,13 +1547,13 @@
         const row = document.createElement('tr');
         row.className = rowClass;
         row.innerHTML = `
-          <td class="text-left" style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;"><strong>${user.name}</strong></td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.qty)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.committed)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.used)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.onDemand)}</td>
-          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${utilization}%</td>
-          <td style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${getUtilizationIndicator(utilization)}</td>
+          <td class="text-left" style="font-family:'Aptos','Segoe UI',Arial,sans-serif;"><strong>${user.name}</strong></td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.qty)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.committed)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.used)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.onDemand)}</td>
+          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${utilization}%</td>
+          <td style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${getUtilizationIndicator(utilization)}</td>
         `;
         tbody.appendChild(row);
       });
@@ -1662,7 +1565,7 @@
       
       if (!resources || resources.length === 0) {
         tbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
+          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
             No resource data available
           </td></tr>
         `;
@@ -1675,7 +1578,7 @@
           const headerRow = document.createElement('tr');
           headerRow.className = 'category-header';
           headerRow.innerHTML = `
-            <td colspan="7" style="font-weight:700;font-size:14px;font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;" class="text-left">${category.category}</td>
+            <td colspan="7" style="font-weight:700;font-size:14px;font-family:'Aptos','Segoe UI',Arial,sans-serif;" class="text-left">${category.category}</td>
           `;
           tbody.appendChild(headerRow);
         }
@@ -1689,13 +1592,13 @@
           
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td class="text-left" style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${resource.name}</td>
-            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(resource.qty)}</td>
-            <td style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${resource.unit}</td>
-            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(includedQty)}</td>
-            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(usedQty)}</td>
-            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(resource.onDemand)}</td>
-            <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${includedQty > 0 ? `${utilization}%` : 'N/A'}</td>
+            <td class="text-left" style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${resource.name}</td>
+            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(resource.qty)}</td>
+            <td style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${resource.unit}</td>
+            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(includedQty)}</td>
+            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(usedQty)}</td>
+            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(resource.onDemand)}</td>
+            <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${includedQty > 0 ? `${utilization}%` : 'N/A'}</td>
           `;
           tbody.appendChild(row);
         });
@@ -1709,7 +1612,7 @@
       
       if (!data.users || data.users.length === 0) {
         userTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
             No user license data available
           </td></tr>
         `;
@@ -1722,24 +1625,24 @@
         let status = '';
         
         if (utilization <= 25) {
-          status = '<span style="color:var(--danger);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">⚠️ Underutilized</span>';
+          status = '<span style="color:var(--danger);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">⚠️ Underutilized</span>';
         } else if (user.onDemand > 0) {
-          status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">⚠️ Using On-Demand</span>';
+          status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">⚠️ Using On-Demand</span>';
         } else if (utilization >= 90) {
-          status = '<span style="color:var(--danger);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">🚨 Near Capacity</span>';
+          status = '<span style="color:var(--danger);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">🚨 Near Capacity</span>';
         } else {
-          status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">✅ Optimal</span>';
+          status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">✅ Optimal</span>';
         }
         
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td class="text-left" style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;"><strong>${user.name}</strong></td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.qty)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.committed)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.used)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.onDemand)}</td>
-          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${utilization}%</td>
-          <td style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${status}</td>
+          <td class="text-left" style="font-family:'Aptos','Segoe UI',Arial,sans-serif;"><strong>${user.name}</strong></td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.qty)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.committed)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.used)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.onDemand)}</td>
+          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${utilization}%</td>
+          <td style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${status}</td>
         `;
         userTbody.appendChild(row);
       });
@@ -1779,7 +1682,7 @@
       
       if (!data.resources || data.resources.length === 0) {
         resourceTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
             No resource data available
           </td></tr>
         `;
@@ -1799,7 +1702,7 @@
       
       if (highlightResources.length === 0) {
         resourceTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
             No highlight resources found
           </td></tr>
         `;
@@ -1818,29 +1721,29 @@
         let status = '';
         if (resource.name.includes('Voice Transcription')) {
           if (utilization > 50) {
-            status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">⚠️ High Usage</span>';
+            status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">⚠️ High Usage</span>';
           } else {
-            status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">✅ Normal</span>';
+            status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">✅ Normal</span>';
           }
         } else if (resource.name.includes('IVR')) {
           if (utilization > 10) {
-            status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">⚠️ Monitor</span>';
+            status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">⚠️ Monitor</span>';
           } else {
-            status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">✅ Low</span>';
+            status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">✅ Low</span>';
           }
         } else {
-          status = '<span style="color:var(--info);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">📊 Active</span>';
+          status = '<span style="color:var(--info);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">📊 Active</span>';
         }
         
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td class="text-left" style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${resource.name}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(total)} ${resource.unit}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(used)} ${resource.unit}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(available)} ${resource.unit}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(resource.onDemand)} ${resource.unit}</td>
-          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${utilization}%</td>
-          <td style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${status}</td>
+          <td class="text-left" style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${resource.name}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(total)} ${resource.unit}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(used)} ${resource.unit}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(available)} ${resource.unit}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(resource.onDemand)} ${resource.unit}</td>
+          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${utilization}%</td>
+          <td style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${status}</td>
         `;
         resourceTbody.appendChild(row);
       });
