@@ -95,13 +95,14 @@
       max-height:600px;overflow-y:auto;
     }
 
-    table{width:100%;border-collapse:collapse}
+    /* Applied Aptos font to all table elements */
+    table{width:100%;border-collapse:collapse; font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;}
     th{
       background-color:var(--primary-color);color:white;font-weight:600;
       position:sticky;top:0;z-index:10;white-space:nowrap;padding:18px;text-align:center;
-      font-size:14px;
+      font-size:14px; font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
     }
-    td{padding:16px 18px;border-bottom:1px solid var(--border-color);font-size:14px;text-align:center;}
+    td{padding:16px 18px;border-bottom:1px solid var(--border-color);font-size:14px;text-align:center; font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;}
     tr:hover{background-color:var(--pill)}
 
     .tabs{
@@ -387,7 +388,7 @@
     }
     
     .number-cell {
-      font-family: 'Aptos', monospace;
+      font-family: 'Aptos', monospace, 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
     }
     
     .highlight-row {
@@ -1012,19 +1013,26 @@
         ts: Date.now()
       }));
       
-      return `${env.login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&state=${encodeURIComponent(state)}`;
+      // Using resource owner password credentials or implicit flow
+      const scopes = encodeURIComponent('billing:trusteebillingoverview:read');
+      
+      return `${env.login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&state=${encodeURIComponent(state)}&scope=${scopes}`;
     }
 
     async function initAuth() {
+      // Show auth container immediately
       el.authContainer.style.display = 'flex';
       
+      // Check for token in URL hash (callback from OAuth)
       const { token, refreshToken, error, errorDescription, expiresIn } = parseTokenFromHash();
       
+      // Clear the hash from URL
       if (window.location.hash) {
         history.replaceState(null, '', window.location.pathname + window.location.search);
       }
 
       if (token) {
+        // Token found in URL (OAuth callback)
         if (saveCredentials(token, expiresIn || '3600', refreshToken)) {
           appState.isAuthenticated = true;
           el.authContainer.style.display = 'none';
@@ -1035,11 +1043,12 @@
       }
 
       if (error) {
-        showStatusMessage(`Authentication failed: ${error}`, 'error');
+        showStatusMessage(`Authentication failed: ${errorDescription || error}`, 'error');
         setTimeout(() => authenticate(), 2000);
         return;
       }
 
+      // Try to use stored credentials
       const credentials = loadStoredCredentials();
       if (credentials) {
         appState.isAuthenticated = true;
@@ -1049,6 +1058,7 @@
         return;
       }
 
+      // Try to refresh token
       const refreshSuccess = await attemptTokenRefresh();
       if (refreshSuccess) {
         appState.isAuthenticated = true;
@@ -1058,6 +1068,7 @@
         return;
       }
 
+      // No valid credentials, start OAuth flow
       setTimeout(() => authenticate(), 1000);
     }
 
@@ -1071,7 +1082,6 @@
     }
 
     function disconnect() {
-      // REMOVED THE CONFIRM DIALOG - Disconnects immediately
       clearCredentials();
       appState.isAuthenticated = false;
       appState.usageData = null;
@@ -1103,14 +1113,23 @@
           }
         });
 
-        if (response.status === 401 || response.status === 403) {
+        if (response.status === 401) {
+          // Token expired, try to refresh
           const refreshSuccess = await attemptTokenRefresh();
           if (!refreshSuccess) {
             showStatusMessage('Session expired. Please reauthenticate.', 'error');
             disconnect();
             return null;
           }
+          // Retry with new token
           return apiCall(path, options);
+        }
+        
+        if (response.status === 403) {
+          // Permission denied - likely missing scope
+          showStatusMessage('Permission denied. Missing billing:trusteebillingoverview:read scope.', 'error');
+          // Try sample data instead
+          return null;
         }
         
         if (response.status === 429) {
@@ -1143,7 +1162,10 @@
         const rawApiResponse = await apiCall(endpoint);
         
         if (!rawApiResponse) {
-          throw new Error('No data returned from API');
+          // If API returns null (403 or other error), use sample data
+          console.log('API call failed or returned null, using sample data');
+          useSampleData(periodIndex);
+          return;
         }
         
         console.log('API Response:', rawApiResponse);
@@ -1175,7 +1197,7 @@
         showStatusMessage(`Failed to fetch billing data: ${error.message}`, 'error');
         console.error('Error fetching billing data:', error);
         
-        // Fallback to sample data if API fails (for testing)
+        // Fallback to sample data if API fails
         useSampleData(periodIndex);
       }
     }
@@ -1495,7 +1517,7 @@
       updateDisplay();
       setLoading(false);
       
-      showStatusMessage('⚠️ Using sample data (API unavailable)', 'warn');
+      showStatusMessage('⚠️ Using sample data (API unavailable or no permissions)', 'warn');
     }
 
     // ==================== DISPLAY FUNCTIONS ====================
@@ -1607,7 +1629,7 @@
       
       if (!users || users.length === 0) {
         tbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">
+          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
             No user license data available
           </td></tr>
         `;
@@ -1622,13 +1644,13 @@
         const row = document.createElement('tr');
         row.className = rowClass;
         row.innerHTML = `
-          <td class="text-left"><strong>${user.name}</strong></td>
-          <td class="number-cell">${formatNumber(user.qty)}</td>
-          <td class="number-cell">${formatNumber(user.committed)}</td>
-          <td class="number-cell">${formatNumber(user.used)}</td>
-          <td class="number-cell">${formatNumber(user.onDemand)}</td>
-          <td class="number-cell ${utilizationColorClass}">${utilization}%</td>
-          <td>${getUtilizationIndicator(utilization)}</td>
+          <td class="text-left" style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;"><strong>${user.name}</strong></td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.qty)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.committed)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.used)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.onDemand)}</td>
+          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${utilization}%</td>
+          <td style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${getUtilizationIndicator(utilization)}</td>
         `;
         tbody.appendChild(row);
       });
@@ -1640,7 +1662,7 @@
       
       if (!resources || resources.length === 0) {
         tbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">
+          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
             No resource data available
           </td></tr>
         `;
@@ -1653,7 +1675,7 @@
           const headerRow = document.createElement('tr');
           headerRow.className = 'category-header';
           headerRow.innerHTML = `
-            <td colspan="7" style="font-weight:700;font-size:14px;" class="text-left">${category.category}</td>
+            <td colspan="7" style="font-weight:700;font-size:14px;font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;" class="text-left">${category.category}</td>
           `;
           tbody.appendChild(headerRow);
         }
@@ -1667,13 +1689,13 @@
           
           const row = document.createElement('tr');
           row.innerHTML = `
-            <td class="text-left">${resource.name}</td>
-            <td class="number-cell">${formatNumber(resource.qty)}</td>
-            <td>${resource.unit}</td>
-            <td class="number-cell">${formatNumber(includedQty)}</td>
-            <td class="number-cell">${formatNumber(usedQty)}</td>
-            <td class="number-cell">${formatNumber(resource.onDemand)}</td>
-            <td class="number-cell ${utilizationColorClass}">${includedQty > 0 ? `${utilization}%` : 'N/A'}</td>
+            <td class="text-left" style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${resource.name}</td>
+            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(resource.qty)}</td>
+            <td style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${resource.unit}</td>
+            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(includedQty)}</td>
+            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(usedQty)}</td>
+            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(resource.onDemand)}</td>
+            <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${includedQty > 0 ? `${utilization}%` : 'N/A'}</td>
           `;
           tbody.appendChild(row);
         });
@@ -1687,7 +1709,7 @@
       
       if (!data.users || data.users.length === 0) {
         userTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
             No user license data available
           </td></tr>
         `;
@@ -1700,24 +1722,24 @@
         let status = '';
         
         if (utilization <= 25) {
-          status = '<span style="color:var(--danger);">⚠️ Underutilized</span>';
+          status = '<span style="color:var(--danger);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">⚠️ Underutilized</span>';
         } else if (user.onDemand > 0) {
-          status = '<span style="color:var(--warning);">⚠️ Using On-Demand</span>';
+          status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">⚠️ Using On-Demand</span>';
         } else if (utilization >= 90) {
-          status = '<span style="color:var(--danger);">🚨 Near Capacity</span>';
+          status = '<span style="color:var(--danger);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">🚨 Near Capacity</span>';
         } else {
-          status = '<span style="color:var(--success);">✅ Optimal</span>';
+          status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">✅ Optimal</span>';
         }
         
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td class="text-left"><strong>${user.name}</strong></td>
-          <td class="number-cell">${formatNumber(user.qty)}</td>
-          <td class="number-cell">${formatNumber(user.committed)}</td>
-          <td class="number-cell">${formatNumber(user.used)}</td>
-          <td class="number-cell">${formatNumber(user.onDemand)}</td>
-          <td class="number-cell ${utilizationColorClass}">${utilization}%</td>
-          <td>${status}</td>
+          <td class="text-left" style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;"><strong>${user.name}</strong></td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.qty)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.committed)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.used)}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(user.onDemand)}</td>
+          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${utilization}%</td>
+          <td style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${status}</td>
         `;
         userTbody.appendChild(row);
       });
@@ -1757,7 +1779,7 @@
       
       if (!data.resources || data.resources.length === 0) {
         resourceTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
             No resource data available
           </td></tr>
         `;
@@ -1777,7 +1799,7 @@
       
       if (highlightResources.length === 0) {
         resourceTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
             No highlight resources found
           </td></tr>
         `;
@@ -1796,29 +1818,29 @@
         let status = '';
         if (resource.name.includes('Voice Transcription')) {
           if (utilization > 50) {
-            status = '<span style="color:var(--warning);">⚠️ High Usage</span>';
+            status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">⚠️ High Usage</span>';
           } else {
-            status = '<span style="color:var(--success);">✅ Normal</span>';
+            status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">✅ Normal</span>';
           }
         } else if (resource.name.includes('IVR')) {
           if (utilization > 10) {
-            status = '<span style="color:var(--warning);">⚠️ Monitor</span>';
+            status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">⚠️ Monitor</span>';
           } else {
-            status = '<span style="color:var(--success);">✅ Low</span>';
+            status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">✅ Low</span>';
           }
         } else {
-          status = '<span style="color:var(--info);">📊 Active</span>';
+          status = '<span style="color:var(--info);font-family:\'Aptos\',\'Segoe UI\',system-ui,-apple-system,Arial,sans-serif;">📊 Active</span>';
         }
         
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td class="text-left">${resource.name}</td>
-          <td class="number-cell">${formatNumber(total)} ${resource.unit}</td>
-          <td class="number-cell">${formatNumber(used)} ${resource.unit}</td>
-          <td class="number-cell">${formatNumber(available)} ${resource.unit}</td>
-          <td class="number-cell">${formatNumber(resource.onDemand)} ${resource.unit}</td>
-          <td class="number-cell ${utilizationColorClass}">${utilization}%</td>
-          <td>${status}</td>
+          <td class="text-left" style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${resource.name}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(total)} ${resource.unit}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(used)} ${resource.unit}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(available)} ${resource.unit}</td>
+          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${formatNumber(resource.onDemand)} ${resource.unit}</td>
+          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${utilization}%</td>
+          <td style="font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;">${status}</td>
         `;
         resourceTbody.appendChild(row);
       });
