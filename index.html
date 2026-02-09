@@ -946,6 +946,51 @@
       padding: 60px 20px;
       color: var(--text-light);
     }
+
+    /* Debug panel */
+    .debug-panel {
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 16px;
+      display: none;
+    }
+    
+    .debug-toggle {
+      background: var(--warning);
+      color: #212529;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      margin-top: 8px;
+    }
+    
+    .debug-toggle:hover {
+      background: #e0a800;
+    }
+    
+    .debug-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .debug-label {
+      color: #6c757d;
+    }
+    
+    .debug-value {
+      color: #20c997;
+    }
   </style>
 </head>
 <body>
@@ -1029,12 +1074,17 @@
               <span class="info-label">Status:</span>
               <span class="info-value" style="color:var(--success);font-weight:700;">Connected ✓</span>
             </div>
+            
+            <!-- Debug toggle -->
+            <button class="debug-toggle" id="debugToggle">Show API Response</button>
+            <div class="debug-panel" id="debugPanel"></div>
+            
             <button id="btnDisconnect" class="btn btn-danger btn-block" style="margin-top:24px;">
               <span>🚪 Disconnect & Clear Session</span>
             </button>
           </div>
 
-          <!-- Billing Period Selector - UPDATED with dropdown -->
+          <!-- Billing Period Selector -->
           <div class="card">
             <h2>📅 Billing Period</h2>
             <div class="form-group">
@@ -1091,12 +1141,11 @@
             </div>
             
             <div class="form-group">
-              <label>Comparison Mode</label>
-              <select id="comparisonMode">
-                <option value="none">No Comparison</option>
-                <option value="previous">Compare with Previous Period</option>
-                <option value="year">Compare with Same Period Last Year</option>
-                <option value="custom">Custom Comparison</option>
+              <label>Display Units</label>
+              <select id="unitDisplay">
+                <option value="minutes">Minutes</option>
+                <option value="hours">Hours</option>
+                <option value="auto" selected>Auto-detect from API</option>
               </select>
             </div>
             
@@ -1145,13 +1194,12 @@
         </div>
 
         <div class="right-column">
-          <!-- Tabs Navigation - UPDATED with Comparison tab -->
+          <!-- Tabs Navigation -->
           <div class="tabs">
             <button class="tab active" data-tab="overview">📊 Overview</button>
             <button class="tab" data-tab="transcription">🎤 Transcription</button>
             <button class="tab" data-tab="usage">📈 Usage Details</button>
             <button class="tab" data-tab="comparison">📊 Comparison</button>
-            <button class="tab" data-tab="transactions">💳 Transactions</button>
             <button class="tab" data-tab="logs">📝 Logs</button>
           </div>
 
@@ -1319,17 +1367,17 @@
               </div>
               
               <div class="card" style="margin-top:24px;">
-                <h3 style="margin:0 0 18px;">📊 Transcription Usage by Day</h3>
+                <h3 style="margin:0 0 18px;">📊 Transcription Services Breakdown</h3>
                 <div class="table-container">
                   <table>
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>Transcription Minutes</th>
-                        <th>Prepaid Used</th>
+                        <th>Service Name</th>
+                        <th>Type</th>
+                        <th>Usage Quantity</th>
+                        <th>Prepay Quantity</th>
                         <th>Overage</th>
-                        <th>Cost</th>
-                        <th>Trend</th>
+                        <th>Usage %</th>
                       </tr>
                     </thead>
                     <tbody id="transcriptionTableBody">
@@ -1348,187 +1396,42 @@
             <div class="card">
               <h2>📈 Detailed Usage Breakdown</h2>
               
-              <div class="tabs" style="margin-bottom:24px;">
-                <button class="tab active" data-subtab="all">All Services</button>
-                <button class="tab" data-subtab="voice">Voice Services</button>
-                <button class="tab" data-subtab="digital">Digital Services</button>
-                <button class="tab" data-subtab="ai">AI Services</button>
-              </div>
-              
-              <div id="subtab-all" class="tab-content active">
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Service Type</th>
-                        <th>Total Units</th>
-                        <th>Prepaid Used</th>
-                        <th>Overage</th>
-                        <th>Prepaid Cost</th>
-                        <th>Overage Cost</th>
-                        <th>Total Cost</th>
-                        <th>% of Prepaid</th>
-                      </tr>
-                    </thead>
-                    <tbody id="usageTableBody">
-                      <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
-                        No usage data loaded. Fetch billing data first.
-                      </td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              
-              <div id="subtab-voice" class="tab-content">
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Voice Service</th>
-                        <th>Minutes</th>
-                        <th>Prepaid</th>
-                        <th>Overage</th>
-                        <th>Cost</th>
-                      </tr>
-                    </thead>
-                    <tbody id="voiceTableBody">
-                      <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-light);">
-                        No voice service data available.
-                      </td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              
-              <div id="subtab-digital" class="tab-content">
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Digital Service</th>
-                        <th>Units</th>
-                        <th>Prepaid</th>
-                        <th>Overage</th>
-                        <th>Cost</th>
-                      </tr>
-                    </thead>
-                    <tbody id="digitalTableBody">
-                      <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-light);">
-                        No digital service data available.
-                      </td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              
-              <div id="subtab-ai" class="tab-content">
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>AI Service</th>
-                        <th>Units</th>
-                        <th>Prepaid</th>
-                        <th>Overage</th>
-                        <th>Cost</th>
-                      </tr>
-                    </thead>
-                    <tbody id="aiTableBody">
-                      <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-light);">
-                        No AI service data available.
-                      </td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- NEW: Comparison Tab -->
-          <div id="tab-comparison" class="tab-content">
-            <div class="card">
-              <h2>📊 Monthly Comparison</h2>
-              
-              <div class="form-group">
-                <label>Compare Current Period With:</label>
-                <div style="display:flex;gap:12px;align-items:center;">
-                  <select id="comparePeriod" style="flex:1;">
-                    <option value="previous">Previous Period (Month-over-Month)</option>
-                    <option value="same-last-year">Same Period Last Year</option>
-                    <option value="custom">Custom Period</option>
-                  </select>
-                  <button id="btnRunComparison" class="btn btn-info" style="padding:12px 24px;">
-                    <span>Compare</span>
-                  </button>
-                </div>
-              </div>
-              
-              <div id="comparisonResults">
-                <div class="comparison-loading" id="comparisonLoading">
-                  <div class="spinner" style="width:40px;height:40px;margin:0 auto 20px;"></div>
-                  <p>Select comparison period and click "Compare"</p>
-                </div>
-                
-                <div id="comparisonContent" style="display:none;">
-                  <!-- Comparison stats will be loaded here -->
-                </div>
-              </div>
-            </div>
-            
-            <div class="card" style="margin-top:24px;">
-              <h2>📈 Comparison Chart</h2>
-              <div class="comparison-chart-container">
-                <canvas id="comparisonChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Transactions Tab -->
-          <div id="tab-transactions" class="tab-content">
-            <div class="card">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-                <h2 style="margin:0;">💳 Billing Transactions</h2>
-                <div style="display:flex;gap:12px;align-items:center;">
-                  <input type="text" id="transactionSearch" placeholder="🔍 Search transactions..." style="width:280px;padding:12px;">
-                  <select id="transactionFilter" style="width:160px;padding:12px;">
-                    <option value="all">All Transactions</option>
-                    <option value="purchase">Purchases</option>
-                    <option value="usage">Usage Charges</option>
-                    <option value="refund">Refunds</option>
-                    <option value="adjustment">Adjustments</option>
-                  </select>
-                  <div style="font-size:13px;color:var(--text-light);">
-                    <span id="transactionCount">0</span> transactions
-                  </div>
-                </div>
-              </div>
-
               <div class="table-container">
                 <table>
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Transaction ID</th>
+                      <th>Service Name</th>
                       <th>Type</th>
-                      <th>Description</th>
-                      <th>Service</th>
-                      <th>Units</th>
-                      <th>Amount</th>
-                      <th>Balance</th>
+                      <th>Usage Quantity</th>
+                      <th>Prepay Quantity</th>
+                      <th>Overage</th>
+                      <th>Usage %</th>
+                      <th>Prepay Remaining</th>
                     </tr>
                   </thead>
-                  <tbody id="transactionsTableBody">
-                    <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
-                      No transaction data loaded. Fetch billing data first.
+                  <tbody id="usageTableBody">
+                    <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">
+                      No usage data loaded. Fetch billing data first.
                     </td></tr>
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+
+          <!-- Comparison Tab -->
+          <div id="tab-comparison" class="tab-content">
+            <div class="card">
+              <h2>📊 Monthly Comparison</h2>
               
-              <div class="data-refresh">
-                <div style="display:flex;justify-content:space-between;">
-                  <span>Showing transactions for: <span id="transactionPeriod">Current Period</span></span>
-                  <button id="btnLoadMore" class="btn" style="padding:6px 12px;font-size:12px;">Load More</button>
+              <div id="comparisonResults">
+                <div class="comparison-loading" id="comparisonLoading">
+                  <div class="spinner" style="width:40px;height:40px;margin:0 auto 20px;"></div>
+                  <p>Fetch billing data for at least two periods to enable comparison</p>
+                </div>
+                
+                <div id="comparisonContent" style="display:none;">
+                  <!-- Comparison stats will be loaded here -->
                 </div>
               </div>
             </div>
@@ -1590,7 +1493,7 @@
     // ==================== CONFIGURATION ====================
     const CONFIG = {
       CLIENT_ID: '4ab97fe2-54c0-4deb-8b9a-a4b5720d6c67',
-      REDIRECT_URI: 'https://github.io/gmcglynn88/Billing/',
+      REDIRECT_URI: 'https://github.io/gmcglynn88/Billing',
       TRUSTED_ORG_ID: '9b6492f9-d751-4406-bc7a-8ed307afef0a',
       CUSTOMER_NAME: 'JLA',
       ENVIRONMENT_REGION: 'eu-west-2',
@@ -1607,7 +1510,7 @@
         REFRESH_TOKEN: 'gc_billing_refresh_token',
         CURRENCY: 'gc_billing_currency',
         PERIOD: 'gc_billing_period',
-        COMPARISON_MODE: 'gc_billing_comparison_mode'
+        UNIT_DISPLAY: 'gc_billing_unit_display'
       }
     };
 
@@ -1615,7 +1518,7 @@
     let appState = {
       isConnected: false,
       billingData: null,
-      comparisonData: null,
+      rawApiResponse: null,
       transactions: [],
       usageData: [],
       currentTab: 'overview',
@@ -1640,6 +1543,10 @@
       exportPreview: document.getElementById('exportPreview'),
       btnExportSelected: document.getElementById('btnExportSelected'),
       
+      // Debug elements
+      debugToggle: document.getElementById('debugToggle'),
+      debugPanel: document.getElementById('debugPanel'),
+      
       // Header Elements
       orgNameDisplay: document.getElementById('orgNameDisplay'),
       lastUpdated: document.getElementById('lastUpdated'),
@@ -1649,15 +1556,13 @@
       orgIdDisplay: document.getElementById('orgIdDisplay'),
       btnDisconnect: document.getElementById('btnDisconnect'),
       
-      // Period Selector - UPDATED
+      // Period Selector
       periodSelect: document.getElementById('periodSelect'),
       periodInfo: document.getElementById('periodInfo'),
       
       // Settings
       refreshInterval: document.getElementById('refreshInterval'),
-      comparisonMode: document.getElementById('comparisonMode'),
-      comparePeriod: document.getElementById('comparePeriod'),
-      btnRunComparison: document.getElementById('btnRunComparison'),
+      unitDisplay: document.getElementById('unitDisplay'),
       
       // Actions
       btnFetchBilling: document.getElementById('btnFetchBilling'),
@@ -1717,7 +1622,6 @@
       
       // Charts
       usageChart: document.getElementById('usageChart'),
-      comparisonChart: document.getElementById('comparisonChart'),
       dataTimestamp: document.getElementById('dataTimestamp'),
       btnRefreshChart: document.getElementById('btnRefreshChart'),
       
@@ -1740,17 +1644,6 @@
       
       // Usage Tab
       usageTableBody: document.getElementById('usageTableBody'),
-      voiceTableBody: document.getElementById('voiceTableBody'),
-      digitalTableBody: document.getElementById('digitalTableBody'),
-      aiTableBody: document.getElementById('aiTableBody'),
-      
-      // Transactions Tab
-      transactionsTableBody: document.getElementById('transactionsTableBody'),
-      transactionSearch: document.getElementById('transactionSearch'),
-      transactionFilter: document.getElementById('transactionFilter'),
-      transactionCount: document.getElementById('transactionCount'),
-      transactionPeriod: document.getElementById('transactionPeriod'),
-      btnLoadMore: document.getElementById('btnLoadMore'),
       
       // Logs Tab
       logsTableBody: document.getElementById('logsTableBody'),
@@ -1836,6 +1729,13 @@
       return new Intl.NumberFormat().format(num);
     }
 
+    function parseQuantity(quantity) {
+      if (!quantity) return 0;
+      // Handle both string and number inputs
+      const num = typeof quantity === 'string' ? parseFloat(quantity.replace(/[^0-9.-]+/g, '')) : quantity;
+      return isNaN(num) ? 0 : num;
+    }
+
     function calculatePercentageChange(current, previous) {
       if (previous === 0) return current > 0 ? 100 : 0;
       return ((current - previous) / previous * 100);
@@ -1884,18 +1784,213 @@
       return periodIndex;
     }
 
+    function updateDebugPanel(rawData) {
+      if (!rawData) return;
+      
+      let debugHTML = '<div class="debug-row"><span class="debug-label">API Response Structure:</span><span class="debug-value">Parsing real data</span></div>';
+      
+      // Show top-level structure
+      if (rawData.billingOverview) {
+        debugHTML += `<div class="debug-row"><span class="debug-label">Has billingOverview:</span><span class="debug-value">Yes</span></div>`;
+        
+        if (rawData.billingOverview.products && Array.isArray(rawData.billingOverview.products)) {
+          debugHTML += `<div class="debug-row"><span class="debug-label">Products count:</span><span class="debug-value">${rawData.billingOverview.products.length}</span></div>`;
+          
+          // Show each product
+          rawData.billingOverview.products.forEach((product, index) => {
+            debugHTML += `<div class="debug-row"><span class="debug-label">Product ${index + 1}:</span><span class="debug-value">${product.name || 'Unnamed'}</span></div>`;
+            if (product.name && product.name.includes('Transcription')) {
+              debugHTML += `<div class="debug-row"><span class="debug-label">&nbsp;&nbsp;Usage Quantity:</span><span class="debug-value">${product.usageQuantity || 0}</span></div>`;
+              debugHTML += `<div class="debug-row"><span class="debug-label">&nbsp;&nbsp;Prepay Quantity:</span><span class="debug-value">${product.prepayQuantity || 0}</span></div>`;
+              debugHTML += `<div class="debug-row"><span class="debug-label">&nbsp;&nbsp;Overage:</span><span class="debug-value">${parseQuantity(product.usageQuantity) - parseQuantity(product.prepayQuantity)}</span></div>`;
+            }
+          });
+        }
+      }
+      
+      el.debugPanel.innerHTML = debugHTML;
+    }
+
     // ==================== AUTHENTICATION FUNCTIONS ====================
-    // [Authentication functions remain the same as before - truncated for brevity]
-    function parseTokenFromHash() { /* ... */ }
-    function saveCredentials(token, expiresIn, refreshToken = null) { /* ... */ }
-    function loadStoredCredentials() { /* ... */ }
-    function clearCredentials() { /* ... */ }
-    async function attemptTokenRefresh() { /* ... */ }
-    function authUrl() { /* ... */ }
-    async function initAuth() { /* ... */ }
-    function authenticate() { /* ... */ }
-    function showMainApp() { /* ... */ }
-    function disconnect() { /* ... */ }
+    function parseTokenFromHash() {
+      const hash = window.location.hash.replace(/^#/, '');
+      if (!hash) return {};
+      
+      const params = new URLSearchParams(hash);
+      return {
+        token: params.get('access_token'),
+        refreshToken: params.get('refresh_token'),
+        error: params.get('error'),
+        errorDescription: params.get('error_description'),
+        expiresIn: params.get('expires_in'),
+        state: params.get('state')
+      };
+    }
+
+    function saveCredentials(token, expiresIn, refreshToken = null) {
+      try {
+        const tokenExpiry = Date.now() + (parseInt(expiresIn, 10) * 1000);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.TOKEN, token);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY, tokenExpiry.toString());
+        if (refreshToken) localStorage.setItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+        return true;
+      } catch (e) {
+        console.error('Failed to save credentials:', e);
+        return false;
+      }
+    }
+
+    function loadStoredCredentials() {
+      try {
+        const token = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN);
+        const tokenExpiry = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY);
+        const refreshToken = localStorage.getItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
+
+        if (token && tokenExpiry) {
+          if (Date.now() < parseInt(tokenExpiry, 10) - (5 * 60 * 1000)) {
+            return { token, refreshToken };
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load stored credentials:', e);
+      }
+      return null;
+    }
+
+    function clearCredentials() {
+      try {
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY);
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
+      } catch (e) {
+        console.error('Failed to clear credentials:', e);
+      }
+    }
+
+    async function attemptTokenRefresh() {
+      const refreshToken = localStorage.getItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
+      if (!refreshToken) return false;
+      
+      try {
+        const loginUrl = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION]?.login;
+        const response = await fetch(`${loginUrl}/oauth/token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + btoa(`${CONFIG.CLIENT_ID}:`)
+          },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          saveCredentials(data.access_token, data.expires_in, data.refresh_token || refreshToken);
+          logMessage('SUCCESS', 'Token refreshed successfully');
+          return true;
+        }
+      } catch (error) {
+        console.warn('Token refresh failed:', error);
+      }
+      return false;
+    }
+
+    function authUrl() {
+      const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
+      const state = btoa(JSON.stringify({ 
+        env: CONFIG.ENVIRONMENT_REGION,
+        ts: Date.now()
+      }));
+      
+      return `${env.login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&state=${encodeURIComponent(state)}`;
+    }
+
+    async function initAuth() {
+      el.authContainer.style.display = 'block';
+      
+      const { token, refreshToken, error, errorDescription, expiresIn } = parseTokenFromHash();
+      
+      if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+
+      if (token) {
+        if (saveCredentials(token, expiresIn || '3600', refreshToken)) {
+          logMessage('SUCCESS', 'Authentication successful', `Connected to ${CONFIG.CUSTOMER_NAME}`);
+          showStatusMessage('✅ Connected to Genesys Cloud', 'success');
+          showMainApp();
+          return;
+        }
+      }
+
+      if (error) {
+        logMessage('ERROR', 'Authentication failed', `${error}: ${errorDescription}`);
+        showStatusMessage(`❌ Authentication failed: ${error}`, 'error');
+        setTimeout(() => authenticate(), 2000);
+        return;
+      }
+
+      const credentials = loadStoredCredentials();
+      if (credentials) {
+        logMessage('INFO', 'Auto-authentication successful', 'Using stored credentials');
+        setTimeout(() => showMainApp(), 500);
+        return;
+      }
+
+      const refreshSuccess = await attemptTokenRefresh();
+      if (refreshSuccess) {
+        logMessage('SUCCESS', 'Token refreshed', 'Auto-authentication successful');
+        setTimeout(() => showMainApp(), 500);
+        return;
+      }
+
+      logMessage('INFO', 'No valid credentials found', 'Redirecting to authentication...');
+      setTimeout(() => authenticate(), 1500);
+    }
+
+    function authenticate() {
+      const authUrlValue = authUrl();
+      if (authUrlValue) {
+        window.location.href = authUrlValue;
+      } else {
+        logMessage('ERROR', 'Could not generate authentication URL');
+      }
+    }
+
+    function showMainApp() {
+      el.authContainer.style.display = 'none';
+      el.mainContent.style.display = 'block';
+      el.orgNameDisplay.textContent = `${CONFIG.CUSTOMER_NAME} Trusted Organization Billing`;
+      initializeApp();
+    }
+
+    function disconnect() {
+      if (confirm('Disconnect from Genesys Cloud? This will clear all stored billing data and credentials.')) {
+        clearCredentials();
+        stopAutoRefresh();
+        appState = {
+          isConnected: false,
+          billingData: null,
+          rawApiResponse: null,
+          transactions: [],
+          usageData: [],
+          currentTab: 'overview',
+          currentCurrency: '£',
+          currentPeriod: 0,
+          logs: [],
+          chartInstances: {},
+          refreshInterval: null,
+          lastFetchTime: null,
+          billingHistory: []
+        };
+        el.mainContent.style.display = 'none';
+        el.authContainer.style.display = 'block';
+        logMessage('INFO', 'Disconnected from Genesys Cloud');
+        setTimeout(() => initAuth(), 500);
+      }
+    }
 
     // ==================== API FUNCTIONS ====================
     async function apiCall(path, options = {}) {
@@ -1944,22 +2039,27 @@
       try {
         const periodParam = getPeriodParam(appState.currentPeriod);
         // Updated API call with period parameter
-        const endpoint = `/api/v2/billing/trusteebillingoverview/${CONFIG.TRUSTED_ORG_ID}?period=${periodParam}`;
+        const endpoint = `/api/v2/billing/trusteebillingoverview/${CONFIG.TRUSTED_ORG_ID}`;
         logMessage('INFO', 'Fetching billing data', `API: ${endpoint} (Period: ${appState.currentPeriod})`);
         updateLoadingProgress(30);
 
-        const billingData = await apiCall(endpoint);
-        console.log('Billing API Response:', billingData);
+        const rawApiResponse = await apiCall(endpoint);
+        console.log('Billing API Raw Response:', rawApiResponse);
         
         updateLoadingProgress(60);
-        appState.billingData = billingData;
+        appState.rawApiResponse = rawApiResponse;
         appState.lastFetchTime = new Date();
+        
+        // Parse the actual API response
+        const parsedData = parseBillingData(rawApiResponse);
+        appState.billingData = parsedData;
         
         // Store in history
         const historyEntry = {
           period: appState.currentPeriod,
           periodName: getPeriodDisplayName(appState.currentPeriod),
-          data: billingData,
+          data: parsedData,
+          rawData: rawApiResponse,
           timestamp: new Date()
         };
         
@@ -1979,6 +2079,9 @@
         updateLoadingProgress(80);
         updateDisplayWithBillingData();
         
+        // Update debug panel with raw API data
+        updateDebugPanel(rawApiResponse);
+        
         updateLoadingProgress(95);
         logMessage('SUCCESS', 'Billing data loaded', `Trusted organization billing overview fetched for period ${appState.currentPeriod}`);
         
@@ -1993,158 +2096,140 @@
         logMessage('ERROR', 'Failed to fetch billing data', error.message);
         showStatusMessage('❌ Failed to fetch billing data', 'error');
         
-        // For demonstration, use mock data if API fails
-        useMockData();
+        // Show debug info even on error
+        if (appState.rawApiResponse) {
+          updateDebugPanel(appState.rawApiResponse);
+        }
       }
     }
 
-    async function fetchComparisonData(comparePeriod) {
-      try {
-        el.comparisonLoading.style.display = 'block';
-        el.comparisonContent.style.display = 'none';
+    function parseBillingData(rawData) {
+      if (!rawData) {
+        logMessage('ERROR', 'No data to parse', 'API returned empty response');
+        return null;
+      }
+      
+      console.log('Parsing billing data structure:', rawData);
+      
+      // Extract period information
+      const periodStart = rawData.billingOverview?.billingPeriod?.startDate || new Date().toISOString();
+      const periodEnd = rawData.billingOverview?.billingPeriod?.endDate || new Date().toISOString();
+      
+      // Parse products from the API response
+      const products = rawData.billingOverview?.products || [];
+      
+      // Calculate totals
+      let totalPrepaid = 0;
+      let totalUsage = 0;
+      let totalOverage = 0;
+      let totalCost = 0;
+      
+      const services = [];
+      const transcriptionServices = [];
+      
+      products.forEach(product => {
+        const usageQuantity = parseQuantity(product.usageQuantity);
+        const prepayQuantity = parseQuantity(product.prepayQuantity);
+        const overage = Math.max(0, usageQuantity - prepayQuantity);
+        const unitPrice = parseQuantity(product.unitPrice) || 0;
+        const prepayCost = parseQuantity(product.prepayCost) || (prepayQuantity * unitPrice);
+        const overageCost = parseQuantity(product.overageCost) || (overage * unitPrice);
+        const totalCost = prepayCost + overageCost;
         
-        let comparisonPeriod = appState.currentPeriod + 1; // Default to previous period
-        
-        if (comparePeriod === 'same-last-year') {
-          comparisonPeriod = appState.currentPeriod + 12; // Same period last year
+        // Determine service type based on name
+        let serviceType = 'other';
+        if (product.name && product.name.toLowerCase().includes('transcription')) {
+          serviceType = 'transcription';
+          transcriptionServices.push({
+            ...product,
+            usageQuantity,
+            prepayQuantity,
+            overage,
+            prepayCost,
+            overageCost,
+            totalCost,
+            unitPrice
+          });
+        } else if (product.name && product.name.toLowerCase().includes('speech')) {
+          serviceType = 'speech';
+        } else if (product.name && (product.name.toLowerCase().includes('voice') || product.name.toLowerCase().includes('communication'))) {
+          serviceType = 'communication';
         }
         
-        const periodParam = getPeriodParam(comparisonPeriod);
-        const endpoint = `/api/v2/billing/trusteebillingoverview/${CONFIG.TRUSTED_ORG_ID}?period=${periodParam}`;
-        logMessage('INFO', 'Fetching comparison data', `API: ${endpoint} (Period: ${comparisonPeriod})`);
+        services.push({
+          serviceType,
+          name: product.name,
+          totalUnits: usageQuantity,
+          prepaidUnits: Math.min(usageQuantity, prepayQuantity),
+          overageUnits: overage,
+          unitPrice: unitPrice,
+          prepaidCost: prepayCost,
+          overageCost: overageCost,
+          totalCost: totalCost
+        });
         
-        const comparisonData = await apiCall(endpoint);
-        appState.comparisonData = comparisonData;
-        
-        updateComparisonDisplay();
-        
-        logMessage('SUCCESS', 'Comparison data loaded', `Period ${comparisonPeriod} loaded for comparison`);
-        showStatusMessage(`✅ Comparison data loaded for ${getPeriodDisplayName(comparisonPeriod)}`, 'success');
-        
-      } catch (error) {
-        logMessage('ERROR', 'Failed to fetch comparison data', error.message);
-        showStatusMessage('❌ Failed to fetch comparison data', 'error');
-        
-        // Use mock comparison data for demonstration
-        useMockComparisonData();
-      }
-    }
-
-    function useMockData() {
-      logMessage('INFO', 'Using mock data for demonstration', 'API call failed, showing sample data');
+        totalPrepaid += prepayQuantity;
+        totalUsage += usageQuantity;
+        totalOverage += overage;
+        totalCost += totalCost;
+      });
       
-      const periodName = getPeriodDisplayName(appState.currentPeriod);
-      const today = new Date();
-      const monthStart = new Date(today.getFullYear(), today.getMonth() - appState.currentPeriod, 1);
+      // Calculate transcription totals
+      const transcriptionTotal = transcriptionServices.reduce((sum, s) => sum + s.usageQuantity, 0);
+      const transcriptionPrepaid = transcriptionServices.reduce((sum, s) => sum + Math.min(s.usageQuantity, s.prepayQuantity), 0);
+      const transcriptionOverage = transcriptionServices.reduce((sum, s) => sum + s.overage, 0);
+      const transcriptionCost = transcriptionServices.reduce((sum, s) => sum + s.totalCost, 0);
       
-      appState.billingData = {
+      return {
         organizationName: CONFIG.CUSTOMER_NAME,
         organizationId: CONFIG.TRUSTED_ORG_ID,
-        periodName: periodName,
+        periodName: getPeriodDisplayName(appState.currentPeriod),
         periodIndex: appState.currentPeriod,
-        periodStart: monthStart.toISOString(),
-        periodEnd: new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).toISOString(),
-        totalCost: 1250.75 + (appState.currentPeriod * 50), // Vary by period
-        prepaidBalance: 1000.00,
-        usageCharges: 250.75 + (appState.currentPeriod * 20),
-        remainingBalance: 749.25 - (appState.currentPeriod * 20),
-        services: [
-          {
-            serviceType: 'transcription',
-            totalUnits: 12500 + (appState.currentPeriod * 500),
-            prepaidUnits: 10000,
-            overageUnits: 2500 + (appState.currentPeriod * 500),
-            unitPrice: 0.02,
-            prepaidCost: 200.00,
-            overageCost: 50.00 + (appState.currentPeriod * 10),
-            totalCost: 250.00 + (appState.currentPeriod * 10)
-          },
-          {
-            serviceType: 'speech_recognition',
-            totalUnits: 5000 + (appState.currentPeriod * 200),
-            prepaidUnits: 5000,
-            overageUnits: 0,
-            unitPrice: 0.05,
-            prepaidCost: 250.00,
-            overageCost: 0.00,
-            totalCost: 250.00
-          }
-        ],
-        transactions: [
-          {
-            id: 'txn_001',
-            date: new Date(today.getFullYear(), today.getMonth() - appState.currentPeriod, 15).toISOString(),
-            type: 'purchase',
-            description: 'Prepaid minutes purchase',
-            serviceType: 'transcription',
-            units: 10000,
-            amount: 200.00,
-            balanceAfter: 1200.00
-          }
-        ]
+        periodStart: periodStart,
+        periodEnd: periodEnd,
+        totalCost: totalCost,
+        prepaidBalance: totalPrepaid,
+        usageCharges: totalUsage,
+        remainingBalance: Math.max(0, totalPrepaid - totalUsage),
+        totalOverage: totalOverage,
+        
+        // Transcription specific
+        transcription: {
+          total: transcriptionTotal,
+          prepaid: transcriptionPrepaid,
+          overage: transcriptionOverage,
+          cost: transcriptionCost,
+          services: transcriptionServices
+        },
+        
+        // All services
+        services: services,
+        rawProducts: products,
+        
+        // Summary stats
+        summary: {
+          totalProducts: products.length,
+          transcriptionServices: transcriptionServices.length,
+          otherServices: services.length - transcriptionServices.length
+        }
       };
-      
-      appState.lastFetchTime = new Date();
-      updateDisplayWithBillingData();
-      showStatusMessage('⚠️ Using demo data - API call failed', 'warn');
-    }
-
-    function useMockComparisonData() {
-      const comparisonPeriod = appState.currentPeriod + 1;
-      const periodName = getPeriodDisplayName(comparisonPeriod);
-      const today = new Date();
-      const monthStart = new Date(today.getFullYear(), today.getMonth() - comparisonPeriod, 1);
-      
-      appState.comparisonData = {
-        organizationName: CONFIG.CUSTOMER_NAME,
-        organizationId: CONFIG.TRUSTED_ORG_ID,
-        periodName: periodName,
-        periodIndex: comparisonPeriod,
-        periodStart: monthStart.toISOString(),
-        periodEnd: new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).toISOString(),
-        totalCost: 1100.50, // Lower than current period
-        prepaidBalance: 1000.00,
-        usageCharges: 200.50, // Lower than current period
-        remainingBalance: 799.50,
-        services: [
-          {
-            serviceType: 'transcription',
-            totalUnits: 10000,
-            prepaidUnits: 8000,
-            overageUnits: 2000,
-            unitPrice: 0.02,
-            prepaidCost: 160.00,
-            overageCost: 40.00,
-            totalCost: 200.00
-          },
-          {
-            serviceType: 'speech_recognition',
-            totalUnits: 4000,
-            prepaidUnits: 4000,
-            overageUnits: 0,
-            unitPrice: 0.05,
-            prepaidCost: 200.00,
-            overageCost: 0.00,
-            totalCost: 200.00
-          }
-        ]
-      };
-      
-      updateComparisonDisplay();
-      showStatusMessage('⚠️ Using demo comparison data', 'warn');
     }
 
     // ==================== DISPLAY FUNCTIONS ====================
     function updateDisplayWithBillingData() {
-      if (!appState.billingData) return;
+      if (!appState.billingData) {
+        logMessage('WARN', 'No billing data to display');
+        return;
+      }
       
       const data = appState.billingData;
       const currency = appState.currentCurrency;
       
+      console.log('Updating display with data:', data);
+      
       // Update period display
       const periodDisplay = data.periodName || getPeriodDisplayName(appState.currentPeriod);
       el.periodInfo.textContent = periodDisplay;
-      el.transactionPeriod.textContent = periodDisplay;
       
       // Update last updated time
       el.lastUpdated.textContent = `Last updated: ${appState.lastFetchTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
@@ -2153,17 +2238,16 @@
       // Update summary alert
       updateSummaryAlert(data);
       
-      // Update transcription stats
-      const transcriptionService = data.services?.find(s => s.serviceType === 'transcription') || {
-        totalUnits: 0, prepaidUnits: 0, overageUnits: 0, totalCost: 0
-      };
+      // Update transcription stats with REAL data
+      const transcriptionTotal = data.transcription?.total || 0;
+      const transcriptionPrepaid = data.transcription?.prepaid || 0;
+      const transcriptionOverage = data.transcription?.overage || 0;
       
-      el.statTranscription.textContent = formatNumber(transcriptionService.totalUnits);
-      el.statTranscriptionDetail.textContent = `${formatNumber(transcriptionService.prepaidUnits)} prepaid • ${formatNumber(transcriptionService.overageUnits)} usage`;
+      el.statTranscription.textContent = formatNumber(transcriptionTotal);
+      el.statTranscriptionDetail.textContent = `${formatNumber(transcriptionPrepaid)} prepaid • ${formatNumber(transcriptionOverage)} usage`;
       
-      const transcriptionTotal = transcriptionService.prepaidUnits + transcriptionService.overageUnits;
-      const transcriptionPrepaidPercent = transcriptionTotal > 0 ? (transcriptionService.prepaidUnits / transcriptionTotal * 100) : 0;
-      const transcriptionUsagePercent = transcriptionTotal > 0 ? (transcriptionService.overageUnits / transcriptionTotal * 100) : 0;
+      const transcriptionPrepaidPercent = transcriptionTotal > 0 ? (transcriptionPrepaid / transcriptionTotal * 100) : 0;
+      const transcriptionUsagePercent = transcriptionTotal > 0 ? (transcriptionOverage / transcriptionTotal * 100) : 0;
       
       el.transcriptionPrepaidFill.style.width = `${transcriptionPrepaidPercent}%`;
       el.transcriptionOverageFill.style.width = `${transcriptionUsagePercent}%`;
@@ -2184,244 +2268,142 @@
       el.costOveragePercent.textContent = `${Math.round(costUsagePercent)}%`;
       
       // Update other services
-      updateServiceStats('speech_recognition', el.statSpeech, el.statSpeechDetail, 
+      updateServiceStats('speech', el.statSpeech, el.statSpeechDetail, 
                         el.speechPrepaidFill, el.speechOverageFill, 
                         el.speechPrepaidPercent, el.speechUsagePercent);
       
-      updateServiceStats('voice_communication', el.statCommunication, el.statCommunicationDetail,
+      updateServiceStats('communication', el.statCommunication, el.statCommunicationDetail,
                         el.communicationPrepaidFill, el.communicationOverageFill,
                         el.communicationPrepaidPercent, el.communicationUsagePercent);
       
       // Update cost breakdown
       el.costPrepaid.textContent = formatCurrency(data.prepaidBalance || 0);
       el.costPrepaidDetail.textContent = 'Prepaid balance available';
-      el.costUsage.textContent = formatCurrency(data.usageCharges || 0);
-      el.costUsageDetail.textContent = 'Charges this period';
+      el.costUsage.textContent = formatCurrency(data.totalCost || 0);
+      el.costUsageDetail.textContent = 'Total charges this period';
       el.costRemaining.textContent = formatCurrency(data.remainingBalance || 0);
       el.costRemainingDetail.textContent = 'Remaining prepaid balance';
       
       const daysInMonth = new Date().getDate();
-      const dailyUsage = (data.usageCharges || 0) / daysInMonth;
+      const dailyUsage = (data.totalCost || 0) / daysInMonth;
       const projectedUsage = dailyUsage * 30; // Assuming 30-day month
       el.costProjected.textContent = formatCurrency(projectedUsage);
       el.costProjectedDetail.textContent = 'Projected month-end total';
       
-      // Update transcription tab
+      // Update transcription tab with REAL data
       updateTranscriptionTab(data);
       
       // Update usage tables
       updateUsageTables(data);
       
-      // Update transactions
-      updateTransactionsTable(data);
-      
       // Update chart
       updateUsageChart(data);
-      
-      // If comparison mode is active, fetch comparison data
-      if (el.comparisonMode.value !== 'none') {
-        fetchComparisonData(el.comparisonMode.value);
-      }
     }
 
-    function updateComparisonDisplay() {
-      if (!appState.billingData || !appState.comparisonData) {
-        el.comparisonLoading.style.display = 'block';
-        el.comparisonContent.style.display = 'none';
+    function updateTranscriptionTab(data) {
+      const transcriptionData = data.transcription || {
+        total: 0, prepaid: 0, overage: 0, cost: 0, services: []
+      };
+      
+      // Update the main transcription card
+      el.transcriptionTotal.textContent = `${formatNumber(transcriptionData.total)}`;
+      el.transcriptionPrepaidUsed.textContent = `${formatNumber(transcriptionData.prepaid)} min`;
+      el.transcriptionOverage.textContent = `${formatNumber(transcriptionData.overage)} min`;
+      el.transcriptionRemaining.textContent = `${formatNumber(Math.max(0, (data.prepaidBalance || 0) - transcriptionData.total))} min`;
+      el.transcriptionAllocation.textContent = `${formatNumber(data.prepaidBalance || 0)} min`;
+      
+      el.transcriptionCost.textContent = formatCurrency(transcriptionData.cost || 0);
+      el.transcriptionPrepaidCost.textContent = formatCurrency(transcriptionData.prepaid * 0.02); // Assuming £0.02 per minute
+      el.transcriptionOverageCost.textContent = formatCurrency(transcriptionData.overage * 0.03); // Assuming £0.03 per minute for overage
+      
+      const avgCost = transcriptionData.total > 0 ? (transcriptionData.cost || 0) / transcriptionData.total : 0;
+      el.transcriptionAvgCost.textContent = formatCurrency(avgCost);
+      
+      const today = new Date();
+      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      const daysPassed = today.getDate();
+      const dailyUsage = (transcriptionData.cost || 0) / daysPassed;
+      const projectedCost = dailyUsage * daysInMonth;
+      el.transcriptionProjected.textContent = formatCurrency(projectedCost);
+      
+      // Update transcription table with actual services
+      updateTranscriptionTable(transcriptionData.services);
+    }
+
+    function updateTranscriptionTable(services) {
+      const tbody = el.transcriptionTableBody;
+      tbody.innerHTML = '';
+      
+      if (!services || services.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="6" style="text-align:center;padding:48px;color:var(--text-light);">
+          No transcription services found in billing data.
+        </td>`;
+        tbody.appendChild(row);
         return;
       }
       
-      const currentData = appState.billingData;
-      const comparisonData = appState.comparisonData;
+      let totalUsage = 0;
+      let totalPrepay = 0;
+      let totalOverage = 0;
       
-      el.comparisonLoading.style.display = 'none';
-      el.comparisonContent.style.display = 'block';
+      services.forEach(service => {
+        const usage = parseQuantity(service.usageQuantity);
+        const prepay = parseQuantity(service.prepayQuantity);
+        const overage = Math.max(0, usage - prepay);
+        const usagePercent = prepay > 0 ? (usage / prepay * 100) : 0;
+        
+        totalUsage += usage;
+        totalPrepay += prepay;
+        totalOverage += overage;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${service.name || 'Unknown Service'}</td>
+          <td>${service.productId || 'N/A'}</td>
+          <td style="font-weight:600;">${formatNumber(usage)} min</td>
+          <td style="color:var(--success);">${formatNumber(prepay)} min</td>
+          <td style="color:${overage > 0 ? 'var(--danger)' : 'var(--success)'};">${formatNumber(overage)} min</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:60px;height:6px;background:var(--light-bg);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:${Math.min(usagePercent, 100)}%;background:${usagePercent > 100 ? 'var(--danger)' : 'var(--success)'};"></div>
+              </div>
+              <span>${Math.round(usagePercent)}%</span>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
       
-      // Create comparison HTML
-      const comparisonHTML = `
-        <div class="comparison-grid">
-          <div class="comparison-card">
-            <div class="comparison-header">
-              <div class="comparison-title">Current Period</div>
-              <div class="comparison-period">${currentData.periodName || getPeriodDisplayName(appState.currentPeriod)}</div>
-            </div>
-            <div class="comparison-row">
-              <span class="comparison-label">Total Cost</span>
-              <span class="comparison-value">${formatCurrency(currentData.totalCost || 0)}</span>
-            </div>
-            <div class="comparison-row">
-              <span class="comparison-label">Usage Charges</span>
-              <span class="comparison-value">${formatCurrency(currentData.usageCharges || 0)}</span>
-            </div>
-            <div class="comparison-row">
-              <span class="comparison-label">Remaining Balance</span>
-              <span class="comparison-value">${formatCurrency(currentData.remainingBalance || 0)}</span>
-            </div>
-          </div>
-          
-          <div class="comparison-card">
-            <div class="comparison-header">
-              <div class="comparison-title">Comparison Period</div>
-              <div class="comparison-period">${comparisonData.periodName || getPeriodDisplayName(appState.currentPeriod + 1)}</div>
-            </div>
-            <div class="comparison-row">
-              <span class="comparison-label">Total Cost</span>
-              <span class="comparison-value">${formatCurrency(comparisonData.totalCost || 0)}</span>
-            </div>
-            <div class="comparison-row">
-              <span class="comparison-label">Usage Charges</span>
-              <span class="comparison-value">${formatCurrency(comparisonData.usageCharges || 0)}</span>
-            </div>
-            <div class="comparison-row">
-              <span class="comparison-label">Remaining Balance</span>
-              <span class="comparison-value">${formatCurrency(comparisonData.remainingBalance || 0)}</span>
-            </div>
-          </div>
-          
-          <div class="comparison-card">
-            <div class="comparison-header">
-              <div class="comparison-title">Changes</div>
-              <div class="comparison-period">Difference</div>
-            </div>
-            <div class="comparison-row">
-              <span class="comparison-label">Total Cost Change</span>
-              <span class="comparison-value">
-                ${formatCurrency((currentData.totalCost || 0) - (comparisonData.totalCost || 0))}
-                <span class="comparison-change ${(currentData.totalCost || 0) >= (comparisonData.totalCost || 0) ? 'change-negative' : 'change-positive'}">
-                  ${formatPercentageChange(calculatePercentageChange(currentData.totalCost || 0, comparisonData.totalCost || 0))}
-                </span>
-              </span>
-            </div>
-            <div class="comparison-row">
-              <span class="comparison-label">Usage Charges Change</span>
-              <span class="comparison-value">
-                ${formatCurrency((currentData.usageCharges || 0) - (comparisonData.usageCharges || 0))}
-                <span class="comparison-change ${(currentData.usageCharges || 0) >= (comparisonData.usageCharges || 0) ? 'change-negative' : 'change-positive'}">
-                  ${formatPercentageChange(calculatePercentageChange(currentData.usageCharges || 0, comparisonData.usageCharges || 0))}
-                </span>
-              </span>
-            </div>
-            <div class="comparison-row">
-              <span class="comparison-label">Balance Change</span>
-              <span class="comparison-value">
-                ${formatCurrency((currentData.remainingBalance || 0) - (comparisonData.remainingBalance || 0))}
-                <span class="comparison-change ${(currentData.remainingBalance || 0) >= (comparisonData.remainingBalance || 0) ? 'change-positive' : 'change-negative'}">
-                  ${formatPercentageChange(calculatePercentageChange(currentData.remainingBalance || 0, comparisonData.remainingBalance || 0))}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
+      // Add total row
+      const totalRow = document.createElement('tr');
+      totalRow.style.backgroundColor = 'var(--pill)';
+      const totalUsagePercent = totalPrepay > 0 ? (totalUsage / totalPrepay * 100) : 0;
+      totalRow.innerHTML = `
+        <td style="font-weight:600;">TOTAL</td>
+        <td>-</td>
+        <td style="font-weight:600;">${formatNumber(totalUsage)} min</td>
+        <td style="color:var(--success);font-weight:600;">${formatNumber(totalPrepay)} min</td>
+        <td style="color:${totalOverage > 0 ? 'var(--danger)' : 'var(--success)'};font-weight:600;">${formatNumber(totalOverage)} min</td>
+        <td style="font-weight:600;">${Math.round(totalUsagePercent)}%</td>
       `;
-      
-      el.comparisonContent.innerHTML = comparisonHTML;
-      
-      // Update comparison chart
-      updateComparisonChart(currentData, comparisonData);
-    }
-
-    function updateComparisonChart(currentData, comparisonData) {
-      const ctx = document.getElementById('comparisonChart').getContext('2d');
-      
-      if (appState.chartInstances.comparison) {
-        appState.chartInstances.comparison.destroy();
-      }
-      
-      const currentServices = currentData.services || [];
-      const comparisonServices = comparisonData.services || [];
-      
-      // Find common services
-      const serviceTypes = [...new Set([
-        ...currentServices.map(s => s.serviceType),
-        ...comparisonServices.map(s => s.serviceType)
-      ])];
-      
-      const currentCosts = serviceTypes.map(type => {
-        const service = currentServices.find(s => s.serviceType === type);
-        return service ? service.totalCost : 0;
-      });
-      
-      const comparisonCosts = serviceTypes.map(type => {
-        const service = comparisonServices.find(s => s.serviceType === type);
-        return service ? service.totalCost : 0;
-      });
-      
-      const labels = serviceTypes.map(type => 
-        type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
-      );
-      
-      appState.chartInstances.comparison = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: currentData.periodName || 'Current Period',
-              data: currentCosts,
-              backgroundColor: 'rgba(99, 171, 143, 0.8)',
-              borderColor: 'var(--primary-color)',
-              borderWidth: 1
-            },
-            {
-              label: comparisonData.periodName || 'Comparison Period',
-              data: comparisonCosts,
-              backgroundColor: 'rgba(108, 117, 125, 0.8)',
-              borderColor: 'var(--text-light)',
-              borderWidth: 1
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-              labels: {
-                font: {
-                  family: "'Aptos', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif",
-                  size: 12
-                }
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: {
-                display: false
-              }
-            },
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: function(value) {
-                  return formatCurrency(value);
-                }
-              }
-            }
-          }
-        }
-      });
+      tbody.appendChild(totalRow);
     }
 
     function updateServiceStats(serviceType, statElement, detailElement, prepaidFill, overageFill, prepaidPercent, usagePercent) {
-      const service = appState.billingData.services?.find(s => s.serviceType === serviceType) || {
-        totalUnits: 0, prepaidUnits: 0, overageUnits: 0
-      };
+      const services = appState.billingData.services?.filter(s => s.serviceType === serviceType) || [];
       
-      statElement.textContent = formatNumber(service.totalUnits);
-      detailElement.textContent = `${formatNumber(service.prepaidUnits)} prepaid • ${formatNumber(service.overageUnits)} usage`;
+      const totalUnits = services.reduce((sum, s) => sum + (s.totalUnits || 0), 0);
+      const prepaidUnits = services.reduce((sum, s) => sum + (s.prepaidUnits || 0), 0);
+      const overageUnits = services.reduce((sum, s) => sum + (s.overageUnits || 0), 0);
       
-      const total = service.prepaidUnits + service.overageUnits;
-      const prepaidPct = total > 0 ? (service.prepaidUnits / total * 100) : 0;
-      const usagePct = total > 0 ? (service.overageUnits / total * 100) : 0;
+      statElement.textContent = formatNumber(totalUnits);
+      detailElement.textContent = `${formatNumber(prepaidUnits)} prepaid • ${formatNumber(overageUnits)} usage`;
+      
+      const total = prepaidUnits + overageUnits;
+      const prepaidPct = total > 0 ? (prepaidUnits / total * 100) : 0;
+      const usagePct = total > 0 ? (overageUnits / total * 100) : 0;
       
       prepaidFill.style.width = `${prepaidPct}%`;
       overageFill.style.width = `${usagePct}%`;
@@ -2453,116 +2435,71 @@
       }
     }
 
-    function updateTranscriptionTab(data) {
-      const transcriptionService = data.services?.find(s => s.serviceType === 'transcription') || {
-        totalUnits: 0, prepaidUnits: 0, overageUnits: 0, totalCost: 0,
-        prepaidCost: 0, overageCost: 0, unitPrice: 0.02
-      };
-      
-      el.transcriptionTotal.textContent = `${formatNumber(transcriptionService.totalUnits)}`;
-      el.transcriptionPrepaidUsed.textContent = `${formatNumber(transcriptionService.prepaidUnits)} min`;
-      el.transcriptionOverage.textContent = `${formatNumber(transcriptionService.overageUnits)} min`;
-      el.transcriptionRemaining.textContent = `${formatNumber(Math.max(0, (transcriptionService.prepaidUnits || 0) - (transcriptionService.prepaidUnits || 0)))} min`;
-      el.transcriptionAllocation.textContent = `${formatNumber((transcriptionService.prepaidUnits || 0) + (transcriptionService.overageUnits || 0))} min`;
-      
-      el.transcriptionCost.textContent = formatCurrency(transcriptionService.totalCost || 0);
-      el.transcriptionPrepaidCost.textContent = formatCurrency(transcriptionService.prepaidCost || 0);
-      el.transcriptionOverageCost.textContent = formatCurrency(transcriptionService.overageCost || 0);
-      
-      const avgCost = transcriptionService.totalUnits > 0 ? (transcriptionService.totalCost || 0) / transcriptionService.totalUnits : 0;
-      el.transcriptionAvgCost.textContent = formatCurrency(avgCost);
-      
-      const today = new Date();
-      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-      const daysPassed = today.getDate();
-      const dailyUsage = (transcriptionService.totalCost || 0) / daysPassed;
-      const projectedCost = dailyUsage * daysInMonth;
-      el.transcriptionProjected.textContent = formatCurrency(projectedCost);
-    }
-
     function updateUsageTables(data) {
       const services = data.services || [];
       const tbody = el.usageTableBody;
       tbody.innerHTML = '';
       
-      services.forEach(service => {
-        const totalUnits = service.totalUnits || 0;
-        const prepaidPercent = totalUnits > 0 ? ((service.prepaidUnits || 0) / totalUnits * 100) : 0;
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="text-transform:capitalize;">${service.serviceType.replace('_', ' ')}</td>
-          <td style="font-weight:600;">${formatNumber(totalUnits)}</td>
-          <td style="color:var(--success);">${formatNumber(service.prepaidUnits || 0)}</td>
-          <td style="color:var(--danger);">${formatNumber(service.overageUnits || 0)}</td>
-          <td>${formatCurrency(service.prepaidCost || 0)}</td>
-          <td>${formatCurrency(service.overageCost || 0)}</td>
-          <td style="font-weight:600;">${formatCurrency(service.totalCost || 0)}</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div style="width:60px;height:6px;background:var(--light-bg);border-radius:3px;overflow:hidden;">
-                <div style="height:100%;width:${prepaidPercent}%;background:var(--success);"></div>
-              </div>
-              <span>${Math.round(prepaidPercent)}%</span>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function updateTransactionsTable(data) {
-      const transactions = data.transactions || [];
-      const tbody = el.transactionsTableBody;
-      tbody.innerHTML = '';
-      
-      el.transactionCount.textContent = transactions.length;
-      
-      if (transactions.length === 0) {
+      if (services.length === 0) {
         const row = document.createElement('tr');
-        row.innerHTML = `<td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
-          No transaction data available.
+        row.innerHTML = `<td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">
+          No service data available.
         </td>`;
         tbody.appendChild(row);
         return;
       }
       
-      transactions.forEach(txn => {
-        const date = new Date(txn.date).toLocaleDateString();
-        let typeClass = '';
-        let typeText = '';
+      let totalUsage = 0;
+      let totalPrepay = 0;
+      let totalOverage = 0;
+      let totalRemaining = 0;
+      
+      services.forEach(service => {
+        const usage = service.totalUnits || 0;
+        const prepay = service.prepaidUnits || 0;
+        const overage = service.overageUnits || 0;
+        const remaining = Math.max(0, prepay - usage);
+        const usagePercent = prepay > 0 ? (usage / prepay * 100) : 0;
         
-        switch(txn.type) {
-          case 'purchase':
-            typeClass = 'purchase';
-            typeText = 'Purchase';
-            break;
-          case 'usage':
-            typeClass = 'usage';
-            typeText = 'Usage';
-            break;
-          case 'refund':
-            typeClass = 'refund';
-            typeText = 'Refund';
-            break;
-          default:
-            typeClass = 'adjustment';
-            typeText = 'Adjustment';
-        }
+        totalUsage += usage;
+        totalPrepay += prepay;
+        totalOverage += overage;
+        totalRemaining += remaining;
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${date}</td>
-          <td style="font-family:monospace;font-size:12px;">${txn.id}</td>
-          <td><span class="transaction-type ${typeClass}">${typeText}</span></td>
-          <td>${txn.description}</td>
-          <td style="text-transform:capitalize;">${(txn.serviceType || '').replace('_', ' ')}</td>
-          <td>${txn.units ? formatNumber(txn.units) : '-'}</td>
-          <td style="font-weight:600;${txn.amount < 0 ? 'color:var(--danger);' : 'color:var(--success);'}">${formatCurrency(txn.amount)}</td>
-          <td>${formatCurrency(txn.balanceAfter)}</td>
+          <td>${service.name || service.serviceType}</td>
+          <td>${service.serviceType}</td>
+          <td style="font-weight:600;">${formatNumber(usage)}</td>
+          <td style="color:var(--success);">${formatNumber(prepay)}</td>
+          <td style="color:${overage > 0 ? 'var(--danger)' : 'var(--success)'};">${formatNumber(overage)}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:60px;height:6px;background:var(--light-bg);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:${Math.min(usagePercent, 100)}%;background:${usagePercent > 100 ? 'var(--danger)' : 'var(--success)'};"></div>
+              </div>
+              <span>${Math.round(usagePercent)}%</span>
+            </div>
+          </td>
+          <td style="color:var(--secondary-color);">${formatNumber(remaining)}</td>
         `;
         tbody.appendChild(tr);
       });
+      
+      // Add total row
+      const totalRow = document.createElement('tr');
+      totalRow.style.backgroundColor = 'var(--pill)';
+      const totalUsagePercent = totalPrepay > 0 ? (totalUsage / totalPrepay * 100) : 0;
+      totalRow.innerHTML = `
+        <td style="font-weight:600;">TOTAL</td>
+        <td>-</td>
+        <td style="font-weight:600;">${formatNumber(totalUsage)}</td>
+        <td style="color:var(--success);font-weight:600;">${formatNumber(totalPrepay)}</td>
+        <td style="color:${totalOverage > 0 ? 'var(--danger)' : 'var(--success)'};font-weight:600;">${formatNumber(totalOverage)}</td>
+        <td style="font-weight:600;">${Math.round(totalUsagePercent)}%</td>
+        <td style="color:var(--secondary-color);font-weight:600;">${formatNumber(totalRemaining)}</td>
+      `;
+      tbody.appendChild(totalRow);
     }
 
     function updateUsageChart(data) {
@@ -2574,10 +2511,23 @@
       
       // Prepare chart data from billing history
       const history = appState.billingHistory.slice(-6).reverse(); // Last 6 periods
+      
+      if (history.length < 2) {
+        // Not enough data for a chart
+        const noDataHTML = `
+          <div style="text-align:center;padding:60px 20px;color:var(--text-light);">
+            <div style="font-size:48px;margin-bottom:20px;">📊</div>
+            <p>Not enough data for chart</p>
+            <p style="font-size:12px;margin-top:8px;">Fetch data for multiple periods to see trends</p>
+          </div>
+        `;
+        el.usageChart.parentElement.innerHTML = noDataHTML;
+        return;
+      }
+      
       const labels = history.map(h => h.periodName.split('(')[1].replace(')', ''));
       const transcriptionData = history.map(h => {
-        const service = h.data.services?.find(s => s.serviceType === 'transcription');
-        return service ? service.totalCost : 0;
+        return h.data.transcription?.total || 0;
       });
       const totalCostData = history.map(h => h.data.totalCost || 0);
       
@@ -2587,12 +2537,13 @@
           labels: labels,
           datasets: [
             {
-              label: 'Transcription Cost',
+              label: 'Transcription Minutes',
               data: transcriptionData,
               borderColor: 'var(--chart-green)',
               backgroundColor: 'rgba(28, 200, 138, 0.1)',
               tension: 0.3,
-              fill: true
+              fill: true,
+              yAxisID: 'y'
             },
             {
               label: 'Total Cost',
@@ -2600,7 +2551,8 @@
               borderColor: 'var(--primary-color)',
               backgroundColor: 'rgba(99, 171, 143, 0.1)',
               tension: 0.3,
-              fill: true
+              fill: true,
+              yAxisID: 'y1'
             }
           ]
         },
@@ -2622,7 +2574,11 @@
               intersect: false,
               callbacks: {
                 label: function(context) {
-                  return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
+                  if (context.datasetIndex === 0) {
+                    return `Transcription: ${formatNumber(context.raw)} min`;
+                  } else {
+                    return `Cost: ${formatCurrency(context.raw)}`;
+                  }
                 }
               }
             }
@@ -2634,11 +2590,34 @@
               }
             },
             y: {
-              beginAtZero: true,
+              type: 'linear',
+              display: true,
+              position: 'left',
+              title: {
+                display: true,
+                text: 'Minutes'
+              },
+              ticks: {
+                callback: function(value) {
+                  return formatNumber(value);
+                }
+              }
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+              title: {
+                display: true,
+                text: 'Cost'
+              },
               ticks: {
                 callback: function(value) {
                   return formatCurrency(value);
                 }
+              },
+              grid: {
+                drawOnChartArea: false
               }
             }
           }
@@ -2671,10 +2650,6 @@
         case 'services':
           tableTitle = 'Service Breakdown';
           tableHTML = generateServicesTable();
-          break;
-        case 'transactions':
-          tableTitle = 'Transaction Details';
-          tableHTML = generateTransactionsTable();
           break;
         case 'comparison':
           tableTitle = 'Period Comparison';
@@ -2721,15 +2696,31 @@
           </tr>
           <tr>
             <th>Prepaid Balance</th>
-            <td style="color:var(--success);">${formatCurrency(data.prepaidBalance || 0)}</td>
+            <td style="color:var(--success);">${formatNumber(data.prepaidBalance || 0)} units</td>
           </tr>
           <tr>
             <th>Usage Charges</th>
-            <td style="color:var(--chart-blue);">${formatCurrency(data.usageCharges || 0)}</td>
+            <td style="color:var(--chart-blue);">${formatNumber(data.usageCharges || 0)} units</td>
           </tr>
           <tr>
             <th>Remaining Balance</th>
-            <td style="color:${(data.remainingBalance || 0) >= 0 ? 'var(--success)' : 'var(--danger)'};">${formatCurrency(data.remainingBalance || 0)}</td>
+            <td style="color:${(data.remainingBalance || 0) >= 0 ? 'var(--success)' : 'var(--danger)'};">${formatNumber(data.remainingBalance || 0)} units</td>
+          </tr>
+          <tr>
+            <th>Total Overage</th>
+            <td style="color:var(--danger);">${formatNumber(data.totalOverage || 0)} units</td>
+          </tr>
+          <tr>
+            <th>Transcription Total</th>
+            <td>${formatNumber(data.transcription?.total || 0)} minutes</td>
+          </tr>
+          <tr>
+            <th>Transcription Prepaid Used</th>
+            <td style="color:var(--success);">${formatNumber(data.transcription?.prepaid || 0)} minutes</td>
+          </tr>
+          <tr>
+            <th>Transcription Overage</th>
+            <td style="color:var(--danger);">${formatNumber(data.transcription?.overage || 0)} minutes</td>
           </tr>
           <tr>
             <th>Period Start</th>
@@ -2752,17 +2743,18 @@
       
       let rows = '';
       services.forEach(service => {
-        const prepaidPercent = service.totalUnits > 0 ? ((service.prepaidUnits || 0) / service.totalUnits * 100) : 0;
+        const usagePercent = service.prepaidUnits > 0 ? ((service.totalUnits || 0) / service.prepaidUnits * 100) : 0;
         rows += `
           <tr>
-            <td style="text-transform:capitalize;">${service.serviceType.replace('_', ' ')}</td>
+            <td>${service.name || service.serviceType}</td>
+            <td style="text-transform:capitalize;">${service.serviceType}</td>
             <td>${formatNumber(service.totalUnits)}</td>
             <td style="color:var(--success);">${formatNumber(service.prepaidUnits || 0)}</td>
             <td style="color:var(--danger);">${formatNumber(service.overageUnits || 0)}</td>
             <td>${formatCurrency(service.prepaidCost || 0)}</td>
             <td>${formatCurrency(service.overageCost || 0)}</td>
             <td style="font-weight:600;">${formatCurrency(service.totalCost || 0)}</td>
-            <td>${Math.round(prepaidPercent)}%</td>
+            <td>${Math.round(usagePercent)}%</td>
           </tr>
         `;
       });
@@ -2770,52 +2762,15 @@
       return `
         <thead>
           <tr>
-            <th>Service Type</th>
+            <th>Service Name</th>
+            <th>Type</th>
             <th>Total Units</th>
             <th>Prepaid Used</th>
             <th>Overage</th>
             <th>Prepaid Cost</th>
             <th>Overage Cost</th>
             <th>Total Cost</th>
-            <th>% Prepaid Used</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      `;
-    }
-
-    function generateTransactionsTable() {
-      const transactions = appState.billingData.transactions || [];
-      
-      let rows = '';
-      transactions.forEach(txn => {
-        rows += `
-          <tr>
-            <td>${new Date(txn.date).toLocaleDateString()}</td>
-            <td style="font-family:monospace;">${txn.id}</td>
-            <td>${txn.type}</td>
-            <td>${txn.description}</td>
-            <td style="text-transform:capitalize;">${(txn.serviceType || '').replace('_', ' ')}</td>
-            <td>${txn.units ? formatNumber(txn.units) : '-'}</td>
-            <td style="font-weight:600;">${formatCurrency(txn.amount)}</td>
-            <td>${formatCurrency(txn.balanceAfter)}</td>
-          </tr>
-        `;
-      });
-      
-      return `
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Transaction ID</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Service</th>
-            <th>Units</th>
-            <th>Amount</th>
-            <th>Balance After</th>
+            <th>Usage %</th>
           </tr>
         </thead>
         <tbody>
@@ -2825,7 +2780,9 @@
     }
 
     function generateComparisonTable() {
-      if (!appState.comparisonData) {
+      const history = appState.billingHistory;
+      
+      if (history.length < 2) {
         return `
           <thead>
             <tr>
@@ -2835,22 +2792,22 @@
           <tbody>
             <tr>
               <td style="text-align:center;padding:48px;color:var(--text-light);">
-                No comparison data available. Run a comparison first.
+                Not enough data for comparison. Fetch data for at least two periods.
               </td>
             </tr>
           </tbody>
         `;
       }
       
-      const currentData = appState.billingData;
-      const comparisonData = appState.comparisonData;
+      const latest = history[history.length - 1];
+      const previous = history[history.length - 2];
       
       return `
         <thead>
           <tr>
             <th>Metric</th>
-            <th>Current Period (${currentData.periodName || getPeriodDisplayName(appState.currentPeriod)})</th>
-            <th>Comparison Period (${comparisonData.periodName || getPeriodDisplayName(appState.currentPeriod + 1)})</th>
+            <th>Current Period (${latest.periodName})</th>
+            <th>Previous Period (${previous.periodName})</th>
             <th>Change</th>
             <th>% Change</th>
           </tr>
@@ -2858,24 +2815,31 @@
         <tbody>
           <tr>
             <td>Total Cost</td>
-            <td>${formatCurrency(currentData.totalCost || 0)}</td>
-            <td>${formatCurrency(comparisonData.totalCost || 0)}</td>
-            <td style="font-weight:600;">${formatCurrency((currentData.totalCost || 0) - (comparisonData.totalCost || 0))}</td>
-            <td>${formatPercentageChange(calculatePercentageChange(currentData.totalCost || 0, comparisonData.totalCost || 0))}</td>
+            <td>${formatCurrency(latest.data.totalCost || 0)}</td>
+            <td>${formatCurrency(previous.data.totalCost || 0)}</td>
+            <td style="font-weight:600;">${formatCurrency((latest.data.totalCost || 0) - (previous.data.totalCost || 0))}</td>
+            <td>${formatPercentageChange(calculatePercentageChange(latest.data.totalCost || 0, previous.data.totalCost || 0))}</td>
           </tr>
           <tr>
-            <td>Usage Charges</td>
-            <td>${formatCurrency(currentData.usageCharges || 0)}</td>
-            <td>${formatCurrency(comparisonData.usageCharges || 0)}</td>
-            <td style="font-weight:600;">${formatCurrency((currentData.usageCharges || 0) - (comparisonData.usageCharges || 0))}</td>
-            <td>${formatPercentageChange(calculatePercentageChange(currentData.usageCharges || 0, comparisonData.usageCharges || 0))}</td>
+            <td>Transcription Minutes</td>
+            <td>${formatNumber(latest.data.transcription?.total || 0)}</td>
+            <td>${formatNumber(previous.data.transcription?.total || 0)}</td>
+            <td style="font-weight:600;">${formatNumber((latest.data.transcription?.total || 0) - (previous.data.transcription?.total || 0))}</td>
+            <td>${formatPercentageChange(calculatePercentageChange(latest.data.transcription?.total || 0, previous.data.transcription?.total || 0))}</td>
           </tr>
           <tr>
-            <td>Remaining Balance</td>
-            <td>${formatCurrency(currentData.remainingBalance || 0)}</td>
-            <td>${formatCurrency(comparisonData.remainingBalance || 0)}</td>
-            <td style="font-weight:600;">${formatCurrency((currentData.remainingBalance || 0) - (comparisonData.remainingBalance || 0))}</td>
-            <td>${formatPercentageChange(calculatePercentageChange(currentData.remainingBalance || 0, comparisonData.remainingBalance || 0))}</td>
+            <td>Transcription Prepaid Used</td>
+            <td>${formatNumber(latest.data.transcription?.prepaid || 0)}</td>
+            <td>${formatNumber(previous.data.transcription?.prepaid || 0)}</td>
+            <td style="font-weight:600;">${formatNumber((latest.data.transcription?.prepaid || 0) - (previous.data.transcription?.prepaid || 0))}</td>
+            <td>${formatPercentageChange(calculatePercentageChange(latest.data.transcription?.prepaid || 0, previous.data.transcription?.prepaid || 0))}</td>
+          </tr>
+          <tr>
+            <td>Transcription Overage</td>
+            <td>${formatNumber(latest.data.transcription?.overage || 0)}</td>
+            <td>${formatNumber(previous.data.transcription?.overage || 0)}</td>
+            <td style="font-weight:600;">${formatNumber((latest.data.transcription?.overage || 0) - (previous.data.transcription?.overage || 0))}</td>
+            <td>${formatPercentageChange(calculatePercentageChange(latest.data.transcription?.overage || 0, previous.data.transcription?.overage || 0))}</td>
           </tr>
         </tbody>
       `;
@@ -2894,10 +2858,6 @@
         case 'services':
           csvContent = exportServicesToCSV();
           fileName = `${CONFIG.CUSTOMER_NAME}_services_breakdown`;
-          break;
-        case 'transactions':
-          csvContent = exportTransactionsToCSV();
-          fileName = `${CONFIG.CUSTOMER_NAME}_transactions`;
           break;
         case 'comparison':
           csvContent = exportComparisonToCSV();
@@ -2928,9 +2888,13 @@
       let csv = `${CONFIG.CUSTOMER_NAME} - Billing Summary\n`;
       csv += `Period,${data.periodName || getPeriodDisplayName(appState.currentPeriod)}\n`;
       csv += `Total Cost,${formatCurrency(data.totalCost || 0)}\n`;
-      csv += `Prepaid Balance,${formatCurrency(data.prepaidBalance || 0)}\n`;
-      csv += `Usage Charges,${formatCurrency(data.usageCharges || 0)}\n`;
-      csv += `Remaining Balance,${formatCurrency(data.remainingBalance || 0)}\n`;
+      csv += `Prepaid Balance,${formatNumber(data.prepaidBalance || 0)}\n`;
+      csv += `Usage Charges,${formatNumber(data.usageCharges || 0)}\n`;
+      csv += `Remaining Balance,${formatNumber(data.remainingBalance || 0)}\n`;
+      csv += `Total Overage,${formatNumber(data.totalOverage || 0)}\n`;
+      csv += `Transcription Total,${formatNumber(data.transcription?.total || 0)}\n`;
+      csv += `Transcription Prepaid Used,${formatNumber(data.transcription?.prepaid || 0)}\n`;
+      csv += `Transcription Overage,${formatNumber(data.transcription?.overage || 0)}\n`;
       csv += `Period Start,${new Date(data.periodStart).toLocaleDateString()}\n`;
       csv += `Period End,${new Date(data.periodEnd).toLocaleDateString()}\n`;
       csv += `Generated,${new Date().toLocaleString()}\n`;
@@ -2939,12 +2903,12 @@
 
     function exportServicesToCSV() {
       const services = appState.billingData.services || [];
-      let csv = 'Service Type,Total Units,Prepaid Used,Overage,Prepaid Cost,Overage Cost,Total Cost,% Prepaid Used\n';
+      let csv = 'Service Name,Type,Total Units,Prepaid Used,Overage,Prepaid Cost,Overage Cost,Total Cost,Usage %\n';
       
       services.forEach(service => {
-        const prepaidPercent = service.totalUnits > 0 ? ((service.prepaidUnits || 0) / service.totalUnits * 100) : 0;
-        csv += `${service.serviceType},${service.totalUnits},${service.prepaidUnits || 0},${service.overageUnits || 0},`;
-        csv += `${service.prepaidCost || 0},${service.overageCost || 0},${service.totalCost || 0},${Math.round(prepaidPercent)}%\n`;
+        const usagePercent = service.prepaidUnits > 0 ? ((service.totalUnits || 0) / service.prepaidUnits * 100) : 0;
+        csv += `"${service.name || service.serviceType}",${service.serviceType},${service.totalUnits},${service.prepaidUnits || 0},${service.overageUnits || 0},`;
+        csv += `${service.prepaidCost || 0},${service.overageCost || 0},${service.totalCost || 0},${Math.round(usagePercent)}%\n`;
       });
       
       return csv;
@@ -2964,24 +2928,24 @@
       csv += 'SUMMARY\n';
       csv += 'Metric,Value\n';
       csv += `Total Cost,${formatCurrency(data.totalCost || 0)}\n`;
-      csv += `Prepaid Balance,${formatCurrency(data.prepaidBalance || 0)}\n`;
-      csv += `Usage Charges,${formatCurrency(data.usageCharges || 0)}\n`;
-      csv += `Remaining Balance,${formatCurrency(data.remainingBalance || 0)}\n\n`;
+      csv += `Prepaid Balance,${formatNumber(data.prepaidBalance || 0)}\n`;
+      csv += `Usage Charges,${formatNumber(data.usageCharges || 0)}\n`;
+      csv += `Remaining Balance,${formatNumber(data.remainingBalance || 0)}\n`;
+      csv += `Total Overage,${formatNumber(data.totalOverage || 0)}\n\n`;
+      
+      csv += 'TRANSCRIPTION DETAILS\n';
+      csv += 'Metric,Value\n';
+      csv += `Total Transcription Minutes,${formatNumber(data.transcription?.total || 0)}\n`;
+      csv += `Transcription Prepaid Used,${formatNumber(data.transcription?.prepaid || 0)}\n`;
+      csv += `Transcription Overage,${formatNumber(data.transcription?.overage || 0)}\n`;
+      csv += `Transcription Cost,${formatCurrency(data.transcription?.cost || 0)}\n\n`;
       
       csv += 'SERVICE BREAKDOWN\n';
-      csv += 'Service Type,Total Units,Prepaid Units,Overage Units,Prepaid Cost,Overage Cost,Total Cost\n';
+      csv += 'Service Name,Type,Total Units,Prepaid Units,Overage Units,Prepaid Cost,Overage Cost,Total Cost\n';
       
       data.services?.forEach(service => {
-        csv += `${service.serviceType},${service.totalUnits},${service.prepaidUnits},${service.overageUnits},`;
+        csv += `"${service.name || service.serviceType}",${service.serviceType},${service.totalUnits},${service.prepaidUnits},${service.overageUnits},`;
         csv += `${formatCurrency(service.prepaidCost)},${formatCurrency(service.overageCost)},${formatCurrency(service.totalCost)}\n`;
-      });
-      
-      csv += '\nTRANSACTIONS\n';
-      csv += 'Date,Type,Description,Service,Units,Amount,Balance\n';
-      
-      data.transactions?.forEach(txn => {
-        csv += `${new Date(txn.date).toLocaleDateString()},${txn.type},${txn.description},${txn.serviceType},${txn.units || ''},`;
-        csv += `${formatCurrency(txn.amount)},${formatCurrency(txn.balanceAfter)}\n`;
       });
       
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -3011,9 +2975,14 @@
         period: getPeriodDisplayName(appState.currentPeriod),
         periodIndex: appState.currentPeriod,
         generated: new Date().toISOString(),
-        data: appState.billingData,
-        comparison: appState.comparisonData,
-        history: appState.billingHistory
+        rawApiResponse: appState.rawApiResponse,
+        parsedData: appState.billingData,
+        history: appState.billingHistory.map(h => ({
+          period: h.period,
+          periodName: h.periodName,
+          data: h.data,
+          timestamp: h.timestamp
+        }))
       };
       
       const json = JSON.stringify(exportData, null, 2);
@@ -3052,7 +3021,7 @@
         });
       });
       
-      // Period selection - UPDATED
+      // Period selection
       el.periodSelect.addEventListener('change', function() {
         appState.currentPeriod = parseInt(this.value);
         localStorage.setItem(CONFIG.STORAGE_KEYS.PERIOD, this.value);
@@ -3077,6 +3046,13 @@
           updateDisplayWithBillingData();
           logMessage('INFO', 'Currency updated', `Using ${currency}`);
         });
+      });
+      
+      // Debug toggle
+      el.debugToggle.addEventListener('click', function() {
+        const isVisible = el.debugPanel.style.display === 'block';
+        el.debugPanel.style.display = isVisible ? 'none' : 'block';
+        this.textContent = isVisible ? 'Show API Response' : 'Hide API Response';
       });
       
       // Actions
@@ -3111,25 +3087,11 @@
         });
       });
       
-      // Comparison
-      el.btnRunComparison.addEventListener('click', function() {
-        const comparePeriod = el.comparePeriod.value;
-        fetchComparisonData(comparePeriod);
-      });
-      
-      el.comparisonMode.addEventListener('change', function() {
-        localStorage.setItem(CONFIG.STORAGE_KEYS.COMPARISON_MODE, this.value);
-        if (this.value !== 'none' && appState.billingData) {
-          fetchComparisonData(this.value);
-        }
-      });
-      
       // Settings changes
       el.refreshInterval.addEventListener('change', setupAutoRefresh);
-      
-      // Transaction search and filter
-      el.transactionSearch.addEventListener('input', updateTransactionsTable);
-      el.transactionFilter.addEventListener('change', updateTransactionsTable);
+      el.unitDisplay.addEventListener('change', function() {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.UNIT_DISPLAY, this.value);
+      });
       
       // Logs actions
       el.btnClearLogs.addEventListener('click', function() {
@@ -3151,7 +3113,7 @@
     function resetApplication() {
       if (confirm('Clear all billing data and reset the application?')) {
         appState.billingData = null;
-        appState.comparisonData = null;
+        appState.rawApiResponse = null;
         appState.transactions = [];
         appState.usageData = [];
         appState.billingHistory = [];
@@ -3168,6 +3130,24 @@
         
         el.comparisonLoading.style.display = 'block';
         el.comparisonContent.style.display = 'none';
+        
+        // Clear tables
+        el.transcriptionTableBody.innerHTML = `
+          <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-light);">
+            No transcription data loaded. Fetch billing data first.
+          </td></tr>
+        `;
+        
+        el.usageTableBody.innerHTML = `
+          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">
+            No usage data loaded. Fetch billing data first.
+          </td></tr>
+        `;
+        
+        // Clear debug panel
+        el.debugPanel.innerHTML = '';
+        el.debugPanel.style.display = 'none';
+        el.debugToggle.textContent = 'Show API Response';
         
         logMessage('INFO', 'Application reset', 'All data cleared');
         showStatusMessage('🔄 Application reset', 'info');
@@ -3197,9 +3177,9 @@
         el.periodSelect.value = savedPeriod;
       }
       
-      const savedComparisonMode = localStorage.getItem(CONFIG.STORAGE_KEYS.COMPARISON_MODE);
-      if (savedComparisonMode) {
-        el.comparisonMode.value = savedComparisonMode;
+      const savedUnitDisplay = localStorage.getItem(CONFIG.STORAGE_KEYS.UNIT_DISPLAY);
+      if (savedUnitDisplay) {
+        el.unitDisplay.value = savedUnitDisplay;
       }
       
       // Set up event listeners
