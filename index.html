@@ -1000,12 +1000,14 @@
       setLoading(true, 'Fetching Billing Data', `Loading ${getPeriodDisplayName(periodIndex)} from Genesys Cloud...`);
       
       try {
-        const endpoint = `/api/v2/billing/trusteebillingoverview/${CONFIG.TRUSTED_ORG_ID}`;
+        // Add billingPeriodIndex as query parameter
+        const endpoint = `/api/v2/billing/trusteebillingoverview/${CONFIG.TRUSTED_ORG_ID}?billingPeriodIndex=${periodIndex}`;
         
         console.log('Calling API endpoint:', endpoint);
         const rawApiResponse = await apiCall(endpoint);
         
         console.log('API Response:', rawApiResponse);
+        console.log('API Response Structure:', JSON.stringify(rawApiResponse, null, 2));
         
         // Store raw API data
         appState.rawApiData = rawApiResponse;
@@ -1032,22 +1034,51 @@
       } catch (error) {
         setLoading(false);
         console.error('Error fetching billing data:', error);
+        console.error('Error stack:', error.stack);
         showStatusMessage(`Failed to load billing data: ${error.message}`, 'error');
       }
     }
 
     function parseApiData(apiData, periodIndex) {
-      if (!apiData || !apiData.billingOverview) {
-        throw new Error('Invalid API response structure');
+      console.log('Parsing API data:', apiData);
+      console.log('API data type:', typeof apiData);
+      console.log('API data keys:', Object.keys(apiData || {}));
+      
+      // Handle different possible response structures
+      let products = [];
+      
+      if (!apiData) {
+        throw new Error('API returned null or undefined');
       }
       
-      const products = apiData.billingOverview.products || [];
+      // Check for billingOverview.products
+      if (apiData.billingOverview && Array.isArray(apiData.billingOverview.products)) {
+        products = apiData.billingOverview.products;
+        console.log('Found products in billingOverview.products:', products.length);
+      }
+      // Check for products at root level
+      else if (Array.isArray(apiData.products)) {
+        products = apiData.products;
+        console.log('Found products at root level:', products.length);
+      }
+      // Check if apiData itself is an array
+      else if (Array.isArray(apiData)) {
+        products = apiData;
+        console.log('API data is array of products:', products.length);
+      }
+      else {
+        console.error('Unable to find products array in API response');
+        console.error('Available keys:', Object.keys(apiData));
+        throw new Error(`Invalid API response structure. Available keys: ${Object.keys(apiData).join(', ')}`);
+      }
       
       // Parse user licenses
       const users = parseUserLicenses(products);
+      console.log('Parsed users:', users.length);
       
       // Parse resources
       const resources = parseResources(products);
+      console.log('Parsed resources:', resources.length);
       
       return {
         period: periodIndex,
