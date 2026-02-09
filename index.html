@@ -1,1 +1,2534 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Genesys Cloud - Trusted Org Billing Dashboard</title>
+  <style>
+    /* ====== CORE STYLES FROM EXISTING TEMPLATE ====== */
+    :root{
+      --primary-color:#63AB8F; --secondary-color:#4A8C7D; --border-color:#DEE2E6;
+      --light-bg:#F8F9FA; --card-bg:#FFFFFF; --text-color:#2C3E50; --text-light:#6C757D;
+      --pill:#e9f6f0; --filter-bg:#f0f7f3; --warning:#ffc107; --danger:#dc3545;
+      --success:#28a745; --info:#17a2b8; --chart-blue:#4e73df; --chart-green:#1cc88a;
+      --chart-yellow:#f6c23e; --chart-red:#e74a3b; --chart-purple:#6f42c1;
+    }
 
+    body{
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+      margin:0; padding:0;
+      background:var(--light-bg);color:var(--text-color);
+      line-height:1.6;
+    }
+
+    .container{
+      max-width:none;
+      margin:0 20px;
+      width:calc(100% - 40px);
+    }
+    
+    header{
+      background:var(--card-bg);border-radius:12px;padding:28px 36px;
+      margin-bottom:28px;box-shadow:0 2px 8px rgba(0,0,0,.08);
+      border-left:5px solid var(--primary-color);border:1px solid var(--border-color);
+      margin-top:20px;
+    }
+
+    h1{color:var(--text-color);margin-bottom:12px;font-size:32px;font-weight:600;}
+    .subtitle{color:var(--text-light);font-size:17px;}
+    .main-grid{
+      display:grid;
+      grid-template-columns:350px 1fr;
+      gap:32px;
+      min-height:calc(100vh - 200px);
+    }
+    
+    @media(max-width:1200px){
+      .main-grid{grid-template-columns:1fr}
+      .container{margin:0 15px;width:calc(100% - 30px);}
+    }
+
+    .card{
+      background:var(--card-bg);border:1px solid var(--border-color);
+      border-radius:14px;padding:28px;margin-bottom:20px;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+
+    .card h2{
+      color:var(--primary-color);margin-bottom:24px;font-size:22px;
+      padding-bottom:16px;border-bottom:2px solid var(--light-bg);
+      display:flex;align-items:center;gap:12px;
+      font-weight:600;
+    }
+
+    .form-group{margin-bottom:24px}
+    label{display:block;font-weight:600;margin-bottom:8px;color:var(--text-color);font-size:14px;}
+    select,input,button{
+      padding:12px;border:1px solid var(--border-color);
+      border-radius:8px;background:var(--card-bg);font-size:15px;width:100%;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    }
+
+    button{
+      background:var(--primary-color);color:#fff;font-weight:600;
+      cursor:pointer;transition:background .2s;border:none;
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      font-size:15px;
+    }
+
+    button:hover{background:var(--secondary-color)}
+    button:disabled{background:var(--text-light);cursor:not-allowed}
+    .btn-block{width:100%;padding:14px}
+    .btn-success{background:var(--success)}.btn-success:hover{background:#218838}
+    .btn-secondary{background:var(--text-light)}.btn-secondary:hover{background:#5a6268}
+    .btn-danger{background:var(--danger)}.btn-danger:hover{background:#c82333}
+    .btn-warning{background:var(--warning);color:#212529;}.btn-warning:hover{background:#e0a800}
+
+    .status-container{
+      position:fixed;top:20px;right:20px;z-index:1000;
+      display:flex;flex-direction:column;gap:10px;
+      max-width:400px;
+    }
+
+    .status-message{
+      background:white;padding:16px;border-radius:8px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.15);border-left:4px solid var(--primary-color);
+      animation:slideIn 0.3s ease-out;display:flex;align-items:center;gap:12px;
+    }
+
+    @keyframes slideIn{
+      from{transform:translateX(100%);opacity:0}
+      to{transform:translateX(0);opacity:1}
+    }
+
+    .stats-grid{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:20px;margin-top:24px;
+    }
+
+    .stat-card{
+      background:var(--pill);border-radius:14px;padding:24px;
+      border:1px solid var(--border-color);text-align:center;
+      transition:all 0.3s;
+    }
+
+    .stat-card:hover{
+      transform:translateY(-2px);box-shadow:0 8px 16px rgba(0,0,0,0.1);
+      border-color:var(--primary-color);
+    }
+
+    .stat-value{
+      font-size:38px;font-weight:700;color:var(--primary-color);
+      margin:12px 0;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    }
+
+    .stat-label{
+      font-size:15px;color:var(--text-light);
+      text-transform:uppercase;letter-spacing:1px;
+      font-weight:600;
+    }
+
+    .table-container{
+      overflow-x:auto;margin-top:24px;border-radius:10px;
+      border:1px solid var(--border-color);background:var(--card-bg);
+      max-height:600px;overflow-y:auto;
+    }
+
+    table{width:100%;border-collapse:collapse}
+    th{
+      background-color:var(--primary-color);color:white;font-weight:600;
+      position:sticky;top:0;z-index:10;white-space:nowrap;padding:18px;text-align:left;
+      font-size:14px;
+    }
+    td{padding:16px 18px;border-bottom:1px solid var(--border-color);font-size:14px;}
+    tr:hover{background-color:var(--pill)}
+
+    .status-badge{
+      display:inline-block;padding:6px 14px;border-radius:20px;
+      font-size:13px;font-weight:600;text-transform:uppercase;
+    }
+
+    .tabs{
+      display:flex;border-bottom:2px solid var(--border-color);
+      margin-bottom:28px;background:white;border-radius:10px 10px 0 0;
+    }
+
+    .tab{
+      padding:18px 28px;background:none;border:none;
+      border-bottom:2px solid transparent;font-size:16px;
+      font-weight:600;color:var(--text-light);cursor:pointer;
+      transition:all 0.3s;flex:1;text-align:center;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    }
+
+    .tab:hover{color:var(--primary-color)}
+    .tab.active{
+      color:var(--primary-color);border-bottom-color:var(--primary-color);
+      background:rgba(99,171,143,0.05);
+    }
+
+    .tab-content{display:none;animation:fadeIn 0.3s ease}
+    .tab-content.active{display:block}
+
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(10px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    .loading-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(255,255,255,0.95);display:flex;
+      flex-direction:column;justify-content:center;align-items:center;
+      z-index:9999;display:none;
+    }
+
+    .loading-overlay.active{display:flex}
+    .spinner{
+      width:60px;height:60px;border:5px solid #f3f3f3;
+      border-top:5px solid var(--primary-color);border-radius:50%;
+      animation:spin 1s linear infinite;margin-bottom:20px;
+    }
+
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .progress-container{
+      width:100%;max-width:500px;margin:20px auto;
+    }
+
+    .progress-bar{
+      height:10px;background:var(--light-bg);border-radius:5px;
+      overflow:hidden;margin-top:12px;
+    }
+
+    .progress-fill{
+      height:100%;background:linear-gradient(90deg,var(--primary-color),var(--secondary-color));
+      border-radius:5px;transition:width 0.3s ease;
+      width:0%;
+    }
+
+    @media(max-width:768px){
+      body{margin:10px;padding:0}
+      .card{padding:20px}
+      header{padding:20px;margin-top:10px;}
+      h1{font-size:28px}
+      .btn-block{padding:12px 18px;font-size:15px}
+      .stat-value{font-size:32px}
+      .main-grid{grid-template-columns:1fr}
+      .status-container{max-width:300px}
+      .container{margin:0 10px;width:calc(100% - 20px);}
+    }
+
+    /* ====== BILLING SPECIFIC STYLES ====== */
+    .usage-card {
+      border-left: 5px solid var(--chart-blue);
+      background: linear-gradient(135deg, rgba(78, 115, 223, 0.05), rgba(78, 115, 223, 0.02));
+    }
+    
+    .usage-card.transcription {
+      border-left: 5px solid var(--chart-green);
+      background: linear-gradient(135deg, rgba(28, 200, 138, 0.05), rgba(28, 200, 138, 0.02));
+    }
+    
+    .usage-card.speech {
+      border-left: 5px solid var(--chart-yellow);
+      background: linear-gradient(135deg, rgba(246, 194, 62, 0.05), rgba(246, 194, 62, 0.02));
+    }
+    
+    .usage-card.communication {
+      border-left: 5px solid var(--chart-purple);
+      background: linear-gradient(135deg, rgba(111, 66, 193, 0.05), rgba(111, 66, 193, 0.02));
+    }
+    
+    .usage-value {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 8px 0;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    }
+    
+    .usage-label {
+      font-size: 14px;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    
+    .usage-unit {
+      font-size: 18px;
+      color: var(--secondary-color);
+      font-weight: 600;
+      margin-left: 4px;
+    }
+    
+    .usage-details {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      border: 1px solid rgba(222, 226, 230, 0.5);
+    }
+    
+    .usage-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(222, 226, 230, 0.5);
+    }
+    
+    .usage-row:last-child {
+      border-bottom: none;
+    }
+    
+    .usage-metric {
+      font-size: 14px;
+      color: var(--text-color);
+    }
+    
+    .usage-amount {
+      font-size: 16px;
+      font-weight: 600;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    }
+    
+    .usage-amount.prepaid {
+      color: var(--success);
+    }
+    
+    .usage-amount.overage {
+      color: var(--danger);
+    }
+    
+    .usage-amount.used {
+      color: var(--chart-blue);
+    }
+    
+    .usage-amount.remaining {
+      color: var(--secondary-color);
+    }
+    
+    .balance-indicator {
+      height: 8px;
+      background: var(--light-bg);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+      position: relative;
+    }
+    
+    .balance-fill {
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transition: width 0.5s ease;
+    }
+    
+    .balance-fill.prepaid {
+      background: linear-gradient(90deg, var(--success), var(--chart-green));
+    }
+    
+    .balance-fill.overage {
+      background: linear-gradient(90deg, var(--danger), var(--chart-red));
+    }
+    
+    .balance-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    
+    .currency-selector {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    
+    .currency-option {
+      padding: 8px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--light-bg);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    }
+    
+    .currency-option:hover {
+      background: var(--pill);
+    }
+    
+    .currency-option.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    
+    .org-info-card {
+      background: linear-gradient(135deg, rgba(99, 171, 143, 0.1), rgba(99, 171, 143, 0.05));
+      border-left: 5px solid var(--primary-color);
+    }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(222, 226, 230, 0.5);
+    }
+    
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    
+    .info-label {
+      font-weight: 600;
+      color: var(--text-color);
+      font-size: 14px;
+    }
+    
+    .info-value {
+      color: var(--secondary-color);
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    
+    .chart-container {
+      height: 300px;
+      position: relative;
+      margin-top: 24px;
+    }
+    
+    .data-refresh {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .alert-banner {
+      background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+      border: 1px solid rgba(255, 193, 7, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .alert-banner.warning {
+      background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+      border-color: rgba(255, 193, 7, 0.3);
+    }
+    
+    .alert-banner.danger {
+      background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+      border-color: rgba(220, 53, 69, 0.3);
+    }
+    
+    .alert-banner.success {
+      background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+      border-color: rgba(40, 167, 69, 0.3);
+    }
+    
+    .alert-icon {
+      font-size: 24px;
+    }
+    
+    .time-period-selector {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    
+    .period-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--light-bg);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+      transition: all 0.2s;
+    }
+    
+    .period-btn:hover {
+      background: var(--pill);
+    }
+    
+    .period-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    
+    .export-options {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .export-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--light-bg);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .export-btn:hover {
+      background: var(--pill);
+      transform: translateY(-2px);
+    }
+    
+    .export-btn.csv {
+      background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
+      border-color: rgba(40, 167, 69, 0.3);
+    }
+    
+    .export-btn.pdf {
+      background: linear-gradient(135deg, rgba(220, 53, 69, 0.1), rgba(220, 53, 69, 0.05));
+      border-color: rgba(220, 53, 69, 0.3);
+    }
+    
+    .export-btn.json {
+      background: linear-gradient(135deg, rgba(23, 162, 184, 0.1), rgba(23, 162, 184, 0.05));
+      border-color: rgba(23, 162, 184, 0.3);
+    }
+    
+    /* Enhanced stat cards */
+    .stat-subvalue {
+      font-size: 16px;
+      color: var(--secondary-color);
+      font-weight: 600;
+      margin-top: 8px;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    }
+    
+    .stat-subtitle {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+    
+    /* Transaction table styling */
+    .transaction-type {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .transaction-type.purchase { background: rgba(40, 167, 69, 0.15); color: var(--success); }
+    .transaction-type.usage { background: rgba(23, 162, 184, 0.15); color: var(--info); }
+    .transaction-type.refund { background: rgba(255, 193, 7, 0.15); color: #d39e00; }
+    .transaction-type.adjustment { background: rgba(108, 117, 125, 0.15); color: var(--text-light); }
+    
+    /* Cost breakdown styles */
+    .cost-breakdown {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    
+    .cost-item {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+    
+    .cost-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 12px 0;
+    }
+    
+    .cost-label {
+      font-size: 13px;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .cost-details {
+      font-size: 12px;
+      color: var(--secondary-color);
+      margin-top: 8px;
+    }
+    
+    /* Layout improvements */
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    .full-width-section {
+      width: 100%;
+    }
+    
+    .info-text {
+      font-size: 13px;
+      color: var(--text-light);
+      line-height: 1.5;
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    }
+    
+    /* Card content spacing */
+    .card-content {
+      padding: 4px 0;
+    }
+    
+    /* Ensure consistent font usage */
+    input, select, textarea, button {
+      font-family: 'Aptos', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    }
+    
+    /* Wider layout for larger screens */
+    @media (min-width: 1400px) {
+      .container {
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      
+      .main-grid {
+        grid-template-columns: 380px 1fr;
+        gap: 36px;
+      }
+      
+      .card {
+        padding: 32px;
+      }
+      
+      header {
+        padding: 32px 40px;
+      }
+    }
+    
+    @media (min-width: 1800px) {
+      .container {
+        max-width: 1800px;
+      }
+      
+      .main-grid {
+        grid-template-columns: 420px 1fr;
+        gap: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="authContainer" style="display:none;">
+    <div class="container" style="max-width:500px;margin:100px auto;">
+      <div class="auth-card">
+        <h3 style="text-align:center;margin-bottom:24px;">🔐 Genesys Cloud Billing Authentication</h3>
+        <div class="auto-auth-message" style="text-align:center;">
+          <div class="spinner" style="width:40px;height:40px;border-width:3px;margin:0 auto 20px;"></div>
+          <p style="font-size:14px;color:var(--text-light);">Attempting automatic authentication...</p>
+          <p style="font-size:12px;color:var(--text-light);margin-top:12px;">Using Trusted Organization Access</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-container" id="statusContainer"></div>
+
+  <div id="mainContent" style="display:none;">
+    <div class="container">
+      <header>
+        <h1>💰 Genesys Cloud - Trusted Organization Billing Dashboard</h1>
+        <div class="subtitle" style="display:flex;justify-content:space-between;align-items:center;">
+          <span id="orgNameDisplay">JLA Trusted Organization Billing</span>
+          <span id="lastUpdated" style="font-size:14px;background:var(--pill);padding:6px 12px;border-radius:20px;">Loading...</span>
+        </div>
+      </header>
+
+      <div class="main-grid">
+        <div class="left-column">
+          <!-- Organization Connection Card -->
+          <div class="card org-info-card" id="connectionCard">
+            <h2>🏢 Organization Details</h2>
+            <div class="form-group">
+              <label>Trusted Organization</label>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:14px;height:14px;border-radius:50%;background:var(--success);"></div>
+                <input type="text" id="orgDisplay" value="JLA (Trusted Organization)" readonly style="background:var(--filter-bg);font-weight:600;">
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Organization ID:</span>
+              <span class="info-value" id="orgIdDisplay">9b6492f9-d751-4406-bc7a-8ed307afef0a</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Environment:</span>
+              <span class="info-value">EU West 2 (London)</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">API Endpoint:</span>
+              <span class="info-value">/api/v2/billing/trusteebillingoverview</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Status:</span>
+              <span class="info-value" style="color:var(--success);font-weight:700;">Connected ✓</span>
+            </div>
+            <button id="btnDisconnect" class="btn btn-danger btn-block" style="margin-top:24px;">
+              <span>🚪 Disconnect & Clear Session</span>
+            </button>
+          </div>
+
+          <!-- Billing Period Selector -->
+          <div class="card">
+            <h2>📅 Billing Period</h2>
+            <div class="form-group">
+              <label>Select Time Period</label>
+              <div class="time-period-selector">
+                <button class="period-btn active" data-period="current">Current Month</button>
+                <button class="period-btn" data-period="last">Last Month</button>
+                <button class="period-btn" data-period="quarter">This Quarter</button>
+                <button class="period-btn" data-period="custom">Custom</button>
+              </div>
+            </div>
+            
+            <div id="customDateRange" style="display:none;">
+              <div class="date-range-simple" style="display:flex;flex-direction:column;gap:16px;margin-bottom:20px;">
+                <div class="date-field-simple">
+                  <label for="dateFrom">From Date</label>
+                  <input type="date" id="dateFrom">
+                </div>
+                <div class="date-field-simple">
+                  <label for="dateTo">To Date</label>
+                  <input type="date" id="dateTo">
+                </div>
+              </div>
+              <button id="btnApplyCustom" class="btn btn-secondary" style="width:100%;">Apply Custom Range</button>
+            </div>
+            
+            <div id="periodInfo" style="font-size:13px;color:var(--text-light);text-align:center;margin-top:12px;padding:10px;background:var(--pill);border-radius:6px;">
+              Current Month (Feb 2026) selected
+            </div>
+            
+            <div style="font-size:13px;color:var(--text-light);margin-top:16px;padding:14px;background:rgba(99,171,143,0.05);border-radius:8px;">
+              <strong>💡 Note:</strong> Billing data shows prepaid vs usage breakdown for selected period.
+            </div>
+          </div>
+
+          <!-- Currency and Settings -->
+          <div class="card">
+            <h2>⚙️ Display Settings</h2>
+            <div class="form-group">
+              <label>Currency</label>
+              <div class="currency-selector">
+                <div class="currency-option active" data-currency="£">£ GBP</div>
+                <div class="currency-option" data-currency="$">$ USD</div>
+                <div class="currency-option" data-currency="€">€ EUR</div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Data Refresh</label>
+              <select id="refreshInterval">
+                <option value="300">5 minutes</option>
+                <option value="900" selected>15 minutes</option>
+                <option value="1800">30 minutes</option>
+                <option value="3600">1 hour</option>
+                <option value="manual">Manual only</option>
+              </select>
+              <div style="font-size:13px;color:var(--text-light);margin-top:6px;">
+                Auto-refresh interval for billing data
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Include Usage Details</label>
+              <select id="detailLevel">
+                <option value="summary">Summary Only</option>
+                <option value="detailed" selected>Detailed Breakdown</option>
+                <option value="full">Full Transaction Log</option>
+              </select>
+            </div>
+            
+            <div style="background:rgba(99,171,143,0.05);padding:14px;border-radius:8px;margin-top:12px;">
+              <div style="font-size:13px;color:var(--primary-color);font-weight:600;margin-bottom:6px;">📋 Data Source:</div>
+              <div style="font-size:12px;color:var(--text-light);line-height:1.5;">
+                • Uses Genesys Cloud Billing API<br>
+                • Trusted Organization ID: 9b6492f9-d751-4406-bc7a-8ed307afef0a<br>
+                • Focus on transcription usage<br>
+                • Prepaid vs usage breakdown<br>
+                • Real-time balance tracking
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions Card -->
+          <div class="card">
+            <h2>🚀 Actions</h2>
+            <button id="btnFetchBilling" class="btn btn-success btn-block">
+              <span>📊 Fetch Latest Billing Data</span>
+            </button>
+            <div style="height:14px;"></div>
+            
+            <div class="export-options">
+              <button class="export-btn csv" id="btnExportCSV">
+                <span>📄 CSV</span>
+              </button>
+              <button class="export-btn pdf" id="btnExportPDF" disabled>
+                <span>📊 PDF</span>
+              </button>
+              <button class="export-btn json" id="btnExportJSON">
+                <span>🔧 JSON</span>
+              </button>
+            </div>
+            
+            <div style="height:14px;"></div>
+            <button id="btnRefreshNow" class="btn btn-secondary btn-block">
+              <span>🔄 Refresh Now</span>
+            </button>
+            
+            <div style="height:14px;"></div>
+            <button id="btnReset" class="btn btn-danger btn-block">
+              <span>🗑️ Clear Data</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="right-column">
+          <!-- Tabs Navigation -->
+          <div class="tabs">
+            <button class="tab active" data-tab="overview">📊 Overview</button>
+            <button class="tab" data-tab="transcription">🎤 Transcription</button>
+            <button class="tab" data-tab="usage">📈 Usage Details</button>
+            <button class="tab" data-tab="transactions">💳 Transactions</button>
+            <button class="tab" data-tab="logs">📝 Logs</button>
+          </div>
+
+          <!-- Overview Tab -->
+          <div id="tab-overview" class="tab-content active">
+            <!-- Summary Alert Banner -->
+            <div id="summaryAlert" class="alert-banner" style="display:none;">
+              <div class="alert-icon" id="alertIcon">⚠️</div>
+              <div>
+                <div style="font-weight:600;" id="alertTitle">Billing Status</div>
+                <div style="font-size:14px;color:var(--text-light);" id="alertMessage">Loading billing data...</div>
+              </div>
+            </div>
+
+            <!-- Key Stats Grid -->
+            <div class="stats-grid">
+              <div class="stat-card usage-card transcription">
+                <div class="stat-label">Transcription Minutes</div>
+                <div class="stat-value" id="statTranscription">0</div>
+                <div class="stat-subvalue" id="statTranscriptionDetail">0 prepaid • 0 usage</div>
+                <div class="balance-indicator">
+                  <div class="balance-fill prepaid" id="transcriptionPrepaidFill" style="width:0%"></div>
+                  <div class="balance-fill overage" id="transcriptionOverageFill" style="width:0%"></div>
+                </div>
+                <div class="balance-legend">
+                  <span>Prepaid: <span id="transcriptionPrepaidPercent">0%</span></span>
+                  <span>Usage: <span id="transcriptionUsagePercent">0%</span></span>
+                </div>
+              </div>
+              
+              <div class="stat-card usage-card">
+                <div class="stat-label">Total Cost</div>
+                <div class="stat-value" id="statTotalCost">£0</div>
+                <div class="stat-subvalue" id="statCostDetail">£0 prepaid • £0 overage</div>
+                <div class="balance-indicator">
+                  <div class="balance-fill prepaid" id="costPrepaidFill" style="width:0%"></div>
+                  <div class="balance-fill overage" id="costOverageFill" style="width:0%"></div>
+                </div>
+                <div class="balance-legend">
+                  <span>Prepaid: <span id="costPrepaidPercent">0%</span></span>
+                  <span>Overage: <span id="costOveragePercent">0%</span></span>
+                </div>
+              </div>
+              
+              <div class="stat-card usage-card speech">
+                <div class="stat-label">Speech Services</div>
+                <div class="stat-value" id="statSpeech">0</div>
+                <div class="stat-subvalue" id="statSpeechDetail">0 prepaid • 0 usage</div>
+                <div class="balance-indicator">
+                  <div class="balance-fill prepaid" id="speechPrepaidFill" style="width:0%"></div>
+                  <div class="balance-fill overage" id="speechOverageFill" style="width:0%"></div>
+                </div>
+                <div class="balance-legend">
+                  <span>Prepaid: <span id="speechPrepaidPercent">0%</span></span>
+                  <span>Usage: <span id="speechUsagePercent">0%</span></span>
+                </div>
+              </div>
+              
+              <div class="stat-card usage-card communication">
+                <div class="stat-label">Communication</div>
+                <div class="stat-value" id="statCommunication">0</div>
+                <div class="stat-subvalue" id="statCommunicationDetail">0 prepaid • 0 usage</div>
+                <div class="balance-indicator">
+                  <div class="balance-fill prepaid" id="communicationPrepaidFill" style="width:0%"></div>
+                  <div class="balance-fill overage" id="communicationOverageFill" style="width:0%"></div>
+                </div>
+                <div class="balance-legend">
+                  <span>Prepaid: <span id="communicationPrepaidPercent">0%</span></span>
+                  <span>Usage: <span id="communicationUsagePercent">0%</span></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="card" style="margin-top:24px;">
+              <h2>💰 Cost Breakdown</h2>
+              <div class="cost-breakdown" id="costBreakdown">
+                <div class="cost-item">
+                  <div class="cost-label">Prepaid Balance</div>
+                  <div class="cost-value" id="costPrepaid">£0</div>
+                  <div class="cost-details" id="costPrepaidDetail">Available for use</div>
+                </div>
+                <div class="cost-item">
+                  <div class="cost-label">Usage This Period</div>
+                  <div class="cost-value" id="costUsage">£0</div>
+                  <div class="cost-details" id="costUsageDetail">Charges incurred</div>
+                </div>
+                <div class="cost-item">
+                  <div class="cost-label">Remaining Balance</div>
+                  <div class="cost-value" id="costRemaining">£0</div>
+                  <div class="cost-details" id="costRemainingDetail">Prepaid - Usage</div>
+                </div>
+                <div class="cost-item">
+                  <div class="cost-label">Projected Month End</div>
+                  <div class="cost-value" id="costProjected">£0</div>
+                  <div class="cost-details" id="costProjectedDetail">Based on current usage</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Usage Chart -->
+            <div class="card" style="margin-top:24px;">
+              <h2>📈 Usage Trend</h2>
+              <div class="chart-container">
+                <canvas id="usageChart"></canvas>
+              </div>
+              <div class="data-refresh">
+                <span id="dataTimestamp">Data last updated: Never</span>
+                <button id="btnRefreshChart" class="btn" style="padding:6px 12px;font-size:12px;margin-left:12px;">Refresh Chart</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transcription Tab -->
+          <div id="tab-transcription" class="tab-content">
+            <div class="card">
+              <h2>🎤 Transcription Usage Details</h2>
+              
+              <div class="dashboard-grid">
+                <div class="usage-card transcription">
+                  <div class="usage-label">Total Transcription Minutes</div>
+                  <div class="usage-value" id="transcriptionTotal">0<span class="usage-unit">min</span></div>
+                  <div class="usage-details">
+                    <div class="usage-row">
+                      <span class="usage-metric">Prepaid Minutes Used</span>
+                      <span class="usage-amount prepaid" id="transcriptionPrepaidUsed">0 min</span>
+                    </div>
+                    <div class="usage-row">
+                      <span class="usage-metric">Overage Minutes</span>
+                      <span class="usage-amount overage" id="transcriptionOverage">0 min</span>
+                    </div>
+                    <div class="usage-row">
+                      <span class="usage-metric">Prepaid Minutes Remaining</span>
+                      <span class="usage-amount remaining" id="transcriptionRemaining">0 min</span>
+                    </div>
+                    <div class="usage-row">
+                      <span class="usage-metric">Total Prepaid Allocation</span>
+                      <span class="usage-amount" id="transcriptionAllocation">0 min</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="usage-card transcription">
+                  <div class="usage-label">Transcription Cost</div>
+                  <div class="usage-value" id="transcriptionCost">£0</div>
+                  <div class="usage-details">
+                    <div class="usage-row">
+                      <span class="usage-metric">Prepaid Cost</span>
+                      <span class="usage-amount prepaid" id="transcriptionPrepaidCost">£0</span>
+                    </div>
+                    <div class="usage-row">
+                      <span class="usage-metric">Overage Cost</span>
+                      <span class="usage-amount overage" id="transcriptionOverageCost">£0</span>
+                    </div>
+                    <div class="usage-row">
+                      <span class="usage-metric">Average Cost per Minute</span>
+                      <span class="usage-amount" id="transcriptionAvgCost">£0.00</span>
+                    </div>
+                    <div class="usage-row">
+                      <span class="usage-metric">Projected Month End</span>
+                      <span class="usage-amount" id="transcriptionProjected">£0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card" style="margin-top:24px;">
+                <h3 style="margin:0 0 18px;">📊 Transcription Usage by Day</h3>
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Transcription Minutes</th>
+                        <th>Prepaid Used</th>
+                        <th>Overage</th>
+                        <th>Cost</th>
+                        <th>Trend</th>
+                      </tr>
+                    </thead>
+                    <tbody id="transcriptionTableBody">
+                      <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--text-light);">
+                        No transcription data loaded. Fetch billing data first.
+                      </td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Usage Details Tab -->
+          <div id="tab-usage" class="tab-content">
+            <div class="card">
+              <h2>📈 Detailed Usage Breakdown</h2>
+              
+              <div class="tabs" style="margin-bottom:24px;">
+                <button class="tab active" data-subtab="all">All Services</button>
+                <button class="tab" data-subtab="voice">Voice Services</button>
+                <button class="tab" data-subtab="digital">Digital Services</button>
+                <button class="tab" data-subtab="ai">AI Services</button>
+              </div>
+              
+              <div id="subtab-all" class="tab-content active">
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Service Type</th>
+                        <th>Total Units</th>
+                        <th>Prepaid Used</th>
+                        <th>Overage</th>
+                        <th>Prepaid Cost</th>
+                        <th>Overage Cost</th>
+                        <th>Total Cost</th>
+                        <th>% of Prepaid</th>
+                      </tr>
+                    </thead>
+                    <tbody id="usageTableBody">
+                      <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
+                        No usage data loaded. Fetch billing data first.
+                      </td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div id="subtab-voice" class="tab-content">
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Voice Service</th>
+                        <th>Minutes</th>
+                        <th>Prepaid</th>
+                        <th>Overage</th>
+                        <th>Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody id="voiceTableBody">
+                      <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-light);">
+                        No voice service data available.
+                      </td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div id="subtab-digital" class="tab-content">
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Digital Service</th>
+                        <th>Units</th>
+                        <th>Prepaid</th>
+                        <th>Overage</th>
+                        <th>Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody id="digitalTableBody">
+                      <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-light);">
+                        No digital service data available.
+                      </td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div id="subtab-ai" class="tab-content">
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>AI Service</th>
+                        <th>Units</th>
+                        <th>Prepaid</th>
+                        <th>Overage</th>
+                        <th>Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody id="aiTableBody">
+                      <tr><td colspan="5" style="text-align:center;padding:48px;color:var(--text-light);">
+                        No AI service data available.
+                      </td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transactions Tab -->
+          <div id="tab-transactions" class="tab-content">
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                <h2 style="margin:0;">💳 Billing Transactions</h2>
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <input type="text" id="transactionSearch" placeholder="🔍 Search transactions..." style="width:280px;padding:12px;">
+                  <select id="transactionFilter" style="width:160px;padding:12px;">
+                    <option value="all">All Transactions</option>
+                    <option value="purchase">Purchases</option>
+                    <option value="usage">Usage Charges</option>
+                    <option value="refund">Refunds</option>
+                    <option value="adjustment">Adjustments</option>
+                  </select>
+                  <div style="font-size:13px;color:var(--text-light);">
+                    <span id="transactionCount">0</span> transactions
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Transaction ID</th>
+                      <th>Type</th>
+                      <th>Description</th>
+                      <th>Service</th>
+                      <th>Units</th>
+                      <th>Amount</th>
+                      <th>Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transactionsTableBody">
+                    <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
+                      No transaction data loaded. Fetch billing data first.
+                    </td></tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="data-refresh">
+                <div style="display:flex;justify-content:space-between;">
+                  <span>Showing transactions for: <span id="transactionPeriod">Current Month</span></span>
+                  <button id="btnLoadMore" class="btn" style="padding:6px 12px;font-size:12px;">Load More</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logs Tab -->
+          <div id="tab-logs" class="tab-content">
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                <h2 style="margin:0;">📝 System Logs</h2>
+                <div>
+                  <button id="btnClearLogs" class="btn" style="padding:10px 18px;">Clear Logs</button>
+                  <button id="btnCopyLogs" class="btn" style="padding:10px 18px;">Copy Logs</button>
+                </div>
+              </div>
+
+              <div class="table-container" style="max-height:500px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th width="120">Time</th>
+                      <th width="120">Level</th>
+                      <th>Message</th>
+                      <th width="180">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody id="logsTableBody">
+                    <tr>
+                      <td>--:--:--</td>
+                      <td>🔵 INFO</td>
+                      <td>System initialised</td>
+                      <td>Ready for connection</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div id="loadingText" style="font-size:20px;font-weight:600;margin-bottom:12px;">Connecting to Genesys Cloud...</div>
+    <div id="loadingSubtext" style="font-size:15px;color:var(--text-light);text-align:center;max-width:500px;">Accessing trusted organization billing data</div>
+    <div class="progress-container" style="margin-top:24px;">
+      <div class="progress-bar">
+        <div class="progress-fill" id="loadingProgressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  
+  <script>
+    // ==================== CONFIGURATION ====================
+    const CONFIG = {
+      CLIENT_ID: '4ab97fe2-54c0-4deb-8b9a-a4b5720d6c67',
+      REDIRECT_URI: 'https://github.io/gmcglynn88/Billing',
+      TRUSTED_ORG_ID: '9b6492f9-d751-4406-bc7a-8ed307afef0a',
+      CUSTOMER_NAME: 'JLA',
+      ENVIRONMENT_REGION: 'eu-west-2',
+      ENVIRONMENTS: {
+        'eu-west-2': { 
+          name: 'EU West (London)', 
+          api: 'https://api.euw2.pure.cloud', 
+          login: 'https://login.euw2.pure.cloud' 
+        }
+      },
+      STORAGE_KEYS: {
+        TOKEN: 'gc_billing_token',
+        TOKEN_EXPIRY: 'gc_billing_token_expiry',
+        REFRESH_TOKEN: 'gc_billing_refresh_token',
+        CURRENCY: 'gc_billing_currency',
+        PERIOD: 'gc_billing_period',
+        DETAIL_LEVEL: 'gc_billing_detail_level'
+      }
+    };
+
+    // ==================== STATE MANAGEMENT ====================
+    let appState = {
+      isConnected: false,
+      billingData: null,
+      transactions: [],
+      usageData: [],
+      currentTab: 'overview',
+      currentCurrency: '£',
+      currentPeriod: 'current',
+      logs: [],
+      chartInstances: {},
+      refreshInterval: null,
+      lastFetchTime: null
+    };
+
+    // ==================== DOM ELEMENTS ====================
+    const el = {
+      // Containers
+      authContainer: document.getElementById('authContainer'),
+      mainContent: document.getElementById('mainContent'),
+      loadingOverlay: document.getElementById('loadingOverlay'),
+      statusContainer: document.getElementById('statusContainer'),
+      
+      // Header Elements
+      orgNameDisplay: document.getElementById('orgNameDisplay'),
+      lastUpdated: document.getElementById('lastUpdated'),
+      
+      // Connection Elements
+      orgDisplay: document.getElementById('orgDisplay'),
+      orgIdDisplay: document.getElementById('orgIdDisplay'),
+      btnDisconnect: document.getElementById('btnDisconnect'),
+      
+      // Period Selector
+      periodInfo: document.getElementById('periodInfo'),
+      customDateRange: document.getElementById('customDateRange'),
+      dateFrom: document.getElementById('dateFrom'),
+      dateTo: document.getElementById('dateTo'),
+      btnApplyCustom: document.getElementById('btnApplyCustom'),
+      
+      // Settings
+      refreshInterval: document.getElementById('refreshInterval'),
+      detailLevel: document.getElementById('detailLevel'),
+      
+      // Actions
+      btnFetchBilling: document.getElementById('btnFetchBilling'),
+      btnRefreshNow: document.getElementById('btnRefreshNow'),
+      btnReset: document.getElementById('btnReset'),
+      btnExportCSV: document.getElementById('btnExportCSV'),
+      btnExportPDF: document.getElementById('btnExportPDF'),
+      btnExportJSON: document.getElementById('btnExportJSON'),
+      
+      // Tabs
+      tabs: document.querySelectorAll('.tab'),
+      
+      // Overview Tab
+      summaryAlert: document.getElementById('summaryAlert'),
+      alertIcon: document.getElementById('alertIcon'),
+      alertTitle: document.getElementById('alertTitle'),
+      alertMessage: document.getElementById('alertMessage'),
+      
+      // Stats
+      statTranscription: document.getElementById('statTranscription'),
+      statTranscriptionDetail: document.getElementById('statTranscriptionDetail'),
+      transcriptionPrepaidFill: document.getElementById('transcriptionPrepaidFill'),
+      transcriptionOverageFill: document.getElementById('transcriptionOverageFill'),
+      transcriptionPrepaidPercent: document.getElementById('transcriptionPrepaidPercent'),
+      transcriptionUsagePercent: document.getElementById('transcriptionUsagePercent'),
+      
+      statTotalCost: document.getElementById('statTotalCost'),
+      statCostDetail: document.getElementById('statCostDetail'),
+      costPrepaidFill: document.getElementById('costPrepaidFill'),
+      costOverageFill: document.getElementById('costOverageFill'),
+      costPrepaidPercent: document.getElementById('costPrepaidPercent'),
+      costOveragePercent: document.getElementById('costOveragePercent'),
+      
+      statSpeech: document.getElementById('statSpeech'),
+      statSpeechDetail: document.getElementById('statSpeechDetail'),
+      speechPrepaidFill: document.getElementById('speechPrepaidFill'),
+      speechOverageFill: document.getElementById('speechOverageFill'),
+      speechPrepaidPercent: document.getElementById('speechPrepaidPercent'),
+      speechUsagePercent: document.getElementById('speechUsagePercent'),
+      
+      statCommunication: document.getElementById('statCommunication'),
+      statCommunicationDetail: document.getElementById('statCommunicationDetail'),
+      communicationPrepaidFill: document.getElementById('communicationPrepaidFill'),
+      communicationOverageFill: document.getElementById('communicationOverageFill'),
+      communicationPrepaidPercent: document.getElementById('communicationPrepaidPercent'),
+      communicationUsagePercent: document.getElementById('communicationUsagePercent'),
+      
+      // Cost Breakdown
+      costPrepaid: document.getElementById('costPrepaid'),
+      costPrepaidDetail: document.getElementById('costPrepaidDetail'),
+      costUsage: document.getElementById('costUsage'),
+      costUsageDetail: document.getElementById('costUsageDetail'),
+      costRemaining: document.getElementById('costRemaining'),
+      costRemainingDetail: document.getElementById('costRemainingDetail'),
+      costProjected: document.getElementById('costProjected'),
+      costProjectedDetail: document.getElementById('costProjectedDetail'),
+      
+      // Chart
+      usageChart: document.getElementById('usageChart'),
+      dataTimestamp: document.getElementById('dataTimestamp'),
+      btnRefreshChart: document.getElementById('btnRefreshChart'),
+      
+      // Transcription Tab
+      transcriptionTotal: document.getElementById('transcriptionTotal'),
+      transcriptionPrepaidUsed: document.getElementById('transcriptionPrepaidUsed'),
+      transcriptionOverage: document.getElementById('transcriptionOverage'),
+      transcriptionRemaining: document.getElementById('transcriptionRemaining'),
+      transcriptionAllocation: document.getElementById('transcriptionAllocation'),
+      transcriptionCost: document.getElementById('transcriptionCost'),
+      transcriptionPrepaidCost: document.getElementById('transcriptionPrepaidCost'),
+      transcriptionOverageCost: document.getElementById('transcriptionOverageCost'),
+      transcriptionAvgCost: document.getElementById('transcriptionAvgCost'),
+      transcriptionProjected: document.getElementById('transcriptionProjected'),
+      transcriptionTableBody: document.getElementById('transcriptionTableBody'),
+      
+      // Usage Tab
+      usageTableBody: document.getElementById('usageTableBody'),
+      voiceTableBody: document.getElementById('voiceTableBody'),
+      digitalTableBody: document.getElementById('digitalTableBody'),
+      aiTableBody: document.getElementById('aiTableBody'),
+      
+      // Transactions Tab
+      transactionsTableBody: document.getElementById('transactionsTableBody'),
+      transactionSearch: document.getElementById('transactionSearch'),
+      transactionFilter: document.getElementById('transactionFilter'),
+      transactionCount: document.getElementById('transactionCount'),
+      transactionPeriod: document.getElementById('transactionPeriod'),
+      btnLoadMore: document.getElementById('btnLoadMore'),
+      
+      // Logs Tab
+      logsTableBody: document.getElementById('logsTableBody'),
+      btnClearLogs: document.getElementById('btnClearLogs'),
+      btnCopyLogs: document.getElementById('btnCopyLogs'),
+      
+      // Loading
+      loadingText: document.getElementById('loadingText'),
+      loadingSubtext: document.getElementById('loadingSubtext'),
+      loadingProgressFill: document.getElementById('loadingProgressFill')
+    };
+
+    // ==================== UTILITY FUNCTIONS ====================
+    function logMessage(level, message, details = '') {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = { timestamp, level, message, details };
+      appState.logs.unshift(logEntry);
+      
+      const row = document.createElement('tr');
+      const levelIcon = level === 'ERROR' ? '🔴' : level === 'WARN' ? '🟡' : level === 'SUCCESS' ? '✅' : '🔵';
+      row.innerHTML = `
+        <td>${timestamp}</td>
+        <td>${levelIcon} ${level}</td>
+        <td>${message}</td>
+        <td>${details}</td>
+      `;
+      el.logsTableBody.prepend(row);
+      
+      if (el.logsTableBody.children.length > 50) {
+        el.logsTableBody.removeChild(el.logsTableBody.lastChild);
+      }
+      
+      console.log(`[${level}] ${message}`, details);
+      
+      if (level === 'ERROR' || level === 'SUCCESS' || level === 'WARN') {
+        showStatusMessage(message, level.toLowerCase());
+      }
+    }
+
+    function showStatusMessage(message, type = 'info') {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'status-message';
+      const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '💡';
+      const color = type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : type === 'warn' ? 'var(--warning)' : 'var(--info)';
+      msgDiv.style.borderLeftColor = color;
+      msgDiv.innerHTML = `
+        <span style="font-size:20px;">${icon}</span>
+        <div>
+          <div style="font-weight:600;">${message}</div>
+          <div style="font-size:12px;color:var(--text-light);">${new Date().toLocaleTimeString()}</div>
+        </div>
+      `;
+      el.statusContainer.appendChild(msgDiv);
+      
+      setTimeout(() => {
+        if (msgDiv.parentNode) {
+          msgDiv.style.opacity = '0';
+          msgDiv.style.transform = 'translateX(100%)';
+          setTimeout(() => msgDiv.remove(), 300);
+        }
+      }, 5000);
+    }
+
+    function setLoading(show, text = '', subtext = '') {
+      if (show) {
+        el.loadingText.textContent = text;
+        el.loadingSubtext.textContent = subtext;
+        el.loadingOverlay.classList.add('active');
+      } else {
+        el.loadingOverlay.classList.remove('active');
+      }
+    }
+
+    function updateLoadingProgress(percent) {
+      el.loadingProgressFill.style.width = `${percent}%`;
+    }
+
+    function formatCurrency(amount, currency = appState.currentCurrency) {
+      return `${currency}${parseFloat(amount).toFixed(2)}`;
+    }
+
+    function formatNumber(num) {
+      return new Intl.NumberFormat().format(num);
+    }
+
+    // ==================== AUTHENTICATION ====================
+    function parseTokenFromHash() {
+      const hash = window.location.hash.replace(/^#/, '');
+      if (!hash) return {};
+      
+      const params = new URLSearchParams(hash);
+      return {
+        token: params.get('access_token'),
+        refreshToken: params.get('refresh_token'),
+        error: params.get('error'),
+        errorDescription: params.get('error_description'),
+        expiresIn: params.get('expires_in'),
+        state: params.get('state')
+      };
+    }
+
+    function saveCredentials(token, expiresIn, refreshToken = null) {
+      try {
+        const tokenExpiry = Date.now() + (parseInt(expiresIn, 10) * 1000);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.TOKEN, token);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY, tokenExpiry.toString());
+        if (refreshToken) localStorage.setItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+        return true;
+      } catch (e) {
+        console.error('Failed to save credentials:', e);
+        return false;
+      }
+    }
+
+    function loadStoredCredentials() {
+      try {
+        const token = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN);
+        const tokenExpiry = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY);
+        const refreshToken = localStorage.getItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
+
+        if (token && tokenExpiry) {
+          if (Date.now() < parseInt(tokenExpiry, 10) - (5 * 60 * 1000)) {
+            return { token, refreshToken };
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to load stored credentials:', e);
+      }
+      return null;
+    }
+
+    function clearCredentials() {
+      try {
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.TOKEN_EXPIRY);
+        localStorage.removeItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
+      } catch (e) {
+        console.error('Failed to clear credentials:', e);
+      }
+    }
+
+    async function attemptTokenRefresh() {
+      const refreshToken = localStorage.getItem(CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
+      if (!refreshToken) return false;
+      
+      try {
+        const loginUrl = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION]?.login;
+        const response = await fetch(`${loginUrl}/oauth/token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + btoa(`${CONFIG.CLIENT_ID}:`)
+          },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          saveCredentials(data.access_token, data.expires_in, data.refresh_token || refreshToken);
+          logMessage('SUCCESS', 'Token refreshed successfully');
+          return true;
+        }
+      } catch (error) {
+        console.warn('Token refresh failed:', error);
+      }
+      return false;
+    }
+
+    function authUrl() {
+      const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
+      const state = btoa(JSON.stringify({ 
+        env: CONFIG.ENVIRONMENT_REGION,
+        ts: Date.now()
+      }));
+      
+      return `${env.login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}&state=${encodeURIComponent(state)}`;
+    }
+
+    async function initAuth() {
+      el.authContainer.style.display = 'block';
+      
+      const { token, refreshToken, error, errorDescription, expiresIn } = parseTokenFromHash();
+      
+      if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+
+      if (token) {
+        if (saveCredentials(token, expiresIn || '3600', refreshToken)) {
+          logMessage('SUCCESS', 'Authentication successful', `Connected to ${CONFIG.CUSTOMER_NAME}`);
+          showStatusMessage('✅ Connected to Genesys Cloud', 'success');
+          showMainApp();
+          return;
+        }
+      }
+
+      if (error) {
+        logMessage('ERROR', 'Authentication failed', `${error}: ${errorDescription}`);
+        showStatusMessage(`❌ Authentication failed: ${error}`, 'error');
+        setTimeout(() => authenticate(), 2000);
+        return;
+      }
+
+      const credentials = loadStoredCredentials();
+      if (credentials) {
+        logMessage('INFO', 'Auto-authentication successful', 'Using stored credentials');
+        setTimeout(() => showMainApp(), 500);
+        return;
+      }
+
+      const refreshSuccess = await attemptTokenRefresh();
+      if (refreshSuccess) {
+        logMessage('SUCCESS', 'Token refreshed', 'Auto-authentication successful');
+        setTimeout(() => showMainApp(), 500);
+        return;
+      }
+
+      logMessage('INFO', 'No valid credentials found', 'Redirecting to authentication...');
+      setTimeout(() => authenticate(), 1500);
+    }
+
+    function authenticate() {
+      const authUrlValue = authUrl();
+      if (authUrlValue) {
+        window.location.href = authUrlValue;
+      } else {
+        logMessage('ERROR', 'Could not generate authentication URL');
+      }
+    }
+
+    function showMainApp() {
+      el.authContainer.style.display = 'none';
+      el.mainContent.style.display = 'block';
+      el.orgNameDisplay.textContent = `${CONFIG.CUSTOMER_NAME} Trusted Organization Billing`;
+      initializeApp();
+    }
+
+    function disconnect() {
+      if (confirm('Disconnect from Genesys Cloud? This will clear all stored billing data and credentials.')) {
+        clearCredentials();
+        stopAutoRefresh();
+        appState = {
+          isConnected: false,
+          billingData: null,
+          transactions: [],
+          usageData: [],
+          currentTab: 'overview',
+          currentCurrency: '£',
+          currentPeriod: 'current',
+          logs: [],
+          chartInstances: {},
+          refreshInterval: null,
+          lastFetchTime: null
+        };
+        el.mainContent.style.display = 'none';
+        el.authContainer.style.display = 'block';
+        logMessage('INFO', 'Disconnected from Genesys Cloud');
+        setTimeout(() => initAuth(), 500);
+      }
+    }
+
+    // ==================== API FUNCTIONS ====================
+    async function apiCall(path, options = {}) {
+      const token = localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN);
+      if (!token) throw new Error('Not authenticated');
+      
+      const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
+      const url = `${env.api}${path}`;
+      
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          ...options.headers
+        }
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        const refreshSuccess = await attemptTokenRefresh();
+        if (!refreshSuccess) {
+          throw new Error(`Authentication error (${response.status}). Please reconnect.`);
+        }
+        return apiCall(path, options);
+      }
+      
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('Retry-After') || 5;
+        logMessage('WARN', `Rate limit exceeded`, `Retrying after ${retryAfter} seconds`);
+        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+        return apiCall(path, options);
+      }
+      
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        throw new Error(`API Error: ${response.status} ${response.statusText}${errorText ? ` - ${errorText.slice(0,200)}` : ''}`);
+      }
+      
+      return response.json();
+    }
+
+    async function fetchBillingData() {
+      setLoading(true, 'Fetching Billing Data', 'Retrieving trusted organization billing overview...');
+      updateLoadingProgress(10);
+
+      try {
+        const endpoint = `/api/v2/billing/trusteebillingoverview/${CONFIG.TRUSTED_ORG_ID}`;
+        logMessage('INFO', 'Fetching billing data', `API: ${endpoint}`);
+        updateLoadingProgress(30);
+
+        const billingData = await apiCall(endpoint);
+        console.log('Billing API Response:', billingData);
+        
+        updateLoadingProgress(60);
+        appState.billingData = billingData;
+        appState.lastFetchTime = new Date();
+        
+        updateLoadingProgress(80);
+        updateDisplayWithBillingData();
+        
+        updateLoadingProgress(95);
+        logMessage('SUCCESS', 'Billing data loaded', 'Trusted organization billing overview fetched');
+        
+        updateLoadingProgress(100);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setLoading(false);
+        
+        showStatusMessage(`✅ Billing data loaded for ${CONFIG.CUSTOMER_NAME}`, 'success');
+        
+      } catch (error) {
+        setLoading(false);
+        logMessage('ERROR', 'Failed to fetch billing data', error.message);
+        showStatusMessage('❌ Failed to fetch billing data', 'error');
+        
+        // For demonstration, use mock data if API fails
+        useMockData();
+      }
+    }
+
+    function useMockData() {
+      logMessage('INFO', 'Using mock data for demonstration', 'API call failed, showing sample data');
+      
+      const today = new Date();
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+      
+      appState.billingData = {
+        organizationName: CONFIG.CUSTOMER_NAME,
+        organizationId: CONFIG.TRUSTED_ORG_ID,
+        periodStart: monthStart.toISOString(),
+        periodEnd: today.toISOString(),
+        totalCost: 1250.75,
+        prepaidBalance: 1000.00,
+        usageCharges: 250.75,
+        remainingBalance: 749.25,
+        services: [
+          {
+            serviceType: 'transcription',
+            totalUnits: 12500,
+            prepaidUnits: 10000,
+            overageUnits: 2500,
+            unitPrice: 0.02,
+            prepaidCost: 200.00,
+            overageCost: 50.00,
+            totalCost: 250.00
+          },
+          {
+            serviceType: 'speech_recognition',
+            totalUnits: 5000,
+            prepaidUnits: 5000,
+            overageUnits: 0,
+            unitPrice: 0.05,
+            prepaidCost: 250.00,
+            overageCost: 0.00,
+            totalCost: 250.00
+          },
+          {
+            serviceType: 'voice_communication',
+            totalUnits: 25000,
+            prepaidUnits: 20000,
+            overageUnits: 5000,
+            unitPrice: 0.01,
+            prepaidCost: 200.00,
+            overageCost: 50.00,
+            totalCost: 250.00
+          },
+          {
+            serviceType: 'digital_communication',
+            totalUnits: 15000,
+            prepaidUnits: 15000,
+            overageUnits: 0,
+            unitPrice: 0.015,
+            prepaidCost: 225.00,
+            overageCost: 0.00,
+            totalCost: 225.00
+          }
+        ],
+        transactions: [
+          {
+            id: 'txn_001',
+            date: new Date(today.getFullYear(), today.getMonth(), 15).toISOString(),
+            type: 'purchase',
+            description: 'Prepaid minutes purchase',
+            serviceType: 'transcription',
+            units: 10000,
+            amount: 200.00,
+            balanceAfter: 1200.00
+          },
+          {
+            id: 'txn_002',
+            date: new Date(today.getFullYear(), today.getMonth(), 20).toISOString(),
+            type: 'usage',
+            description: 'Transcription usage charge',
+            serviceType: 'transcription',
+            units: 2500,
+            amount: 50.00,
+            balanceAfter: 1150.00
+          }
+        ]
+      };
+      
+      appState.lastFetchTime = new Date();
+      updateDisplayWithBillingData();
+      showStatusMessage('⚠️ Using demo data - API call failed', 'warn');
+    }
+
+    // ==================== DISPLAY FUNCTIONS ====================
+    function updateDisplayWithBillingData() {
+      if (!appState.billingData) return;
+      
+      const data = appState.billingData;
+      const currency = appState.currentCurrency;
+      
+      // Update last updated time
+      el.lastUpdated.textContent = `Last updated: ${appState.lastFetchTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+      el.dataTimestamp.textContent = `Data last updated: ${appState.lastFetchTime.toLocaleString()}`;
+      
+      // Update summary alert
+      updateSummaryAlert(data);
+      
+      // Update transcription stats
+      const transcriptionService = data.services?.find(s => s.serviceType === 'transcription') || {
+        totalUnits: 0, prepaidUnits: 0, overageUnits: 0, totalCost: 0
+      };
+      
+      el.statTranscription.textContent = formatNumber(transcriptionService.totalUnits);
+      el.statTranscriptionDetail.textContent = `${formatNumber(transcriptionService.prepaidUnits)} prepaid • ${formatNumber(transcriptionService.overageUnits)} usage`;
+      
+      const transcriptionTotal = transcriptionService.prepaidUnits + transcriptionService.overageUnits;
+      const transcriptionPrepaidPercent = transcriptionTotal > 0 ? (transcriptionService.prepaidUnits / transcriptionTotal * 100) : 0;
+      const transcriptionUsagePercent = transcriptionTotal > 0 ? (transcriptionService.overageUnits / transcriptionTotal * 100) : 0;
+      
+      el.transcriptionPrepaidFill.style.width = `${transcriptionPrepaidPercent}%`;
+      el.transcriptionOverageFill.style.width = `${transcriptionUsagePercent}%`;
+      el.transcriptionPrepaidPercent.textContent = `${Math.round(transcriptionPrepaidPercent)}%`;
+      el.transcriptionUsagePercent.textContent = `${Math.round(transcriptionUsagePercent)}%`;
+      
+      // Update total cost
+      el.statTotalCost.textContent = formatCurrency(data.totalCost || 0);
+      el.statCostDetail.textContent = `${formatCurrency(data.prepaidBalance || 0)} prepaid • ${formatCurrency(data.usageCharges || 0)} usage`;
+      
+      const totalCost = (data.prepaidBalance || 0) + (data.usageCharges || 0);
+      const costPrepaidPercent = totalCost > 0 ? ((data.prepaidBalance || 0) / totalCost * 100) : 0;
+      const costUsagePercent = totalCost > 0 ? ((data.usageCharges || 0) / totalCost * 100) : 0;
+      
+      el.costPrepaidFill.style.width = `${costPrepaidPercent}%`;
+      el.costOverageFill.style.width = `${costUsagePercent}%`;
+      el.costPrepaidPercent.textContent = `${Math.round(costPrepaidPercent)}%`;
+      el.costOveragePercent.textContent = `${Math.round(costUsagePercent)}%`;
+      
+      // Update other services
+      updateServiceStats('speech_recognition', el.statSpeech, el.statSpeechDetail, 
+                        el.speechPrepaidFill, el.speechOverageFill, 
+                        el.speechPrepaidPercent, el.speechUsagePercent);
+      
+      updateServiceStats('voice_communication', el.statCommunication, el.statCommunicationDetail,
+                        el.communicationPrepaidFill, el.communicationOverageFill,
+                        el.communicationPrepaidPercent, el.communicationUsagePercent);
+      
+      // Update cost breakdown
+      el.costPrepaid.textContent = formatCurrency(data.prepaidBalance || 0);
+      el.costPrepaidDetail.textContent = 'Prepaid balance available';
+      el.costUsage.textContent = formatCurrency(data.usageCharges || 0);
+      el.costUsageDetail.textContent = 'Charges this period';
+      el.costRemaining.textContent = formatCurrency(data.remainingBalance || 0);
+      el.costRemainingDetail.textContent = 'Remaining prepaid balance';
+      
+      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      const daysPassed = today.getDate();
+      const dailyUsage = (data.usageCharges || 0) / daysPassed;
+      const projectedUsage = dailyUsage * daysInMonth;
+      el.costProjected.textContent = formatCurrency(projectedUsage);
+      el.costProjectedDetail.textContent = 'Projected month-end total';
+      
+      // Update transcription tab
+      updateTranscriptionTab(data);
+      
+      // Update usage tables
+      updateUsageTables(data);
+      
+      // Update transactions
+      updateTransactionsTable(data);
+      
+      // Update chart
+      updateUsageChart(data);
+    }
+
+    function updateServiceStats(serviceType, statElement, detailElement, prepaidFill, overageFill, prepaidPercent, usagePercent) {
+      const service = appState.billingData.services?.find(s => s.serviceType === serviceType) || {
+        totalUnits: 0, prepaidUnits: 0, overageUnits: 0
+      };
+      
+      statElement.textContent = formatNumber(service.totalUnits);
+      detailElement.textContent = `${formatNumber(service.prepaidUnits)} prepaid • ${formatNumber(service.overageUnits)} usage`;
+      
+      const total = service.prepaidUnits + service.overageUnits;
+      const prepaidPct = total > 0 ? (service.prepaidUnits / total * 100) : 0;
+      const usagePct = total > 0 ? (service.overageUnits / total * 100) : 0;
+      
+      prepaidFill.style.width = `${prepaidPct}%`;
+      overageFill.style.width = `${usagePct}%`;
+      prepaidPercent.textContent = `${Math.round(prepaidPct)}%`;
+      usagePercent.textContent = `${Math.round(usagePct)}%`;
+    }
+
+    function updateSummaryAlert(data) {
+      const remainingBalance = data.remainingBalance || 0;
+      const usagePercentage = data.prepaidBalance > 0 ? ((data.usageCharges || 0) / data.prepaidBalance * 100) : 0;
+      
+      el.summaryAlert.style.display = 'flex';
+      
+      if (remainingBalance <= 0) {
+        el.summaryAlert.className = 'alert-banner danger';
+        el.alertIcon.textContent = '🚨';
+        el.alertTitle.textContent = 'Critical: Balance Depleted';
+        el.alertMessage.textContent = 'Prepaid balance has been fully consumed. Additional usage will incur overage charges.';
+      } else if (usagePercentage > 80) {
+        el.summaryAlert.className = 'alert-banner warning';
+        el.alertIcon.textContent = '⚠️';
+        el.alertTitle.textContent = 'Warning: High Usage';
+        el.alertMessage.textContent = `Usage is at ${Math.round(usagePercentage)}% of prepaid balance. Consider purchasing additional credits.`;
+      } else {
+        el.summaryAlert.className = 'alert-banner success';
+        el.alertIcon.textContent = '✅';
+        el.alertTitle.textContent = 'Healthy Balance';
+        el.alertMessage.textContent = `Balance is healthy with ${formatCurrency(remainingBalance)} remaining (${Math.round(100 - usagePercentage)}% of prepaid balance unused).`;
+      }
+    }
+
+    function updateTranscriptionTab(data) {
+      const transcriptionService = data.services?.find(s => s.serviceType === 'transcription') || {
+        totalUnits: 0, prepaidUnits: 0, overageUnits: 0, totalCost: 0,
+        prepaidCost: 0, overageCost: 0, unitPrice: 0.02
+      };
+      
+      el.transcriptionTotal.textContent = `${formatNumber(transcriptionService.totalUnits)}`;
+      el.transcriptionPrepaidUsed.textContent = `${formatNumber(transcriptionService.prepaidUnits)} min`;
+      el.transcriptionOverage.textContent = `${formatNumber(transcriptionService.overageUnits)} min`;
+      el.transcriptionRemaining.textContent = `${formatNumber(Math.max(0, (transcriptionService.prepaidUnits || 0) - (transcriptionService.prepaidUnits || 0)))} min`;
+      el.transcriptionAllocation.textContent = `${formatNumber((transcriptionService.prepaidUnits || 0) + (transcriptionService.overageUnits || 0))} min`;
+      
+      el.transcriptionCost.textContent = formatCurrency(transcriptionService.totalCost || 0);
+      el.transcriptionPrepaidCost.textContent = formatCurrency(transcriptionService.prepaidCost || 0);
+      el.transcriptionOverageCost.textContent = formatCurrency(transcriptionService.overageCost || 0);
+      
+      const avgCost = transcriptionService.totalUnits > 0 ? (transcriptionService.totalCost || 0) / transcriptionService.totalUnits : 0;
+      el.transcriptionAvgCost.textContent = formatCurrency(avgCost);
+      
+      const today = new Date();
+      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      const daysPassed = today.getDate();
+      const dailyUsage = (transcriptionService.totalCost || 0) / daysPassed;
+      const projectedCost = dailyUsage * daysInMonth;
+      el.transcriptionProjected.textContent = formatCurrency(projectedCost);
+      
+      // Update transcription table with daily breakdown
+      updateTranscriptionTable();
+    }
+
+    function updateTranscriptionTable() {
+      const tbody = el.transcriptionTableBody;
+      tbody.innerHTML = '';
+      
+      if (!appState.billingData || !appState.billingData.transactions) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="6" style="text-align:center;padding:48px;color:var(--text-light);">
+          No transcription data available.
+        </td>`;
+        tbody.appendChild(row);
+        return;
+      }
+      
+      // Create sample daily data for demonstration
+      const today = new Date();
+      const rows = [];
+      
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        
+        const minutes = Math.floor(Math.random() * 2000) + 500;
+        const prepaid = Math.floor(minutes * 0.8);
+        const overage = minutes - prepaid;
+        const cost = prepaid * 0.02 + overage * 0.03;
+        const trend = i > 0 ? (Math.random() > 0.5 ? '↗️' : '↘️') : '➡️';
+        
+        rows.push({
+          date: date.toLocaleDateString(),
+          minutes: minutes,
+          prepaid: prepaid,
+          overage: overage,
+          cost: cost,
+          trend: trend
+        });
+      }
+      
+      rows.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.date}</td>
+          <td style="font-weight:600;">${formatNumber(row.minutes)} min</td>
+          <td style="color:var(--success);">${formatNumber(row.prepaid)} min</td>
+          <td style="color:var(--danger);">${formatNumber(row.overage)} min</td>
+          <td style="font-weight:600;">${formatCurrency(row.cost)}</td>
+          <td>${row.trend}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateUsageTables(data) {
+      const services = data.services || [];
+      const tbody = el.usageTableBody;
+      tbody.innerHTML = '';
+      
+      services.forEach(service => {
+        const totalUnits = service.totalUnits || 0;
+        const prepaidPercent = totalUnits > 0 ? ((service.prepaidUnits || 0) / totalUnits * 100) : 0;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="text-transform:capitalize;">${service.serviceType.replace('_', ' ')}</td>
+          <td style="font-weight:600;">${formatNumber(totalUnits)}</td>
+          <td style="color:var(--success);">${formatNumber(service.prepaidUnits || 0)}</td>
+          <td style="color:var(--danger);">${formatNumber(service.overageUnits || 0)}</td>
+          <td>${formatCurrency(service.prepaidCost || 0)}</td>
+          <td>${formatCurrency(service.overageCost || 0)}</td>
+          <td style="font-weight:600;">${formatCurrency(service.totalCost || 0)}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:60px;height:6px;background:var(--light-bg);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:${prepaidPercent}%;background:var(--success);"></div>
+              </div>
+              <span>${Math.round(prepaidPercent)}%</span>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateTransactionsTable(data) {
+      const transactions = data.transactions || [];
+      const tbody = el.transactionsTableBody;
+      tbody.innerHTML = '';
+      
+      el.transactionCount.textContent = transactions.length;
+      
+      if (transactions.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
+          No transaction data available.
+        </td>`;
+        tbody.appendChild(row);
+        return;
+      }
+      
+      transactions.forEach(txn => {
+        const date = new Date(txn.date).toLocaleDateString();
+        let typeClass = '';
+        let typeText = '';
+        
+        switch(txn.type) {
+          case 'purchase':
+            typeClass = 'purchase';
+            typeText = 'Purchase';
+            break;
+          case 'usage':
+            typeClass = 'usage';
+            typeText = 'Usage';
+            break;
+          case 'refund':
+            typeClass = 'refund';
+            typeText = 'Refund';
+            break;
+          default:
+            typeClass = 'adjustment';
+            typeText = 'Adjustment';
+        }
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${date}</td>
+          <td style="font-family:monospace;font-size:12px;">${txn.id}</td>
+          <td><span class="transaction-type ${typeClass}">${typeText}</span></td>
+          <td>${txn.description}</td>
+          <td style="text-transform:capitalize;">${(txn.serviceType || '').replace('_', ' ')}</td>
+          <td>${txn.units ? formatNumber(txn.units) : '-'}</td>
+          <td style="font-weight:600;${txn.amount < 0 ? 'color:var(--danger);' : 'color:var(--success);'}">${formatCurrency(txn.amount)}</td>
+          <td>${formatCurrency(txn.balanceAfter)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateUsageChart(data) {
+      const ctx = document.getElementById('usageChart').getContext('2d');
+      
+      if (appState.chartInstances.usage) {
+        appState.chartInstances.usage.destroy();
+      }
+      
+      // Prepare chart data
+      const labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+      const transcriptionData = [1200, 1800, 2200, 2500];
+      const speechData = [800, 1200, 1500, 1800];
+      const communicationData = [3000, 4000, 4500, 5000];
+      
+      appState.chartInstances.usage = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Transcription',
+              data: transcriptionData,
+              borderColor: 'var(--chart-green)',
+              backgroundColor: 'rgba(28, 200, 138, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: 'Speech Services',
+              data: speechData,
+              borderColor: 'var(--chart-yellow)',
+              backgroundColor: 'rgba(246, 194, 62, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: 'Communication',
+              data: communicationData,
+              borderColor: 'var(--chart-purple)',
+              backgroundColor: 'rgba(111, 66, 193, 0.1)',
+              tension: 0.3,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                font: {
+                  family: "'Aptos', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif",
+                  size: 12
+                }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${formatNumber(context.raw)} units`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return formatNumber(value);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ==================== EXPORT FUNCTIONS ====================
+    function exportToCSV() {
+      if (!appState.billingData) {
+        showStatusMessage('No billing data to export', 'warn');
+        return;
+      }
+      
+      const data = appState.billingData;
+      let csv = 'Genesys Cloud Trusted Organization Billing Report\n';
+      csv += `Organization: ${CONFIG.CUSTOMER_NAME}\n`;
+      csv += `Period: ${appState.currentPeriod}\n`;
+      csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+      
+      csv += 'SUMMARY\n';
+      csv += 'Metric,Value\n';
+      csv += `Total Cost,${formatCurrency(data.totalCost)}\n`;
+      csv += `Prepaid Balance,${formatCurrency(data.prepaidBalance)}\n`;
+      csv += `Usage Charges,${formatCurrency(data.usageCharges)}\n`;
+      csv += `Remaining Balance,${formatCurrency(data.remainingBalance)}\n\n`;
+      
+      csv += 'SERVICE BREAKDOWN\n';
+      csv += 'Service Type,Total Units,Prepaid Units,Overage Units,Prepaid Cost,Overage Cost,Total Cost\n';
+      
+      data.services?.forEach(service => {
+        csv += `${service.serviceType},${service.totalUnits},${service.prepaidUnits},${service.overageUnits},${formatCurrency(service.prepaidCost)},${formatCurrency(service.overageCost)},${formatCurrency(service.totalCost)}\n`;
+      });
+      
+      csv += '\nTRANSACTIONS\n';
+      csv += 'Date,Type,Description,Service,Units,Amount,Balance\n';
+      
+      data.transactions?.forEach(txn => {
+        csv += `${new Date(txn.date).toLocaleDateString()},${txn.type},${txn.description},${txn.serviceType},${txn.units || ''},${formatCurrency(txn.amount)},${formatCurrency(txn.balanceAfter)}\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `${CONFIG.CUSTOMER_NAME}_billing_${dateStr}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      logMessage('SUCCESS', 'Report exported to CSV');
+      showStatusMessage('✅ CSV report downloaded', 'success');
+    }
+
+    function exportToJSON() {
+      if (!appState.billingData) {
+        showStatusMessage('No billing data to export', 'warn');
+        return;
+      }
+      
+      const exportData = {
+        organization: CONFIG.CUSTOMER_NAME,
+        organizationId: CONFIG.TRUSTED_ORG_ID,
+        period: appState.currentPeriod,
+        generated: new Date().toISOString(),
+        data: appState.billingData
+      };
+      
+      const json = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `${CONFIG.CUSTOMER_NAME}_billing_${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      logMessage('SUCCESS', 'Report exported to JSON');
+      showStatusMessage('✅ JSON report downloaded', 'success');
+    }
+
+    // ==================== AUTO REFRESH ====================
+    function setupAutoRefresh() {
+      const interval = parseInt(el.refreshInterval.value, 10) * 1000;
+      
+      if (appState.refreshInterval) {
+        clearInterval(appState.refreshInterval);
+      }
+      
+      if (interval > 0) {
+        appState.refreshInterval = setInterval(() => {
+          fetchBillingData();
+          logMessage('INFO', 'Auto-refresh triggered', `Next refresh in ${el.refreshInterval.value} seconds`);
+        }, interval);
+        
+        logMessage('INFO', 'Auto-refresh enabled', `Refreshing every ${el.refreshInterval.value} seconds`);
+      }
+    }
+
+    function stopAutoRefresh() {
+      if (appState.refreshInterval) {
+        clearInterval(appState.refreshInterval);
+        appState.refreshInterval = null;
+        logMessage('INFO', 'Auto-refresh disabled');
+      }
+    }
+
+    // ==================== EVENT HANDLERS ====================
+    function setupEventListeners() {
+      // Tab switching
+      el.tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          const tabId = this.dataset.tab;
+          appState.currentTab = tabId;
+          
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+            if (content.id === `tab-${tabId}`) content.classList.add('active');
+          });
+          
+          logMessage('INFO', 'Tab switched', tabId);
+        });
+      });
+      
+      // Subtabs in usage tab
+      document.querySelectorAll('[data-subtab]').forEach(subtab => {
+        subtab.addEventListener('click', function() {
+          const subtabId = this.dataset.subtab;
+          
+          document.querySelectorAll('[data-subtab]').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          
+          document.querySelectorAll('.tab-content').forEach(content => {
+            if (content.id.startsWith('subtab-')) {
+              content.classList.remove('active');
+              if (content.id === `subtab-${subtabId}`) content.classList.add('active');
+            }
+          });
+        });
+      });
+      
+      // Period selection
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const period = this.dataset.period;
+          appState.currentPeriod = period;
+          
+          document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          if (period === 'custom') {
+            el.customDateRange.style.display = 'block';
+          } else {
+            el.customDateRange.style.display = 'none';
+            
+            const today = new Date();
+            let periodText = '';
+            
+            switch(period) {
+              case 'current':
+                periodText = `Current Month (${today.toLocaleDateString('en-GB', {month: 'short', year: 'numeric'})})`;
+                break;
+              case 'last':
+                const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                periodText = `Last Month (${lastMonth.toLocaleDateString('en-GB', {month: 'short', year: 'numeric'})})`;
+                break;
+              case 'quarter':
+                const quarter = Math.floor(today.getMonth() / 3) + 1;
+                periodText = `Quarter ${quarter} ${today.getFullYear()}`;
+                break;
+            }
+            
+            el.periodInfo.textContent = periodText;
+            el.transactionPeriod.textContent = periodText;
+            
+            fetchBillingData();
+          }
+        });
+      });
+      
+      el.btnApplyCustom.addEventListener('click', function() {
+        const fromDate = el.dateFrom.value;
+        const toDate = el.dateTo.value;
+        
+        if (!fromDate || !toDate) {
+          showStatusMessage('Please select both dates', 'warn');
+          return;
+        }
+        
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+        
+        if (from > to) {
+          showStatusMessage('From date must be before to date', 'error');
+          return;
+        }
+        
+        const periodText = `${from.toLocaleDateString()} to ${to.toLocaleDateString()}`;
+        el.periodInfo.textContent = periodText;
+        el.transactionPeriod.textContent = periodText;
+        
+        fetchBillingData();
+      });
+      
+      // Currency selection
+      document.querySelectorAll('.currency-option').forEach(option => {
+        option.addEventListener('click', function() {
+          const currency = this.dataset.currency;
+          appState.currentCurrency = currency;
+          
+          document.querySelectorAll('.currency-option').forEach(o => o.classList.remove('active'));
+          this.classList.add('active');
+          
+          localStorage.setItem(CONFIG.STORAGE_KEYS.CURRENCY, currency);
+          updateDisplayWithBillingData();
+          logMessage('INFO', 'Currency updated', `Using ${currency}`);
+        });
+      });
+      
+      // Actions
+      el.btnDisconnect.addEventListener('click', disconnect);
+      el.btnFetchBilling.addEventListener('click', fetchBillingData);
+      el.btnRefreshNow.addEventListener('click', fetchBillingData);
+      el.btnRefreshChart.addEventListener('click', fetchBillingData);
+      el.btnReset.addEventListener('click', resetApplication);
+      
+      // Export buttons
+      el.btnExportCSV.addEventListener('click', exportToCSV);
+      el.btnExportJSON.addEventListener('click', exportToJSON);
+      
+      // Settings changes
+      el.refreshInterval.addEventListener('change', setupAutoRefresh);
+      el.detailLevel.addEventListener('change', function() {
+        localStorage.setItem(CONFIG.STORAGE_KEYS.DETAIL_LEVEL, this.value);
+      });
+      
+      // Transaction search and filter
+      el.transactionSearch.addEventListener('input', updateTransactionsTable);
+      el.transactionFilter.addEventListener('change', updateTransactionsTable);
+      
+      // Logs actions
+      el.btnClearLogs.addEventListener('click', function() {
+        el.logsTableBody.innerHTML = '';
+        appState.logs = [];
+        logMessage('INFO', 'Logs cleared');
+      });
+      
+      el.btnCopyLogs.addEventListener('click', function() {
+        const logText = appState.logs.map(log =>
+          `${log.timestamp} [${log.level}] ${log.message} ${log.details ? '- ' + log.details : ''}`
+        ).join('\n');
+        navigator.clipboard.writeText(logText).then(() => {
+          showStatusMessage('Logs copied to clipboard', 'success');
+        });
+      });
+      
+      // Load more transactions
+      el.btnLoadMore.addEventListener('click', function() {
+        logMessage('INFO', 'Loading more transactions');
+        // In a real implementation, this would fetch more transactions from the API
+        showStatusMessage('Loading more transactions...', 'info');
+      });
+    }
+
+    function resetApplication() {
+      if (confirm('Clear all billing data and reset the application?')) {
+        appState.billingData = null;
+        appState.transactions = [];
+        appState.usageData = [];
+        
+        // Reset all displays
+        el.statTranscription.textContent = '0';
+        el.statTranscriptionDetail.textContent = '0 prepaid • 0 usage';
+        el.statTotalCost.textContent = '£0';
+        el.statCostDetail.textContent = '£0 prepaid • £0 usage';
+        
+        el.summaryAlert.style.display = 'none';
+        el.lastUpdated.textContent = 'Never updated';
+        el.dataTimestamp.textContent = 'Data last updated: Never';
+        
+        logMessage('INFO', 'Application reset', 'All data cleared');
+        showStatusMessage('🔄 Application reset', 'info');
+      }
+    }
+
+    // ==================== INITIALIZATION ====================
+    function initializeApp() {
+      logMessage('INFO', 'Billing Dashboard initialised', `Customer: ${CONFIG.CUSTOMER_NAME}`);
+      
+      // Set default dates for custom range
+      const today = new Date();
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      el.dateFrom.value = firstDay.toISOString().split('T')[0];
+      el.dateTo.value = today.toISOString().split('T')[0];
+      
+      // Load saved preferences
+      const savedCurrency = localStorage.getItem(CONFIG.STORAGE_KEYS.CURRENCY);
+      if (savedCurrency) {
+        appState.currentCurrency = savedCurrency;
+        document.querySelectorAll('.currency-option').forEach(option => {
+          if (option.dataset.currency === savedCurrency) {
+            option.classList.add('active');
+          } else {
+            option.classList.remove('active');
+          }
+        });
+      }
+      
+      const savedPeriod = localStorage.getItem(CONFIG.STORAGE_KEYS.PERIOD);
+      if (savedPeriod) {
+        appState.currentPeriod = savedPeriod;
+        document.querySelectorAll('.period-btn').forEach(btn => {
+          if (btn.dataset.period === savedPeriod) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+      
+      const savedDetailLevel = localStorage.getItem(CONFIG.STORAGE_KEYS.DETAIL_LEVEL);
+      if (savedDetailLevel) {
+        el.detailLevel.value = savedDetailLevel;
+      }
+      
+      // Set up event listeners
+      setupEventListeners();
+      
+      // Start auto-refresh if enabled
+      setupAutoRefresh();
+      
+      // Fetch initial data
+      fetchBillingData();
+    }
+
+    // ==================== START APPLICATION ====================
+    document.addEventListener('DOMContentLoaded', function() {
+      initAuth();
+    });
+  </script>
+</body>
+</html>
