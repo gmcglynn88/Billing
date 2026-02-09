@@ -520,9 +520,40 @@
   <div class="container" id="mainContent" style="display:none;">
     <header>
       <h1>📊 Genesys Cloud - Usage Dashboard</h1>
-      <div class="subtitle" style="display:flex;justify-content:space-between;align-items:center;">
-        <span id="orgNameDisplay">JLA Trusted Organization</span>
+      <div class="subtitle" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <span id="orgNameDisplay">Loading...</span>
         <span id="lastUpdated" style="font-size:14px;background:var(--pill);padding:6px 12px;border-radius:20px;">Loading...</span>
+      </div>
+      
+      <!-- Organization Selector -->
+      <div style="margin-top:20px;padding-top:20px;border-top:2px solid var(--light-bg);">
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:300px;">
+            <label for="orgIdInput" style="font-size:14px;margin-bottom:8px;display:block;color:var(--text-color);">
+              Trusted Organization ID
+            </label>
+            <input 
+              type="text" 
+              id="orgIdInput" 
+              placeholder="e.g., 9b6492f9-d751-4406-bc7a-8ed307afef0a"
+              style="width:100%;padding:10px;border:2px solid var(--border-color);border-radius:8px;font-family:monospace;font-size:14px;"
+            />
+          </div>
+          <button id="btnLoadOrg" class="btn" style="width:auto;padding:10px 24px;white-space:nowrap;">
+            🔄 Load Organization
+          </button>
+          <button id="btnSaveOrg" class="btn" style="width:auto;padding:10px 24px;background:var(--success);white-space:nowrap;">
+            💾 Save as Default
+          </button>
+        </div>
+        
+        <!-- Saved Organizations Quick Select -->
+        <div id="savedOrgsContainer" style="margin-top:12px;display:none;">
+          <label style="font-size:13px;color:var(--text-light);margin-bottom:6px;display:block;">
+            Saved Organizations:
+          </label>
+          <div id="savedOrgsList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
       </div>
     </header>
 
@@ -793,7 +824,9 @@
       rawApiData: null,
       lastFetchTime: null,
       billingHistory: {},
-      accessToken: null  // Store token in state
+      accessToken: null,
+      currentOrgId: CONFIG.TRUSTED_ORG_ID,  // Current organization being viewed
+      savedOrgs: []  // Array of saved organizations
     };
 
     // ==================== DOM ELEMENTS ====================
@@ -805,6 +838,13 @@
       statusContainer: document.getElementById('statusContainer'),
       lastUpdated: document.getElementById('lastUpdated'),
       orgNameDisplay: document.getElementById('orgNameDisplay'),
+      
+      // Organization selector
+      orgIdInput: document.getElementById('orgIdInput'),
+      btnLoadOrg: document.getElementById('btnLoadOrg'),
+      btnSaveOrg: document.getElementById('btnSaveOrg'),
+      savedOrgsContainer: document.getElementById('savedOrgsContainer'),
+      savedOrgsList: document.getElementById('savedOrgsList'),
       
       // Metric tiles
       totalUsersValue: document.getElementById('totalUsersValue'),
@@ -930,6 +970,122 @@
       return 'utilization-low-text';
     }
 
+    // ==================== ORGANIZATION MANAGEMENT ====================
+    function loadSavedOrgs() {
+      try {
+        const saved = localStorage.getItem('genesys_saved_orgs');
+        if (saved) {
+          appState.savedOrgs = JSON.parse(saved);
+          updateSavedOrgsList();
+        }
+      } catch (error) {
+        console.error('Error loading saved orgs:', error);
+      }
+    }
+    
+    function saveOrganization() {
+      const orgId = el.orgIdInput.value.trim();
+      if (!orgId) {
+        showStatusMessage('Please enter an organization ID', 'warn');
+        return;
+      }
+      
+      // Check if already saved
+      const existing = appState.savedOrgs.find(org => org.id === orgId);
+      if (existing) {
+        showStatusMessage('Organization already saved', 'info');
+        return;
+      }
+      
+      // Get org name from current data if available
+      let orgName = orgId.substring(0, 8) + '...';
+      if (appState.usageData && appState.usageData.organization) {
+        orgName = appState.usageData.organization.name;
+      }
+      
+      // Add to saved orgs
+      appState.savedOrgs.push({
+        id: orgId,
+        name: orgName,
+        savedAt: new Date().toISOString()
+      });
+      
+      // Save to localStorage
+      try {
+        localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs));
+        updateSavedOrgsList();
+        showStatusMessage(`✅ Organization saved: ${orgName}`, 'success');
+      } catch (error) {
+        console.error('Error saving org:', error);
+        showStatusMessage('Failed to save organization', 'error');
+      }
+    }
+    
+    function loadOrganization(orgId) {
+      if (!orgId || !orgId.trim()) {
+        showStatusMessage('Please enter a valid organization ID', 'warn');
+        return;
+      }
+      
+      appState.currentOrgId = orgId.trim();
+      el.orgIdInput.value = appState.currentOrgId;
+      
+      // Clear current data
+      appState.usageData = null;
+      appState.rawApiData = null;
+      appState.billingHistory = {};
+      
+      // Fetch new data
+      fetchBillingData(appState.currentPeriod);
+    }
+    
+    function updateSavedOrgsList() {
+      if (appState.savedOrgs.length === 0) {
+        el.savedOrgsContainer.style.display = 'none';
+        return;
+      }
+      
+      el.savedOrgsContainer.style.display = 'block';
+      el.savedOrgsList.innerHTML = '';
+      
+      appState.savedOrgs.forEach((org, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.style.cssText = 'width:auto;padding:8px 16px;font-size:13px;display:inline-flex;align-items:center;gap:8px;';
+        
+        // Highlight if it's the current org
+        if (org.id === appState.currentOrgId) {
+          btn.style.background = 'var(--primary-color)';
+        } else {
+          btn.style.background = 'var(--info)';
+        }
+        
+        btn.innerHTML = `
+          <span>${org.name}</span>
+          <span style="opacity:0.7;font-size:11px;font-family:monospace;">${org.id.substring(0, 8)}...</span>
+        `;
+        
+        btn.onclick = () => loadOrganization(org.id);
+        
+        // Add delete button
+        const deleteBtn = document.createElement('span');
+        deleteBtn.innerHTML = '×';
+        deleteBtn.style.cssText = 'margin-left:8px;padding:0 4px;cursor:pointer;font-size:18px;line-height:1;';
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm(`Remove "${org.name}" from saved organizations?`)) {
+            appState.savedOrgs.splice(index, 1);
+            localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs));
+            updateSavedOrgsList();
+            showStatusMessage('Organization removed', 'info');
+          }
+        };
+        
+        btn.appendChild(deleteBtn);
+        el.savedOrgsList.appendChild(btn);
+      });
+    }
+
     // ==================== AUTHENTICATION ====================
     function parseTokenFromHash(){
       const params = new URLSearchParams(location.hash.replace(/^#/, ''));
@@ -1000,8 +1156,8 @@
       setLoading(true, 'Fetching Billing Data', `Loading ${getPeriodDisplayName(periodIndex)} from Genesys Cloud...`);
       
       try {
-        // Add billingPeriodIndex as query parameter
-        const endpoint = `/api/v2/billing/trusteebillingoverview/${CONFIG.TRUSTED_ORG_ID}?billingPeriodIndex=${periodIndex}`;
+        // Use the current org ID from state
+        const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${periodIndex}`;
         
         console.log('Calling API endpoint:', endpoint);
         const rawApiResponse = await apiCall(endpoint);
@@ -1645,6 +1801,22 @@
         location.assign(authUrl());
       });
       
+      // Organization management
+      el.btnLoadOrg.addEventListener('click', function() {
+        loadOrganization(el.orgIdInput.value);
+      });
+      
+      el.btnSaveOrg.addEventListener('click', function() {
+        saveOrganization();
+      });
+      
+      // Allow Enter key to load org
+      el.orgIdInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          loadOrganization(el.orgIdInput.value);
+        }
+      });
+      
       // Tab switching
       document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', function() {
@@ -1682,7 +1854,13 @@
 
     // ==================== INITIALIZATION ====================
     function initializeApp() {
-      // Fetch billing data (organization name will be updated when data loads)
+      // Load saved organizations from localStorage
+      loadSavedOrgs();
+      
+      // Populate the input field with current org ID
+      el.orgIdInput.value = appState.currentOrgId;
+      
+      // Fetch billing data for the default org
       fetchBillingData(0);
     }
 
