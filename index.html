@@ -1044,40 +1044,26 @@
       console.log('API data type:', typeof apiData);
       console.log('API data keys:', Object.keys(apiData || {}));
       
-      // Handle different possible response structures
-      let products = [];
-      
       if (!apiData) {
         throw new Error('API returned null or undefined');
       }
       
-      // Check for billingOverview.products
-      if (apiData.billingOverview && Array.isArray(apiData.billingOverview.products)) {
-        products = apiData.billingOverview.products;
-        console.log('Found products in billingOverview.products:', products.length);
-      }
-      // Check for products at root level
-      else if (Array.isArray(apiData.products)) {
-        products = apiData.products;
-        console.log('Found products at root level:', products.length);
-      }
-      // Check if apiData itself is an array
-      else if (Array.isArray(apiData)) {
-        products = apiData;
-        console.log('API data is array of products:', products.length);
-      }
-      else {
-        console.error('Unable to find products array in API response');
+      // The API returns 'usages' array, not 'products'
+      if (!Array.isArray(apiData.usages)) {
+        console.error('Unable to find usages array in API response');
         console.error('Available keys:', Object.keys(apiData));
-        throw new Error(`Invalid API response structure. Available keys: ${Object.keys(apiData).join(', ')}`);
+        throw new Error(`Invalid API response structure. Expected 'usages' array. Available keys: ${Object.keys(apiData).join(', ')}`);
       }
       
+      const usages = apiData.usages;
+      console.log('Found usages array with', usages.length, 'items');
+      
       // Parse user licenses
-      const users = parseUserLicenses(products);
+      const users = parseUserLicenses(usages);
       console.log('Parsed users:', users.length);
       
       // Parse resources
-      const resources = parseResources(products);
+      const resources = parseResources(usages);
       console.log('Parsed resources:', resources.length);
       
       return {
@@ -1085,49 +1071,53 @@
         periodName: getPeriodDisplayName(periodIndex),
         users: users,
         resources: resources,
-        rawProducts: products
+        rawProducts: usages,
+        organization: apiData.organization,
+        currency: apiData.currency,
+        billingPeriodStartDate: apiData.billingPeriodStartDate,
+        billingPeriodEndDate: apiData.billingPeriodEndDate
       };
     }
 
-    function parseUserLicenses(products) {
+    function parseUserLicenses(usages) {
       const userLicenses = [];
       
-      // Filter for user license products
-      const userProducts = products.filter(product => 
-        product.name && (
-          product.name.includes('Genesys Cloud CX 2') ||
-          product.name.includes('WEM Add-On') ||
-          product.name.includes('Communicate User') ||
-          product.name.includes('Wallboard Device Charge')
+      // Filter for user license products - these typically have grouping 'user' or specific part numbers
+      const userProducts = usages.filter(usage => 
+        usage.name && (
+          usage.grouping === 'user' ||
+          usage.name.includes('Genesys Cloud CX') ||
+          usage.name.includes('CX 2') ||
+          usage.name.includes('WEM') ||
+          usage.name.includes('Communicate User') ||
+          usage.name.includes('Communicate Standalone') ||
+          usage.name.includes('Collaborate') ||
+          usage.name.includes('Wallboard')
         )
       );
       
-      userProducts.forEach(product => {
-        const usageQuantity = parseFloat(product.usageQuantity) || 0;
-        const prepayQuantity = parseFloat(product.prepayQuantity) || 0;
+      console.log('Found user license products:', userProducts.length);
+      
+      userProducts.forEach(usage => {
+        const usageQuantity = parseFloat(usage.usageQuantity) || 0;
+        const prepayQuantity = parseFloat(usage.prepayQuantity) || 0;
         const overageQuantity = Math.max(0, usageQuantity - prepayQuantity);
         
-        // Extract used from name if available (e.g., "Committed(256 used)")
-        let used = 0;
-        const name = product.name || '';
-        const usedMatch = name.match(/\((\d+)\s*used\)/);
-        if (usedMatch) {
-          used = parseInt(usedMatch[1]);
-        }
-        
-        // Determine committed and on-demand
+        // For user licenses, used is typically the usageQuantity
+        const used = usageQuantity;
         const committed = prepayQuantity;
         const onDemand = overageQuantity;
         
         userLicenses.push({
-          name: product.name,
+          name: usage.name,
           qty: usageQuantity,
           committed: committed,
           used: used,
           onDemand: onDemand,
+          partNumber: usage.partNumber,
           items: [
             { 
-              name: `Committed${used > 0 ? `(${used} used)` : ''}`, 
+              name: `Committed${used > 0 ? ` (${used} used)` : ''}`, 
               qty: committed, 
               used: used 
             },
@@ -1136,72 +1126,102 @@
         });
       });
       
+      console.log('Parsed user licenses:', userLicenses);
       return userLicenses;
     }
 
-    function parseResources(products) {
+    function parseResources(usages) {
       const resources = [];
       const byocItems = [];
+      const messagingItems = [];
+      const storageItems = [];
+      const apiItems = [];
       const otherItems = [];
       
-      // Filter for resource products
-      const resourceProducts = products.filter(product => 
-        product.name && (
-          product.name.includes('BYOT') ||
-          product.name.includes('BYOC Cloud') ||
-          product.name.includes('SMS') ||
-          product.name.includes('Predictive Engagement') ||
-          product.name.includes('Voice Transcription') ||
-          product.name.includes('WhatsApp') ||
-          product.name.includes('Outbound Email') ||
-          product.name.includes('IVR Basic') ||
-          product.name.includes('API Resource')
-        )
+      // Filter for resource products (exclude user licenses)
+      const resourceProducts = usages.filter(usage => 
+        usage.name && 
+        usage.grouping !== 'user' &&
+        !usage.name.includes('Genesys Cloud CX 2') &&
+        !usage.name.includes('WEM Add-On') &&
+        !usage.name.includes('Communicate User') &&
+        !usage.name.includes('Communicate Standalone') &&
+        !usage.name.includes('Collaborate') &&
+        !usage.name.includes('Wallboard Device')
       );
       
-      resourceProducts.forEach(product => {
-        const usageQuantity = parseFloat(product.usageQuantity) || 0;
-        const prepayQuantity = parseFloat(product.prepayQuantity) || 0;
+      console.log('Found resource products:', resourceProducts.length);
+      
+      resourceProducts.forEach(usage => {
+        const usageQuantity = parseFloat(usage.usageQuantity) || 0;
+        const prepayQuantity = parseFloat(usage.prepayQuantity) || 0;
         const overageQuantity = Math.max(0, usageQuantity - prepayQuantity);
         
-        // Determine unit from product name or type
+        // Determine unit from unitOfMeasureType
         let unit = 'units';
-        if (product.name.includes('Per Minute') || product.name.includes('Transcription') || product.name.includes('IVR')) {
-          unit = 'minutes';
-        } else if (product.name.includes('Per Transaction') || product.name.includes('Events')) {
-          unit = 'transactions';
-        } else if (product.name.includes('API Resource')) {
-          unit = 'requests';
-        }
+        if (usage.unitOfMeasureType === 'minute') unit = 'minutes';
+        else if (usage.unitOfMeasureType === 'message') unit = 'messages';
+        else if (usage.unitOfMeasureType === 'request') unit = 'requests';
+        else if (usage.unitOfMeasureType === 'gb') unit = 'GB';
+        else if (usage.unitOfMeasureType === 'number') unit = 'units';
+        else unit = usage.unitOfMeasureType || 'units';
         
         const resource = {
-          name: product.name,
+          name: usage.name,
           qty: usageQuantity,
           unit: unit,
           included: { 
             qty: prepayQuantity, 
             used: Math.min(usageQuantity, prepayQuantity) 
           },
-          onDemand: overageQuantity
+          onDemand: overageQuantity,
+          partNumber: usage.partNumber,
+          grouping: usage.grouping
         };
         
-        // Categorize resources
-        if (product.name.includes('BYOT')) {
+        // Categorize resources by grouping
+        if (usage.grouping === 'resource' || usage.name.includes('BYOT') || usage.name.includes('BYOC')) {
           byocItems.push(resource);
+        } else if (usage.grouping === 'messaging' || usage.grouping === 'messaging-usage') {
+          messagingItems.push(resource);
+        } else if (usage.grouping === 'storage' || usage.grouping === 'storage-category') {
+          storageItems.push(resource);
+        } else if (usage.grouping === 'api') {
+          apiItems.push(resource);
         } else {
           otherItems.push(resource);
         }
       });
       
-      // Add BYOC Cloud category if there are BYOT items
+      // Add categorized resources
       if (byocItems.length > 0) {
         resources.push({
-          category: "BYOC Cloud",
+          category: "BYOC / Carrier Resources",
           items: byocItems
         });
       }
       
-      // Add other resources
+      if (messagingItems.length > 0) {
+        resources.push({
+          category: "Messaging (SMS/MMS/WhatsApp)",
+          items: messagingItems
+        });
+      }
+      
+      if (storageItems.length > 0) {
+        resources.push({
+          category: "Data Storage",
+          items: storageItems
+        });
+      }
+      
+      if (apiItems.length > 0) {
+        resources.push({
+          category: "API Resources",
+          items: apiItems
+        });
+      }
+      
       if (otherItems.length > 0) {
         resources.push({
           category: "Other Resources",
@@ -1209,6 +1229,7 @@
         });
       }
       
+      console.log('Parsed resources by category:', resources.map(r => `${r.category}: ${r.items.length}`));
       return resources;
     }
 
@@ -1217,6 +1238,11 @@
       if (!appState.usageData) return;
       
       const data = appState.usageData;
+      
+      // Update organization name from API
+      if (data.organization && data.organization.name) {
+        el.orgNameDisplay.textContent = data.organization.name;
+      }
       
       // Update last updated time
       el.lastUpdated.textContent = `Last updated: ${appState.lastFetchTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
@@ -1656,10 +1682,7 @@
 
     // ==================== INITIALIZATION ====================
     function initializeApp() {
-      // Update organization name
-      el.orgNameDisplay.textContent = `${CONFIG.CUSTOMER_NAME} Trusted Organization`;
-      
-      // Fetch billing data
+      // Fetch billing data (organization name will be updated when data loads)
       fetchBillingData(0);
     }
 
