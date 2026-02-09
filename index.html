@@ -1071,15 +1071,14 @@
     }
 
     function disconnect() {
-      if (confirm('Disconnect from Genesys Cloud? This will clear all stored credentials.')) {
-        clearCredentials();
-        appState.isAuthenticated = false;
-        appState.usageData = null;
-        appState.rawApiData = null;
-        el.mainContent.style.display = 'none';
-        el.authContainer.style.display = 'flex';
-        showStatusMessage('Disconnected from Genesys Cloud', 'info');
-      }
+      // REMOVED THE CONFIRM DIALOG - Disconnects immediately
+      clearCredentials();
+      appState.isAuthenticated = false;
+      appState.usageData = null;
+      appState.rawApiData = null;
+      el.mainContent.style.display = 'none';
+      el.authContainer.style.display = 'flex';
+      showStatusMessage('Disconnected from Genesys Cloud', 'info');
     }
 
     // ==================== API FUNCTIONS ====================
