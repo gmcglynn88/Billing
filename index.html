@@ -666,6 +666,9 @@
       flex-direction: column;
       gap: 8px;
       margin-top: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      padding-right: 8px;
     }
     
     .license-item {
@@ -678,6 +681,9 @@
     
     .license-name {
       color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     
     .license-count {
@@ -738,11 +744,13 @@
       color: var(--neutral);
     }
 
-    /* Dynamic license breakdown container */
-    #dynamicLicenseBreakdown {
-      max-height: 200px;
-      overflow-y: auto;
-      padding-right: 8px;
+    /* Color indicator for licenses */
+    .color-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 6px;
     }
   </style>
   
@@ -2095,40 +2103,47 @@
               align: 'top',
               offset: 8,
               formatter: (value, context) => {
+                if (value === 0 || value === null || value === undefined) return '';
+                
                 const index = context.dataIndex;
                 const prevValue = index > 0 ? data[index - 1] : null;
                 
-                if (value === 0) return '';
+                // Format the number with commas
+                const formattedValue = new Intl.NumberFormat().format(value);
                 
-                // Value inside the bar (smaller)
-                const valueText = value.toString();
-                
-                // Trend above the bar (with arrow)
-                if (prevValue && prevValue > 0) {
-                  const change = ((value - prevValue) / prevValue * 100).toFixed(1);
-                  if (Math.abs(change) > 0.1) {
-                    const trendIcon = change > 0 ? '▲' : '▼';
-                    const trendColor = change > 0 ? 'green' : 'red';
-                    return [
-                      valueText,
-                      { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
-                    ];
-                  }
+                // If no previous value, just return the number
+                if (!prevValue || prevValue === 0) {
+                  return formattedValue;
                 }
-                return valueText;
+                
+                // Calculate trend
+                const change = ((value - prevValue) / prevValue) * 100;
+                const changeFormatted = change.toFixed(1);
+                
+                if (Math.abs(change) < 0.1) {
+                  return formattedValue;
+                }
+                
+                const trendIcon = change > 0 ? '▲' : '▼';
+                
+                // Return as array of strings for multi-line label
+                return [
+                  formattedValue,
+                  `${trendIcon} ${Math.abs(changeFormatted)}%`
+                ];
               },
               color: '#2C3E50',
               font: {
                 weight: 'bold',
-                size: 12  // Increased from 10 to 12
+                size: 12
               },
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
               borderRadius: 4,
               padding: {
-                top: 2,
-                bottom: 2,
-                left: 4,
-                right: 4
+                top: 4,
+                bottom: 4,
+                left: 6,
+                right: 6
               }
             }
           }]
@@ -2186,40 +2201,45 @@
                 align: 'top',
                 offset: 8,
                 formatter: (value, context) => {
-                  if (value === 0) return '';
+                  if (value === 0 || value === null || value === undefined) return '';
+                  
                   const index = context.dataIndex;
                   const datasetIndex = context.datasetIndex;
-                  const prevValue = index > 0 ? datasets[datasetIndex]?.data[index - 1] : null;
+                  const datasetData = datasets[datasetIndex]?.data || [];
+                  const prevValue = index > 0 ? datasetData[index - 1] : null;
                   
-                  // Value inside the bar
-                  const valueText = value.toString();
+                  const formattedValue = new Intl.NumberFormat().format(value);
                   
-                  // Trend above the bar
-                  if (prevValue && prevValue > 0) {
-                    const change = ((value - prevValue) / prevValue * 100).toFixed(1);
-                    if (Math.abs(change) > 0.1) {
-                      const trendIcon = change > 0 ? '▲' : '▼';
-                      const trendColor = change > 0 ? 'green' : 'red';
-                      return [
-                        valueText,
-                        { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
-                      ];
-                    }
+                  if (!prevValue || prevValue === 0) {
+                    return formattedValue;
                   }
-                  return valueText;
+                  
+                  const change = ((value - prevValue) / prevValue) * 100;
+                  const changeFormatted = change.toFixed(1);
+                  
+                  if (Math.abs(change) < 0.1) {
+                    return formattedValue;
+                  }
+                  
+                  const trendIcon = change > 0 ? '▲' : '▼';
+                  
+                  return [
+                    formattedValue,
+                    `${trendIcon} ${Math.abs(changeFormatted)}%`
+                  ];
                 },
                 color: '#2C3E50',
                 font: {
                   weight: 'bold',
-                  size: 11  // Increased from 9 to 11
+                  size: 11
                 },
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 borderRadius: 4,
                 padding: {
-                  top: 2,
-                  bottom: 2,
-                  left: 4,
-                  right: 4
+                  top: 4,
+                  bottom: 4,
+                  left: 6,
+                  right: 6
                 }
               }
             });
@@ -2248,29 +2268,36 @@
             align: 'top',
             offset: 8,
             formatter: (value, context) => {
-              if (value === 0) return '';
+              if (value === 0 || value === null || value === undefined) return '';
+              
               const index = context.dataIndex;
               const prevValue = index > 0 ? data[index - 1] : null;
               
-              const valueText = value.toString();
+              const formattedValue = new Intl.NumberFormat().format(value);
               
-              if (prevValue && prevValue > 0) {
-                const change = ((value - prevValue) / prevValue * 100).toFixed(1);
-                if (Math.abs(change) > 0.1) {
-                  const trendIcon = change > 0 ? '▲' : '▼';
-                  return [
-                    valueText,
-                    { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
-                  ];
-                }
+              if (!prevValue || prevValue === 0) {
+                return formattedValue;
               }
-              return valueText;
+              
+              const change = ((value - prevValue) / prevValue) * 100;
+              const changeFormatted = change.toFixed(1);
+              
+              if (Math.abs(change) < 0.1) {
+                return formattedValue;
+              }
+              
+              const trendIcon = change > 0 ? '▲' : '▼';
+              
+              return [
+                formattedValue,
+                `${trendIcon} ${Math.abs(changeFormatted)}%`
+              ];
             },
             color: '#2C3E50',
             font: { weight: 'bold', size: 12 },
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
             borderRadius: 4,
-            padding: { top: 2, bottom: 2, left: 4, right: 4 }
+            padding: { top: 4, bottom: 4, left: 6, right: 6 }
           }
         }];
       } else {
@@ -2303,29 +2330,36 @@
             align: 'top',
             offset: 8,
             formatter: (value, context) => {
-              if (value === 0) return '';
+              if (value === 0 || value === null || value === undefined) return '';
+              
               const index = context.dataIndex;
               const prevValue = index > 0 ? data[index - 1] : null;
               
-              const valueText = value.toString();
+              const formattedValue = new Intl.NumberFormat().format(value);
               
-              if (prevValue && prevValue > 0) {
-                const change = ((value - prevValue) / prevValue * 100).toFixed(1);
-                if (Math.abs(change) > 0.1) {
-                  const trendIcon = change > 0 ? '▲' : '▼';
-                  return [
-                    valueText,
-                    { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
-                  ];
-                }
+              if (!prevValue || prevValue === 0) {
+                return formattedValue;
               }
-              return valueText;
+              
+              const change = ((value - prevValue) / prevValue) * 100;
+              const changeFormatted = change.toFixed(1);
+              
+              if (Math.abs(change) < 0.1) {
+                return formattedValue;
+              }
+              
+              const trendIcon = change > 0 ? '▲' : '▼';
+              
+              return [
+                formattedValue,
+                `${trendIcon} ${Math.abs(changeFormatted)}%`
+              ];
             },
             color: '#2C3E50',
             font: { weight: 'bold', size: 12 },
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
             borderRadius: 4,
-            padding: { top: 2, bottom: 2, left: 4, right: 4 }
+            padding: { top: 4, bottom: 4, left: 6, right: 6 }
           }
         }];
       }
@@ -2430,36 +2464,43 @@
               align: 'top',
               offset: 8,
               formatter: (value, context) => {
-                if (value === 0) return '';
+                if (value === 0 || value === null || value === undefined) return '';
+                
                 const index = context.dataIndex;
                 const prevValue = index > 0 ? data[index - 1] : null;
                 
-                const valueText = value.toString();
+                const formattedValue = new Intl.NumberFormat().format(value);
                 
-                if (prevValue && prevValue > 0) {
-                  const change = ((value - prevValue) / prevValue * 100).toFixed(1);
-                  if (Math.abs(change) > 0.1) {
-                    const trendIcon = change > 0 ? '▲' : '▼';
-                    return [
-                      valueText,
-                      { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
-                    ];
-                  }
+                if (!prevValue || prevValue === 0) {
+                  return formattedValue;
                 }
-                return valueText;
+                
+                const change = ((value - prevValue) / prevValue) * 100;
+                const changeFormatted = change.toFixed(1);
+                
+                if (Math.abs(change) < 0.1) {
+                  return formattedValue;
+                }
+                
+                const trendIcon = change > 0 ? '▲' : '▼';
+                
+                return [
+                  formattedValue,
+                  `${trendIcon} ${Math.abs(changeFormatted)}%`
+                ];
               },
               color: '#2C3E50',
               font: {
                 weight: 'bold',
                 size: 12
               },
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
               borderRadius: 4,
               padding: {
-                top: 2,
-                bottom: 2,
-                left: 4,
-                right: 4
+                top: 4,
+                bottom: 4,
+                left: 6,
+                right: 6
               }
             }
           }]
@@ -2548,6 +2589,8 @@
 
     function updateLicenseBreakdown() {
       const container = el.dynamicLicenseBreakdown;
+      if (!container) return;
+      
       container.innerHTML = '';
       
       let totalLicenses = 0;
@@ -2581,7 +2624,7 @@
         item.className = 'license-item';
         item.innerHTML = `
           <span class="license-name">
-            <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${color};margin-right:8px;"></span>
+            <span class="color-dot" style="background:${color};"></span>
             ${name}
           </span>
           <span class="license-count">${formatNumber(count)}</span>
@@ -2615,7 +2658,7 @@
         }
       ];
       
-      // Add top license types
+      // Add top license types (up to 5)
       const licenseCounts = new Map();
       months.forEach(month => {
         if (month) {
@@ -2713,6 +2756,15 @@
     }
 
     function updateMetricTiles(data) {
+      // Check if all required elements exist
+      if (!el.totalUsersValue || !el.usersUtilization || !el.overageRiskValue || 
+          !el.overageDetail || !el.metricUserOverage || !el.speechUsageValue ||
+          !el.speechUsed || !el.speechPrepaid || !el.speechProgressUsed || 
+          !el.speechDetail || !el.ivrUsageValue || !el.ivrDetail) {
+        console.warn('Some metric tile elements not found');
+        return;
+      }
+      
       let totalUsers = 0;
       let totalCommitted = 0;
       let totalUsed = 0;
@@ -2740,14 +2792,19 @@
       
       el.overageRiskValue.textContent = overageRisk > 0 ? `${formatNumber(overageRisk)}` : 'None';
       const overageTile = el.metricUserOverage;
-      if (overageRisk > 0) {
-        overageTile.className = 'metric-card danger';
-        overageTile.querySelector('.metric-icon').textContent = '🚨';
-        el.overageDetail.textContent = `${formatNumber(overageRisk)} user licenses on-demand (potential overage)`;
-      } else {
-        overageTile.className = 'metric-card success';
-        overageTile.querySelector('.metric-icon').textContent = '✅';
-        el.overageDetail.textContent = 'All licenses are committed (no overage risk)';
+      
+      // Check if the metric-icon exists before trying to set textContent
+      const metricIcon = overageTile?.querySelector('.metric-icon');
+      if (metricIcon) {
+        if (overageRisk > 0) {
+          overageTile.className = 'metric-card danger';
+          metricIcon.textContent = '🚨';
+          el.overageDetail.textContent = `${formatNumber(overageRisk)} user licenses on-demand (potential overage)`;
+        } else {
+          overageTile.className = 'metric-card success';
+          metricIcon.textContent = '✅';
+          el.overageDetail.textContent = 'All licenses are committed (no overage risk)';
+        }
       }
       
       let speechPrepaid = 0;
@@ -2774,7 +2831,9 @@
       el.speechUsageValue.textContent = `${speechUtilization}%`;
       el.speechUsed.textContent = formatNumber(speechUsed);
       el.speechPrepaid.textContent = formatNumber(speechPrepaid);
-      el.speechProgressUsed.style.width = `${speechUtilization}%`;
+      if (el.speechProgressUsed) {
+        el.speechProgressUsed.style.width = `${speechUtilization}%`;
+      }
       el.speechDetail.textContent = `${formatNumber(speechUsed)} of ${formatNumber(speechPrepaid)} minutes used`;
       
       el.ivrUsageValue.textContent = `${ivrUtilization}%`;
@@ -2941,7 +3000,7 @@
         const speechPrepaid = speechResource.included.qty;
         const speechUsed = speechResource.included.used;
         const speechRemaining = speechPrepaid - speechUsed;
-        const speechUtilization = Math.round((speechUsed / speechPrepaid) * 100);
+        const speechUtilization = speechPrepaid > 0 ? Math.round((speechUsed / speechPrepaid) * 100) : 0;
         
         el.highlightSpeechUsed.textContent = formatNumber(speechUsed);
         el.highlightSpeechPrepaid.textContent = formatNumber(speechPrepaid);
