@@ -454,7 +454,7 @@
     }
     
     .graph-container {
-      height: 250px;
+      height: 300px;
       position: relative;
     }
     
@@ -705,10 +705,43 @@
       height: 12px;
       border-radius: 3px;
     }
+
+    /* Data label styles */
+    .data-label {
+      font-size: 11px;
+      font-weight: 600;
+      fill: var(--text-color);
+    }
+
+    .trend-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    
+    .trend-badge-up {
+      background: rgba(40, 167, 69, 0.15);
+      color: var(--increase);
+    }
+    
+    .trend-badge-down {
+      background: rgba(220, 53, 69, 0.15);
+      color: var(--decrease);
+    }
+    
+    .trend-badge-neutral {
+      background: rgba(108, 117, 125, 0.15);
+      color: var(--neutral);
+    }
   </style>
   
   <!-- Chart.js for graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Chart.js datalabels plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body>
   <!-- Auth overlay (hidden by default) -->
@@ -793,7 +826,7 @@
       <button class="tab" data-tab="highlights">⚠️ Usage Highlights</button>
     </div>
 
-    <!-- Analytics Dashboard Tab (NEW) -->
+    <!-- Analytics Dashboard Tab -->
     <div id="tab-analytics" class="tab-content active">
       <div class="card">
         <h2>📊 Month-on-Month Analytics Dashboard</h2>
@@ -834,7 +867,6 @@
             <div class="graph-container">
               <canvas id="minutesChart"></canvas>
             </div>
-            <div class="chart-legend" id="minutesLegend"></div>
           </div>
           
           <!-- Licenses Graph with Dropdown -->
@@ -845,7 +877,7 @@
                 <select id="licensesMetricSelector">
                   <option value="all">All License Types</option>
                   <option value="cx2">Genesys Cloud CX 2</option>
-                  <option value="wem">WEM Add-On</option>
+                  <option value="wem">Genesys Cloud CX 2 WEM Add-On I</option>
                   <option value="communicate">Communicate</option>
                   <option value="collaborate">Collaborate</option>
                   <option value="ondemand">On-Demand Usage</option>
@@ -855,7 +887,6 @@
             <div class="graph-container">
               <canvas id="licensesChart"></canvas>
             </div>
-            <div class="chart-legend" id="licensesLegend"></div>
           </div>
           
           <!-- Resources Graph with Dropdown -->
@@ -875,7 +906,6 @@
             <div class="graph-container">
               <canvas id="volumesChart"></canvas>
             </div>
-            <div class="chart-legend" id="volumesLegend"></div>
           </div>
         </div>
         
@@ -894,7 +924,7 @@
               <span class="license-count" id="cx2Count">0</span>
             </div>
             <div class="license-item">
-              <span class="license-name">WEM Add-On</span>
+              <span class="license-name">Genesys Cloud CX 2 WEM Add-On I</span>
               <span class="license-count" id="wemCount">0</span>
             </div>
             <div class="license-item">
@@ -938,7 +968,7 @@
       </div>
     </div>
 
-    <!-- Users Tab (existing) -->
+    <!-- Users Tab -->
     <div id="tab-users" class="tab-content">
       <div class="card">
         <h2>👥 User Licenses - <span id="usersMonthDisplay">Current Month</span></h2>
@@ -966,7 +996,7 @@
       </div>
     </div>
 
-    <!-- Resources Tab (existing) -->
+    <!-- Resources Tab -->
     <div id="tab-resources" class="tab-content">
       <div class="card">
         <h2>📦 Resources - <span id="resourcesMonthDisplay">Current Month</span> (excludes Cloud Voice charges)</h2>
@@ -994,7 +1024,7 @@
       </div>
     </div>
 
-    <!-- Highlights Tab (existing) -->
+    <!-- Highlights Tab -->
     <div id="tab-highlights" class="tab-content">
       <div class="card">
         <h2>⚠️ Usage Highlights & Alerts - <span id="highlightsMonthDisplay">Current Month</span></h2>
@@ -1113,6 +1143,9 @@
   </div>
 
   <script>
+    // Register the datalabels plugin
+    Chart.register(ChartDataLabels);
+
     // ==================== CONFIGURATION ====================
     const CONFIG = {
       CLIENT_ID: '4ab97fe2-54c0-4deb-8b9a-a4b5720d6c67',
@@ -1388,6 +1421,20 @@
       }
     }
 
+    function getTrendBadge(current, previous) {
+      if (!previous || previous === 0) return '<span class="trend-badge trend-badge-neutral">—</span>';
+      
+      const change = ((current - previous) / previous) * 100;
+      
+      if (change > 0) {
+        return `<span class="trend-badge trend-badge-up">▲ ${change.toFixed(1)}%</span>`;
+      } else if (change < 0) {
+        return `<span class="trend-badge trend-badge-down">▼ ${Math.abs(change).toFixed(1)}%</span>`;
+      } else {
+        return '<span class="trend-badge trend-badge-neutral">● 0%</span>';
+      }
+    }
+
     // ==================== ORGANIZATION MANAGEMENT ====================
     function loadSavedOrgs() {
       try {
@@ -1633,7 +1680,24 @@
       if (appState.billingHistory[periodIndex]) {
         appState.currentPeriod = periodIndex;
         appState.usageData = appState.billingHistory[periodIndex].data;
-        updateAllDisplays();
+        
+        // Update displays based on current tab
+        if (appState.currentTab === 'users') {
+          updateUsersTable(appState.usageData.users);
+        } else if (appState.currentTab === 'resources') {
+          updateResourcesTable(appState.usageData.resources);
+        } else if (appState.currentTab === 'highlights') {
+          updateHighlightsTable(appState.usageData);
+        }
+        
+        // Update month displays
+        el.usersMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
+        el.resourcesMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
+        el.highlightsMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
+        
+        // Update metric tiles
+        updateMetricTiles(appState.usageData);
+        
         updateMonthSelectorOptions();
         showStatusMessage(`✅ Switched to ${getPeriodDisplayName(periodIndex)}`, 'success');
         return;
@@ -1663,8 +1727,24 @@
         appState.currentPeriod = periodIndex;
         appState.usageData = parsedData;
         
+        // Update displays based on current tab
+        if (appState.currentTab === 'users') {
+          updateUsersTable(appState.usageData.users);
+        } else if (appState.currentTab === 'resources') {
+          updateResourcesTable(appState.usageData.resources);
+        } else if (appState.currentTab === 'highlights') {
+          updateHighlightsTable(appState.usageData);
+        }
+        
+        // Update month displays
+        el.usersMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
+        el.resourcesMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
+        el.highlightsMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
+        
+        // Update metric tiles
+        updateMetricTiles(appState.usageData);
+        
         updateMonthSelectorOptions();
-        updateAllDisplays();
         
         setLoading(false);
         
@@ -1752,6 +1832,7 @@
     }
 
     function getLicenseType(name) {
+      if (name.includes('CX 2') && name.includes('WEM')) return 'wem';
       if (name.includes('CX 2')) return 'cx2';
       if (name.includes('WEM')) return 'wem';
       if (name.includes('Communicate')) return 'communicate';
@@ -1893,6 +1974,7 @@
       let title = '';
       let data = [];
       let backgroundColors = [];
+      let previousValues = [];
       
       // Get data in chronological order (oldest to newest)
       for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
@@ -1957,6 +2039,11 @@
           data.push(utilization);
           backgroundColors.push('rgba(220, 53, 69, 0.7)');
         }
+        
+        // Store for trend calculation
+        if (monthData) {
+          previousValues[i] = data[data.length - 1];
+        }
       }
       
       el.minutesGraphTitle.textContent = title;
@@ -1970,14 +2057,39 @@
             data: data,
             backgroundColor: backgroundColors,
             borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
-            borderWidth: 1
+            borderWidth: 1,
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              formatter: (value, context) => {
+                const index = context.dataIndex;
+                const prevValue = index > 0 ? data[index - 1] : null;
+                const trend = prevValue ? ((value - prevValue) / prevValue * 100).toFixed(1) : null;
+                
+                if (trend && !isNaN(trend) && trend !== '0.0') {
+                  const trendIcon = trend > 0 ? '▲' : '▼';
+                  const trendColor = trend > 0 ? 'green' : 'red';
+                  return `${value}\n${trendIcon} ${Math.abs(trend)}%`;
+                }
+                return value.toString();
+              },
+              color: '#2C3E50',
+              font: {
+                weight: 'bold',
+                size: 10
+              }
+            }
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            datalabels: {
+              display: true
+            }
           },
           scales: {
             y: { beginAtZero: true }
@@ -1994,21 +2106,14 @@
       if (metric === 'all') {
         title = 'All License Types';
         
-        // Get unique license types
-        const licenseTypes = {};
-        
-        // First pass to collect all license types
-        for (let i = 0; i < CONFIG.MAX_MONTHS; i++) {
-          const monthData = appState.billingHistory[i]?.data;
-          if (monthData) {
-            monthData.users.forEach(user => {
-              const type = getLicenseType(user.name);
-              if (!licenseTypes[type]) {
-                licenseTypes[type] = { name: user.name, color: getLicenseColor(type) };
-              }
-            });
-          }
-        }
+        // Get unique license types with proper names
+        const licenseTypes = {
+          'cx2': { name: 'Genesys Cloud CX 2', color: 'rgba(99, 171, 143, 0.7)' },
+          'wem': { name: 'Genesys Cloud CX 2 WEM Add-On I', color: 'rgba(78, 115, 223, 0.7)' },
+          'communicate': { name: 'Communicate', color: 'rgba(246, 194, 62, 0.7)' },
+          'collaborate': { name: 'Collaborate', color: 'rgba(28, 200, 138, 0.7)' },
+          'other': { name: 'Other Licenses', color: 'rgba(220, 53, 69, 0.7)' }
+        };
         
         // Create datasets for each license type
         Object.keys(licenseTypes).forEach(type => {
@@ -2026,20 +2131,53 @@
             typeData.push(count);
           }
           
-          datasets.push({
-            label: licenseTypes[type].name,
-            data: typeData,
-            backgroundColor: licenseTypes[type].color,
-            borderColor: licenseTypes[type].color.replace('0.7', '1'),
-            borderWidth: 1
-          });
+          // Only add dataset if there's any data
+          if (typeData.some(v => v > 0)) {
+            datasets.push({
+              label: licenseTypes[type].name,
+              data: typeData,
+              backgroundColor: licenseTypes[type].color,
+              borderColor: licenseTypes[type].color.replace('0.7', '1'),
+              borderWidth: 1,
+              datalabels: {
+                anchor: 'end',
+                align: 'top',
+                offset: 4,
+                formatter: (value, context) => {
+                  if (value === 0) return '';
+                  const index = context.dataIndex;
+                  const datasetIndex = context.datasetIndex;
+                  const prevValue = index > 0 ? datasets[datasetIndex]?.data[index - 1] : null;
+                  
+                  if (prevValue && prevValue > 0) {
+                    const change = ((value - prevValue) / prevValue * 100).toFixed(1);
+                    if (Math.abs(change) > 0.1) {
+                      const trendIcon = change > 0 ? '▲' : '▼';
+                      return `${value}\n${trendIcon} ${Math.abs(change)}%`;
+                    }
+                  }
+                  return value.toString();
+                },
+                color: '#2C3E50',
+                font: {
+                  weight: 'bold',
+                  size: 9
+                }
+              }
+            });
+          }
         });
       } else {
         // Single license type
-        title = metric === 'cx2' ? 'Genesys Cloud CX 2' :
-                metric === 'wem' ? 'WEM Add-On' :
-                metric === 'communicate' ? 'Communicate' :
-                metric === 'collaborate' ? 'Collaborate' : 'On-Demand Usage';
+        const licenseNames = {
+          'cx2': 'Genesys Cloud CX 2',
+          'wem': 'Genesys Cloud CX 2 WEM Add-On I',
+          'communicate': 'Communicate',
+          'collaborate': 'Collaborate',
+          'ondemand': 'On-Demand Usage'
+        };
+        
+        title = licenseNames[metric] || metric;
         
         const data = [];
         for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
@@ -2064,7 +2202,31 @@
           data: data,
           backgroundColor: getLicenseColor(metric),
           borderColor: getLicenseColor(metric).replace('0.7', '1'),
-          borderWidth: 1
+          borderWidth: 1,
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            offset: 4,
+            formatter: (value, context) => {
+              if (value === 0) return '';
+              const index = context.dataIndex;
+              const prevValue = index > 0 ? data[index - 1] : null;
+              
+              if (prevValue && prevValue > 0) {
+                const change = ((value - prevValue) / prevValue * 100).toFixed(1);
+                if (Math.abs(change) > 0.1) {
+                  const trendIcon = change > 0 ? '▲' : '▼';
+                  return `${value}\n${trendIcon} ${Math.abs(change)}%`;
+                }
+              }
+              return value.toString();
+            },
+            color: '#2C3E50',
+            font: {
+              weight: 'bold',
+              size: 10
+            }
+          }
         }];
       }
       
@@ -2082,7 +2244,13 @@
           plugins: {
             legend: { 
               display: datasets.length > 1,
-              position: 'bottom'
+              position: 'bottom',
+              labels: {
+                font: { size: 10 }
+              }
+            },
+            datalabels: {
+              display: true
             }
           },
           scales: {
@@ -2168,14 +2336,41 @@
             data: data,
             backgroundColor: backgroundColors,
             borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
-            borderWidth: 1
+            borderWidth: 1,
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              formatter: (value, context) => {
+                if (value === 0) return '';
+                const index = context.dataIndex;
+                const prevValue = index > 0 ? data[index - 1] : null;
+                
+                if (prevValue && prevValue > 0) {
+                  const change = ((value - prevValue) / prevValue * 100).toFixed(1);
+                  if (Math.abs(change) > 0.1) {
+                    const trendIcon = change > 0 ? '▲' : '▼';
+                    return `${value}\n${trendIcon} ${Math.abs(change)}%`;
+                  }
+                }
+                return value.toString();
+              },
+              color: '#2C3E50',
+              font: {
+                weight: 'bold',
+                size: 10
+              }
+            }
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            datalabels: {
+              display: true
+            }
           },
           scales: {
             y: { beginAtZero: true }
@@ -2220,10 +2415,14 @@
       // Update metric tiles
       updateMetricTiles(data);
       
-      // Update tables
-      updateUsersTable(data.users);
-      updateResourcesTable(data.resources);
-      updateHighlightsTable(data);
+      // Update tables based on current tab
+      if (appState.currentTab === 'users') {
+        updateUsersTable(data.users);
+      } else if (appState.currentTab === 'resources') {
+        updateResourcesTable(data.resources);
+      } else if (appState.currentTab === 'highlights') {
+        updateHighlightsTable(data);
+      }
     }
 
     function updateAnalyticsDashboard() {
@@ -2249,10 +2448,17 @@
           totalLicenses += user.qty;
           ondemandCount += user.onDemand;
           
-          if (user.name.includes('CX 2')) cx2Count += user.qty;
-          else if (user.name.includes('WEM')) wemCount += user.qty;
-          else if (user.name.includes('Communicate')) communicateCount += user.qty;
-          else if (user.name.includes('Collaborate')) collaborateCount += user.qty;
+          if (user.name.includes('CX 2') && user.name.includes('WEM')) {
+            wemCount += user.qty;
+          } else if (user.name.includes('CX 2')) {
+            cx2Count += user.qty;
+          } else if (user.name.includes('WEM')) {
+            wemCount += user.qty;
+          } else if (user.name.includes('Communicate')) {
+            communicateCount += user.qty;
+          } else if (user.name.includes('Collaborate')) {
+            collaborateCount += user.qty;
+          }
         });
       }
       
@@ -2279,7 +2485,7 @@
         return;
       }
       
-      // Get data for all months
+      // Get data for all months (oldest to newest)
       const months = [];
       for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
         months.push(appState.billingHistory[i]?.data);
@@ -2289,6 +2495,12 @@
       const metrics = [
         { name: 'Total User Licenses', 
           values: months.map(m => m?.users.reduce((sum, u) => sum + u.qty, 0) || 0)
+        },
+        { name: 'Genesys Cloud CX 2', 
+          values: months.map(m => getLicenseCountByType(m, 'cx2'))
+        },
+        { name: 'WEM Add-On I', 
+          values: months.map(m => getLicenseCountByType(m, 'wem'))
         },
         { name: 'On-Demand Licenses', 
           values: months.map(m => m?.users.reduce((sum, u) => sum + u.onDemand, 0) || 0)
@@ -2311,18 +2523,6 @@
         const row = document.createElement('tr');
         const current = metric.values[metric.values.length - 1] || 0;
         const previous = metric.values[metric.values.length - 2] || 0;
-        const change = current - previous;
-        const changePercent = previous > 0 ? ((current - previous) / previous) * 100 : 0;
-        
-        let trendClass = 'trend-neutral';
-        let trendIcon = '●';
-        if (change > 0) {
-          trendClass = 'trend-up';
-          trendIcon = '▲';
-        } else if (change < 0) {
-          trendClass = 'trend-down';
-          trendIcon = '▼';
-        }
         
         let html = `<td class="text-left"><strong>${metric.name}</strong></td>`;
         
@@ -2332,11 +2532,22 @@
         });
         
         // Add trend
-        html += `<td class="${trendClass}">${trendIcon} ${Math.abs(changePercent).toFixed(1)}%</td>`;
+        html += `<td>${getTrendBadge(current, previous)}</td>`;
         
         row.innerHTML = html;
         tbody.appendChild(row);
       });
+    }
+
+    function getLicenseCountByType(data, type) {
+      if (!data) return 0;
+      let count = 0;
+      data.users.forEach(user => {
+        if (getLicenseType(user.name) === type) {
+          count += user.qty;
+        }
+      });
+      return count;
     }
 
     function getResourceTotal(data, nameContains) {
