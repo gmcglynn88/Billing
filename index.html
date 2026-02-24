@@ -2126,16 +2126,25 @@
                 
                 const trendIcon = change > 0 ? '▲' : '▼';
                 
-                // Return as array of strings for multi-line label
-                return [
-                  formattedValue,
-                  `${trendIcon} ${Math.abs(changeFormatted)}%`
-                ];
+                // Return a simple string with the value and trend on separate lines
+                return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
               },
-              color: '#2C3E50',
+              color: (context) => {
+                const index = context.dataIndex;
+                const value = data[index];
+                const prevValue = index > 0 ? data[index - 1] : null;
+                
+                if (prevValue && prevValue > 0) {
+                  const change = ((value - prevValue) / prevValue) * 100;
+                  if (Math.abs(change) >= 0.1) {
+                    return change > 0 ? '#28a745' : '#dc3545';
+                  }
+                }
+                return '#2C3E50';
+              },
               font: {
                 weight: 'bold',
-                size: 12
+                size: 11
               },
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
               borderRadius: 4,
@@ -2153,12 +2162,36 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const value = context.raw;
+                  const formattedValue = new Intl.NumberFormat().format(value);
+                  const datasetLabel = context.dataset.label || '';
+                  
+                  if (metric === 'speechUtilization') {
+                    return `${datasetLabel}: ${formattedValue}%`;
+                  }
+                  return `${datasetLabel}: ${formattedValue}`;
+                }
+              }
+            },
             datalabels: {
               display: true
             }
           },
           scales: {
-            y: { beginAtZero: true }
+            y: { 
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  if (metric === 'speechUtilization') {
+                    return value + '%';
+                  }
+                  return new Intl.NumberFormat().format(value);
+                }
+              }
+            }
           }
         }
       });
@@ -2223,15 +2256,26 @@
                   
                   const trendIcon = change > 0 ? '▲' : '▼';
                   
-                  return [
-                    formattedValue,
-                    `${trendIcon} ${Math.abs(changeFormatted)}%`
-                  ];
+                  return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
                 },
-                color: '#2C3E50',
+                color: (context) => {
+                  const index = context.dataIndex;
+                  const datasetIndex = context.datasetIndex;
+                  const datasetData = datasets[datasetIndex]?.data || [];
+                  const value = datasetData[index];
+                  const prevValue = index > 0 ? datasetData[index - 1] : null;
+                  
+                  if (prevValue && prevValue > 0) {
+                    const change = ((value - prevValue) / prevValue) * 100;
+                    if (Math.abs(change) >= 0.1) {
+                      return change > 0 ? '#28a745' : '#dc3545';
+                    }
+                  }
+                  return '#2C3E50';
+                },
                 font: {
                   weight: 'bold',
-                  size: 11
+                  size: 10
                 },
                 backgroundColor: 'rgba(255, 255, 255, 0.9)',
                 borderRadius: 4,
@@ -2288,13 +2332,22 @@
               
               const trendIcon = change > 0 ? '▲' : '▼';
               
-              return [
-                formattedValue,
-                `${trendIcon} ${Math.abs(changeFormatted)}%`
-              ];
+              return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
             },
-            color: '#2C3E50',
-            font: { weight: 'bold', size: 12 },
+            color: (context) => {
+              const index = context.dataIndex;
+              const value = data[index];
+              const prevValue = index > 0 ? data[index - 1] : null;
+              
+              if (prevValue && prevValue > 0) {
+                const change = ((value - prevValue) / prevValue) * 100;
+                if (Math.abs(change) >= 0.1) {
+                  return change > 0 ? '#28a745' : '#dc3545';
+                }
+              }
+              return '#2C3E50';
+            },
+            font: { weight: 'bold', size: 11 },
             backgroundColor: 'rgba(255, 255, 255, 0.9)',
             borderRadius: 4,
             padding: { top: 4, bottom: 4, left: 6, right: 6 }
@@ -2350,13 +2403,22 @@
               
               const trendIcon = change > 0 ? '▲' : '▼';
               
-              return [
-                formattedValue,
-                `${trendIcon} ${Math.abs(changeFormatted)}%`
-              ];
+              return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
             },
-            color: '#2C3E50',
-            font: { weight: 'bold', size: 12 },
+            color: (context) => {
+              const index = context.dataIndex;
+              const value = data[index];
+              const prevValue = index > 0 ? data[index - 1] : null;
+              
+              if (prevValue && prevValue > 0) {
+                const change = ((value - prevValue) / prevValue) * 100;
+                if (Math.abs(change) >= 0.1) {
+                  return change > 0 ? '#28a745' : '#dc3545';
+                }
+              }
+              return '#2C3E50';
+            },
+            font: { weight: 'bold', size: 11 },
             backgroundColor: 'rgba(255, 255, 255, 0.9)',
             borderRadius: 4,
             padding: { top: 4, bottom: 4, left: 6, right: 6 }
@@ -2383,12 +2445,29 @@
                 font: { size: 10 }
               }
             },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const value = context.raw;
+                  const formattedValue = new Intl.NumberFormat().format(value);
+                  const datasetLabel = context.dataset.label || '';
+                  return `${datasetLabel}: ${formattedValue}`;
+                }
+              }
+            },
             datalabels: {
               display: true
             }
           },
           scales: {
-            y: { beginAtZero: true }
+            y: { 
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return new Intl.NumberFormat().format(value);
+                }
+              }
+            }
           }
         }
       });
@@ -2484,15 +2563,24 @@
                 
                 const trendIcon = change > 0 ? '▲' : '▼';
                 
-                return [
-                  formattedValue,
-                  `${trendIcon} ${Math.abs(changeFormatted)}%`
-                ];
+                return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
               },
-              color: '#2C3E50',
+              color: (context) => {
+                const index = context.dataIndex;
+                const value = data[index];
+                const prevValue = index > 0 ? data[index - 1] : null;
+                
+                if (prevValue && prevValue > 0) {
+                  const change = ((value - prevValue) / prevValue) * 100;
+                  if (Math.abs(change) >= 0.1) {
+                    return change > 0 ? '#28a745' : '#dc3545';
+                  }
+                }
+                return '#2C3E50';
+              },
               font: {
                 weight: 'bold',
-                size: 12
+                size: 11
               },
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
               borderRadius: 4,
@@ -2510,12 +2598,35 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const value = context.raw;
+                  const formattedValue = new Intl.NumberFormat().format(value);
+                  const datasetLabel = context.dataset.label || '';
+                  
+                  let unit = '';
+                  if (metric === 'storage') unit = ' GB';
+                  else if (metric === 'api') unit = ' requests';
+                  else if (metric === 'messaging') unit = ' messages';
+                  
+                  return `${datasetLabel}: ${formattedValue}${unit}`;
+                }
+              }
+            },
             datalabels: {
               display: true
             }
           },
           scales: {
-            y: { beginAtZero: true }
+            y: { 
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return new Intl.NumberFormat().format(value);
+                }
+              }
+            }
           }
         }
       });
