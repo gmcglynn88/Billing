@@ -407,10 +407,31 @@
       font-weight: 600;
     }
     
-    /* Graph containers */
+    /* Graph containers and controls */
+    .graph-controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .graph-selector {
+      min-width: 200px;
+    }
+    
+    .graph-selector select {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      font-size: 14px;
+    }
+    
     .graphs-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
       gap: 20px;
       margin-bottom: 24px;
     }
@@ -433,55 +454,8 @@
     }
     
     .graph-container {
-      height: 200px;
+      height: 250px;
       position: relative;
-    }
-    
-    .bar-chart {
-      display: flex;
-      align-items: flex-end;
-      height: 150px;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    
-    .bar-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    
-    .bar {
-      width: 100%;
-      background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-      border-radius: 4px 4px 0 0;
-      transition: height 0.5s ease;
-      min-height: 2px;
-    }
-    
-    .bar-label {
-      margin-top: 8px;
-      font-size: 11px;
-      color: var(--text-light);
-      writing-mode: vertical-lr;
-      transform: rotate(180deg);
-      height: 60px;
-      text-align: center;
-    }
-    
-    @media (min-width: 768px) {
-      .bar-label {
-        writing-mode: horizontal-tb;
-        transform: none;
-        height: auto;
-      }
-    }
-    
-    .bar-value {
-      font-size: 11px;
-      font-weight: 600;
-      margin-top: 4px;
     }
     
     .trend-indicator {
@@ -710,6 +684,27 @@
       font-weight: 600;
       color: var(--primary-color);
     }
+    
+    /* Legend styles */
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+      font-size: 12px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
   </style>
   
   <!-- Chart.js for graphs -->
@@ -823,28 +818,64 @@
         
         <!-- Graphs Row -->
         <div class="graphs-row">
-          <!-- Minutes Graph -->
+          <!-- Minutes Graph with Dropdown -->
           <div class="graph-card">
-            <h3>⏱️ Minutes Usage <span id="minutesTrend" class="trend-indicator"></span></h3>
+            <div class="graph-controls-row">
+              <h3>⏱️ <span id="minutesGraphTitle">Speech Minutes</span></h3>
+              <div class="graph-selector">
+                <select id="minutesMetricSelector">
+                  <option value="speech">Speech Minutes</option>
+                  <option value="ivr">IVR Minutes</option>
+                  <option value="total">Total Minutes</option>
+                  <option value="speechUtilization">Speech Utilization %</option>
+                </select>
+              </div>
+            </div>
             <div class="graph-container">
               <canvas id="minutesChart"></canvas>
             </div>
+            <div class="chart-legend" id="minutesLegend"></div>
           </div>
           
-          <!-- Licenses Graph -->
+          <!-- Licenses Graph with Dropdown -->
           <div class="graph-card">
-            <h3>👥 License Usage <span id="licensesTrend" class="trend-indicator"></span></h3>
+            <div class="graph-controls-row">
+              <h3>👥 <span id="licensesGraphTitle">All License Types</span></h3>
+              <div class="graph-selector">
+                <select id="licensesMetricSelector">
+                  <option value="all">All License Types</option>
+                  <option value="cx2">Genesys Cloud CX 2</option>
+                  <option value="wem">WEM Add-On</option>
+                  <option value="communicate">Communicate</option>
+                  <option value="collaborate">Collaborate</option>
+                  <option value="ondemand">On-Demand Usage</option>
+                </select>
+              </div>
+            </div>
             <div class="graph-container">
               <canvas id="licensesChart"></canvas>
             </div>
+            <div class="chart-legend" id="licensesLegend"></div>
           </div>
           
-          <!-- Volumes Graph -->
+          <!-- Resources Graph with Dropdown -->
           <div class="graph-card">
-            <h3>📦 Resource Volumes <span id="volumesTrend" class="trend-indicator"></span></h3>
+            <div class="graph-controls-row">
+              <h3>📦 <span id="volumesGraphTitle">Resource Volumes</span></h3>
+              <div class="graph-selector">
+                <select id="volumesMetricSelector">
+                  <option value="byoc">BYOC/Carrier</option>
+                  <option value="messaging">Messaging (SMS/MMS)</option>
+                  <option value="storage">Storage (GB)</option>
+                  <option value="api">API Requests</option>
+                  <option value="all">All Resources</option>
+                </select>
+              </div>
+            </div>
             <div class="graph-container">
               <canvas id="volumesChart"></canvas>
             </div>
+            <div class="chart-legend" id="volumesLegend"></div>
           </div>
         </div>
         
@@ -867,12 +898,16 @@
               <span class="license-count" id="wemCount">0</span>
             </div>
             <div class="license-item">
-              <span class="license-name">Communicate User</span>
+              <span class="license-name">Communicate</span>
               <span class="license-count" id="communicateCount">0</span>
             </div>
             <div class="license-item">
-              <span class="license-name">Other Licenses</span>
-              <span class="license-count" id="otherLicensesCount">0</span>
+              <span class="license-name">Collaborate</span>
+              <span class="license-count" id="collaborateCount">0</span>
+            </div>
+            <div class="license-item">
+              <span class="license-name">On-Demand</span>
+              <span class="license-count" id="ondemandCount">0</span>
             </div>
           </div>
         </div>
@@ -884,16 +919,17 @@
             <thead>
               <tr>
                 <th class="text-left">Metric</th>
-                <th>Current Month</th>
-                <th>Previous Month</th>
-                <th>Change</th>
-                <th>Trend</th>
-                <th>2 Months Ago</th>
+                <th>5 Months Ago</th>
+                <th>4 Months Ago</th>
                 <th>3 Months Ago</th>
+                <th>2 Months Ago</th>
+                <th>Last Month</th>
+                <th>Current Month</th>
+                <th>Trend</th>
               </tr>
             </thead>
             <tbody id="comparisonTableBody">
-              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">
+              <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
                 Loading comparison data...
               </td></tr>
             </tbody>
@@ -1109,6 +1145,11 @@
         minutes: null,
         licenses: null,
         volumes: null
+      },
+      graphSelections: {
+        minutes: 'speech',
+        licenses: 'all',
+        volumes: 'byoc'
       }
     };
 
@@ -1144,14 +1185,26 @@
       currentMonthDates: document.getElementById('currentMonthDates'),
       loadedMonthsCount: document.getElementById('loadedMonthsCount'),
       dataRange: document.getElementById('dataRange'),
-      minutesTrend: document.getElementById('minutesTrend'),
-      licensesTrend: document.getElementById('licensesTrend'),
-      volumesTrend: document.getElementById('volumesTrend'),
+      
+      // Graph selectors
+      minutesMetricSelector: document.getElementById('minutesMetricSelector'),
+      licensesMetricSelector: document.getElementById('licensesMetricSelector'),
+      volumesMetricSelector: document.getElementById('volumesMetricSelector'),
+      
+      minutesGraphTitle: document.getElementById('minutesGraphTitle'),
+      licensesGraphTitle: document.getElementById('licensesGraphTitle'),
+      volumesGraphTitle: document.getElementById('volumesGraphTitle'),
+      
+      minutesLegend: document.getElementById('minutesLegend'),
+      licensesLegend: document.getElementById('licensesLegend'),
+      volumesLegend: document.getElementById('volumesLegend'),
+      
       totalLicensesValue: document.getElementById('totalLicensesValue'),
       cx2Count: document.getElementById('cx2Count'),
       wemCount: document.getElementById('wemCount'),
       communicateCount: document.getElementById('communicateCount'),
-      otherLicensesCount: document.getElementById('otherLicensesCount'),
+      collaborateCount: document.getElementById('collaborateCount'),
+      ondemandCount: document.getElementById('ondemandCount'),
       comparisonTableBody: document.getElementById('comparisonTableBody'),
       
       // Metric tiles
@@ -1687,6 +1740,7 @@
           used: usageQuantity,
           onDemand: overageQuantity,
           partNumber: usage.partNumber,
+          type: getLicenseType(usage.name),
           items: [
             { name: `Committed${usageQuantity > 0 ? ` (${usageQuantity} used)` : ''}`, qty: prepayQuantity, used: usageQuantity },
             { name: "On-Demand", qty: overageQuantity, used: overageQuantity }
@@ -1697,12 +1751,21 @@
       return userLicenses;
     }
 
+    function getLicenseType(name) {
+      if (name.includes('CX 2')) return 'cx2';
+      if (name.includes('WEM')) return 'wem';
+      if (name.includes('Communicate')) return 'communicate';
+      if (name.includes('Collaborate')) return 'collaborate';
+      return 'other';
+    }
+
     function parseResources(usages) {
       const resources = [];
       const byocItems = [];
       const messagingItems = [];
       const storageItems = [];
       const apiItems = [];
+      const voiceItems = [];
       const otherItems = [];
       
       const resourceProducts = usages.filter(usage => 
@@ -1744,12 +1807,14 @@
         
         if (usage.grouping === 'resource' || usage.name.includes('BYOT') || usage.name.includes('BYOC')) {
           byocItems.push(resource);
-        } else if (usage.grouping === 'messaging' || usage.grouping === 'messaging-usage') {
+        } else if (usage.grouping === 'messaging' || usage.grouping === 'messaging-usage' || usage.name.includes('SMS') || usage.name.includes('MMS')) {
           messagingItems.push(resource);
-        } else if (usage.grouping === 'storage' || usage.grouping === 'storage-category') {
+        } else if (usage.grouping === 'storage' || usage.grouping === 'storage-category' || usage.name.includes('Storage') || usage.unit === 'GB') {
           storageItems.push(resource);
-        } else if (usage.grouping === 'api') {
+        } else if (usage.grouping === 'api' || usage.name.includes('API') || usage.unit === 'requests') {
           apiItems.push(resource);
+        } else if (usage.name.includes('Voice') || usage.name.includes('IVR') || usage.unit === 'minutes') {
+          voiceItems.push(resource);
         } else {
           otherItems.push(resource);
         }
@@ -1769,6 +1834,10 @@
       
       if (apiItems.length > 0) {
         resources.push({ category: "API Resources", items: apiItems });
+      }
+      
+      if (voiceItems.length > 0) {
+        resources.push({ category: "Voice Resources", items: voiceItems });
       }
       
       if (otherItems.length > 0) {
@@ -1803,85 +1872,302 @@
       
       if (!ctxMinutes || !ctxLicenses || !ctxVolumes) return;
       
-      // Prepare data for the last 6 months
+      // Get months in chronological order (oldest to newest)
       const months = [];
-      const minutesData = [];
-      const licensesData = [];
-      const volumesData = [];
-      
-      let totalMinutes = 0;
-      let totalLicenses = 0;
-      let totalVolumes = 0;
-      
-      for (let i = 0; i < CONFIG.MAX_MONTHS; i++) {
-        const monthData = appState.billingHistory[i]?.data;
+      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
         months.push(getMonthName(i).split(' ')[0]); // Just month name
+      }
+      
+      // Update minutes graph based on selector
+      updateMinutesGraph(ctxMinutes, months);
+      
+      // Update licenses graph based on selector
+      updateLicensesGraph(ctxLicenses, months);
+      
+      // Update volumes graph based on selector
+      updateVolumesGraph(ctxVolumes, months);
+    }
+
+    function updateMinutesGraph(ctx, months) {
+      const metric = appState.graphSelections.minutes;
+      let title = '';
+      let data = [];
+      let backgroundColors = [];
+      
+      // Get data in chronological order (oldest to newest)
+      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
+        const monthData = appState.billingHistory[i]?.data;
         
-        if (monthData) {
-          // Calculate minutes (speech + IVR)
-          let minutes = 0;
-          monthData.resources.forEach(category => {
-            category.items.forEach(resource => {
-              if (resource.name.includes('Voice Transcription') || resource.name.includes('IVR')) {
-                minutes += resource.included.used;
+        if (metric === 'speech') {
+          title = 'Speech Minutes';
+          let speechMinutes = 0;
+          if (monthData) {
+            monthData.resources.forEach(category => {
+              category.items.forEach(resource => {
+                if (resource.name.includes('Voice Transcription')) {
+                  speechMinutes += resource.included.used;
+                }
+              });
+            });
+          }
+          data.push(speechMinutes);
+          backgroundColors.push('rgba(99, 171, 143, 0.7)');
+        } else if (metric === 'ivr') {
+          title = 'IVR Minutes';
+          let ivrMinutes = 0;
+          if (monthData) {
+            monthData.resources.forEach(category => {
+              category.items.forEach(resource => {
+                if (resource.name.includes('IVR')) {
+                  ivrMinutes += resource.included.used;
+                }
+              });
+            });
+          }
+          data.push(ivrMinutes);
+          backgroundColors.push('rgba(78, 115, 223, 0.7)');
+        } else if (metric === 'total') {
+          title = 'Total Minutes';
+          let totalMinutes = 0;
+          if (monthData) {
+            monthData.resources.forEach(category => {
+              category.items.forEach(resource => {
+                if (resource.unit === 'minutes') {
+                  totalMinutes += resource.included.used;
+                }
+              });
+            });
+          }
+          data.push(totalMinutes);
+          backgroundColors.push('rgba(246, 194, 62, 0.7)');
+        } else if (metric === 'speechUtilization') {
+          title = 'Speech Utilization %';
+          let utilization = 0;
+          if (monthData) {
+            monthData.resources.forEach(category => {
+              category.items.forEach(resource => {
+                if (resource.name.includes('Voice Transcription')) {
+                  utilization = resource.included.qty > 0 
+                    ? Math.round((resource.included.used / resource.included.qty) * 100) 
+                    : 0;
+                }
+              });
+            });
+          }
+          data.push(utilization);
+          backgroundColors.push('rgba(220, 53, 69, 0.7)');
+        }
+      }
+      
+      el.minutesGraphTitle.textContent = title;
+      
+      appState.charts.minutes = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{
+            label: title,
+            data: data,
+            backgroundColor: backgroundColors,
+            borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function updateLicensesGraph(ctx, months) {
+      const metric = appState.graphSelections.licenses;
+      let title = '';
+      let datasets = [];
+      
+      if (metric === 'all') {
+        title = 'All License Types';
+        
+        // Get unique license types
+        const licenseTypes = {};
+        
+        // First pass to collect all license types
+        for (let i = 0; i < CONFIG.MAX_MONTHS; i++) {
+          const monthData = appState.billingHistory[i]?.data;
+          if (monthData) {
+            monthData.users.forEach(user => {
+              const type = getLicenseType(user.name);
+              if (!licenseTypes[type]) {
+                licenseTypes[type] = { name: user.name, color: getLicenseColor(type) };
               }
             });
-          });
-          minutesData.push(minutes);
-          totalMinutes += minutes;
+          }
+        }
+        
+        // Create datasets for each license type
+        Object.keys(licenseTypes).forEach(type => {
+          const typeData = [];
+          for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
+            const monthData = appState.billingHistory[i]?.data;
+            let count = 0;
+            if (monthData) {
+              monthData.users.forEach(user => {
+                if (getLicenseType(user.name) === type) {
+                  count += user.qty;
+                }
+              });
+            }
+            typeData.push(count);
+          }
           
-          // Calculate total licenses
-          let licenses = 0;
-          monthData.users.forEach(user => licenses += user.qty);
-          licensesData.push(licenses);
-          totalLicenses += licenses;
-          
-          // Calculate volumes (resource usage)
-          let volumes = 0;
-          monthData.resources.forEach(category => {
-            category.items.forEach(resource => volumes += resource.qty);
+          datasets.push({
+            label: licenseTypes[type].name,
+            data: typeData,
+            backgroundColor: licenseTypes[type].color,
+            borderColor: licenseTypes[type].color.replace('0.7', '1'),
+            borderWidth: 1
           });
-          volumesData.push(volumes);
-          totalVolumes += volumes;
-        } else {
-          minutesData.push(0);
-          licensesData.push(0);
-          volumesData.push(0);
+        });
+      } else {
+        // Single license type
+        title = metric === 'cx2' ? 'Genesys Cloud CX 2' :
+                metric === 'wem' ? 'WEM Add-On' :
+                metric === 'communicate' ? 'Communicate' :
+                metric === 'collaborate' ? 'Collaborate' : 'On-Demand Usage';
+        
+        const data = [];
+        for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
+          const monthData = appState.billingHistory[i]?.data;
+          let count = 0;
+          if (monthData) {
+            if (metric === 'ondemand') {
+              monthData.users.forEach(user => count += user.onDemand);
+            } else {
+              monthData.users.forEach(user => {
+                if (getLicenseType(user.name) === metric) {
+                  count += user.qty;
+                }
+              });
+            }
+          }
+          data.push(count);
         }
+        
+        datasets = [{
+          label: title,
+          data: data,
+          backgroundColor: getLicenseColor(metric),
+          borderColor: getLicenseColor(metric).replace('0.7', '1'),
+          borderWidth: 1
+        }];
       }
       
-      // Update trends
-      if (minutesData.length >= 2 && minutesData[0] > 0 && minutesData[1] > 0) {
-        const minutesChange = ((minutesData[0] - minutesData[1]) / minutesData[1]) * 100;
-        el.minutesTrend.innerHTML = minutesChange > 0 
-          ? `<span class="trend-up">▲ ${minutesChange.toFixed(1)}% vs last month</span>`
-          : `<span class="trend-down">▼ ${Math.abs(minutesChange).toFixed(1)}% vs last month</span>`;
+      el.licensesGraphTitle.textContent = title;
+      
+      appState.charts.licenses = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { 
+              display: datasets.length > 1,
+              position: 'bottom'
+            }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function getLicenseColor(type) {
+      const colors = {
+        'cx2': 'rgba(99, 171, 143, 0.7)',
+        'wem': 'rgba(78, 115, 223, 0.7)',
+        'communicate': 'rgba(246, 194, 62, 0.7)',
+        'collaborate': 'rgba(28, 200, 138, 0.7)',
+        'other': 'rgba(220, 53, 69, 0.7)',
+        'ondemand': 'rgba(108, 117, 125, 0.7)'
+      };
+      return colors[type] || 'rgba(99, 171, 143, 0.7)';
+    }
+
+    function updateVolumesGraph(ctx, months) {
+      const metric = appState.graphSelections.volumes;
+      let title = '';
+      let data = [];
+      let backgroundColors = [];
+      
+      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
+        const monthData = appState.billingHistory[i]?.data;
+        let value = 0;
+        
+        if (monthData) {
+          if (metric === 'byoc') {
+            title = 'BYOC/Carrier Resources';
+            monthData.resources.forEach(category => {
+              if (category.category.includes('BYOC')) {
+                category.items.forEach(resource => value += resource.qty);
+              }
+            });
+          } else if (metric === 'messaging') {
+            title = 'Messaging (SMS/MMS)';
+            monthData.resources.forEach(category => {
+              if (category.category.includes('Messaging')) {
+                category.items.forEach(resource => value += resource.qty);
+              }
+            });
+          } else if (metric === 'storage') {
+            title = 'Storage (GB)';
+            monthData.resources.forEach(category => {
+              if (category.category.includes('Storage')) {
+                category.items.forEach(resource => {
+                  if (resource.unit === 'GB') value += resource.qty;
+                });
+              }
+            });
+          } else if (metric === 'api') {
+            title = 'API Requests';
+            monthData.resources.forEach(category => {
+              if (category.category.includes('API')) {
+                category.items.forEach(resource => value += resource.qty);
+              }
+            });
+          } else if (metric === 'all') {
+            title = 'All Resources';
+            monthData.resources.forEach(category => {
+              category.items.forEach(resource => value += resource.qty);
+            });
+          }
+        }
+        
+        data.push(value);
+        backgroundColors.push(getResourceColor(metric));
       }
       
-      if (licensesData.length >= 2 && licensesData[0] > 0 && licensesData[1] > 0) {
-        const licensesChange = ((licensesData[0] - licensesData[1]) / licensesData[1]) * 100;
-        el.licensesTrend.innerHTML = licensesChange > 0 
-          ? `<span class="trend-up">▲ ${licensesChange.toFixed(1)}% vs last month</span>`
-          : `<span class="trend-down">▼ ${Math.abs(licensesChange).toFixed(1)}% vs last month</span>`;
-      }
+      el.volumesGraphTitle.textContent = title;
       
-      if (volumesData.length >= 2 && volumesData[0] > 0 && volumesData[1] > 0) {
-        const volumesChange = ((volumesData[0] - volumesData[1]) / volumesData[1]) * 100;
-        el.volumesTrend.innerHTML = volumesChange > 0 
-          ? `<span class="trend-up">▲ ${volumesChange.toFixed(1)}% vs last month</span>`
-          : `<span class="trend-down">▼ ${Math.abs(volumesChange).toFixed(1)}% vs last month</span>`;
-      }
-      
-      // Create minutes chart
-      appState.charts.minutes = new Chart(ctxMinutes, {
+      appState.charts.volumes = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: months,
           datasets: [{
-            label: 'Minutes Used',
-            data: minutesData,
-            backgroundColor: 'rgba(99, 171, 143, 0.7)',
-            borderColor: 'var(--primary-color)',
+            label: title,
+            data: data,
+            backgroundColor: backgroundColors,
+            borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
             borderWidth: 1
           }]
         },
@@ -1896,56 +2182,17 @@
           }
         }
       });
-      
-      // Create licenses chart
-      appState.charts.licenses = new Chart(ctxLicenses, {
-        type: 'bar',
-        data: {
-          labels: months,
-          datasets: [{
-            label: 'Total Licenses',
-            data: licensesData,
-            backgroundColor: 'rgba(78, 115, 223, 0.7)',
-            borderColor: 'var(--chart-blue)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            y: { beginAtZero: true }
-          }
-        }
-      });
-      
-      // Create volumes chart
-      appState.charts.volumes = new Chart(ctxVolumes, {
-        type: 'bar',
-        data: {
-          labels: months,
-          datasets: [{
-            label: 'Resource Volumes',
-            data: volumesData,
-            backgroundColor: 'rgba(246, 194, 62, 0.7)',
-            borderColor: 'var(--chart-yellow)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            y: { beginAtZero: true }
-          }
-        }
-      });
+    }
+
+    function getResourceColor(metric) {
+      const colors = {
+        'byoc': 'rgba(99, 171, 143, 0.7)',
+        'messaging': 'rgba(78, 115, 223, 0.7)',
+        'storage': 'rgba(246, 194, 62, 0.7)',
+        'api': 'rgba(28, 200, 138, 0.7)',
+        'all': 'rgba(220, 53, 69, 0.7)'
+      };
+      return colors[metric] || 'rgba(99, 171, 143, 0.7)';
     }
 
     // ==================== DISPLAY FUNCTIONS ====================
@@ -1994,16 +2241,18 @@
       let cx2Count = 0;
       let wemCount = 0;
       let communicateCount = 0;
-      let otherCount = 0;
+      let collaborateCount = 0;
+      let ondemandCount = 0;
       
       if (appState.usageData) {
         appState.usageData.users.forEach(user => {
           totalLicenses += user.qty;
+          ondemandCount += user.onDemand;
           
           if (user.name.includes('CX 2')) cx2Count += user.qty;
           else if (user.name.includes('WEM')) wemCount += user.qty;
           else if (user.name.includes('Communicate')) communicateCount += user.qty;
-          else otherCount += user.qty;
+          else if (user.name.includes('Collaborate')) collaborateCount += user.qty;
         });
       }
       
@@ -2011,7 +2260,8 @@
       el.cx2Count.textContent = formatNumber(cx2Count);
       el.wemCount.textContent = formatNumber(wemCount);
       el.communicateCount.textContent = formatNumber(communicateCount);
-      el.otherLicensesCount.textContent = formatNumber(otherCount);
+      el.collaborateCount.textContent = formatNumber(collaborateCount);
+      el.ondemandCount.textContent = formatNumber(ondemandCount);
       
       // Update comparison table
       updateComparisonTable();
@@ -2025,59 +2275,44 @@
       tbody.innerHTML = '';
       
       if (Object.keys(appState.billingHistory).length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;">No comparison data available</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;">No comparison data available</td></tr>';
         return;
       }
       
-      // Get current and previous month data
-      const current = appState.billingHistory[0]?.data;
-      const previous = appState.billingHistory[1]?.data;
-      const twoMonths = appState.billingHistory[2]?.data;
-      const threeMonths = appState.billingHistory[3]?.data;
-      
-      if (!current) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;">Current month data not available</td></tr>';
-        return;
+      // Get data for all months
+      const months = [];
+      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
+        months.push(appState.billingHistory[i]?.data);
       }
       
       // Calculate metrics
       const metrics = [
         { name: 'Total User Licenses', 
-          current: current.users.reduce((sum, u) => sum + u.qty, 0),
-          previous: previous?.users.reduce((sum, u) => sum + u.qty, 0) || 0,
-          twoMonths: twoMonths?.users.reduce((sum, u) => sum + u.qty, 0) || 0,
-          threeMonths: threeMonths?.users.reduce((sum, u) => sum + u.qty, 0) || 0
+          values: months.map(m => m?.users.reduce((sum, u) => sum + u.qty, 0) || 0)
         },
         { name: 'On-Demand Licenses', 
-          current: current.users.reduce((sum, u) => sum + u.onDemand, 0),
-          previous: previous?.users.reduce((sum, u) => sum + u.onDemand, 0) || 0,
-          twoMonths: twoMonths?.users.reduce((sum, u) => sum + u.onDemand, 0) || 0,
-          threeMonths: threeMonths?.users.reduce((sum, u) => sum + u.onDemand, 0) || 0
+          values: months.map(m => m?.users.reduce((sum, u) => sum + u.onDemand, 0) || 0)
         },
         { name: 'Speech Minutes', 
-          current: getResourceTotal(current, 'Voice Transcription'),
-          previous: getResourceTotal(previous, 'Voice Transcription'),
-          twoMonths: getResourceTotal(twoMonths, 'Voice Transcription'),
-          threeMonths: getResourceTotal(threeMonths, 'Voice Transcription')
+          values: months.map(m => getResourceTotal(m, 'Voice Transcription'))
         },
         { name: 'IVR Minutes', 
-          current: getResourceTotal(current, 'IVR'),
-          previous: getResourceTotal(previous, 'IVR'),
-          twoMonths: getResourceTotal(twoMonths, 'IVR'),
-          threeMonths: getResourceTotal(threeMonths, 'IVR')
+          values: months.map(m => getResourceTotal(m, 'IVR'))
         },
         { name: 'API Requests', 
-          current: getResourceTotal(current, 'API'),
-          previous: getResourceTotal(previous, 'API'),
-          twoMonths: getResourceTotal(twoMonths, 'API'),
-          threeMonths: getResourceTotal(threeMonths, 'API')
+          values: months.map(m => getResourceTotalByCategory(m, 'API'))
+        },
+        { name: 'SMS/MMS Messages', 
+          values: months.map(m => getResourceTotalByCategory(m, 'Messaging'))
         }
       ];
       
       metrics.forEach(metric => {
         const row = document.createElement('tr');
-        const change = metric.current - metric.previous;
-        const changePercent = metric.previous > 0 ? ((metric.current - metric.previous) / metric.previous) * 100 : 0;
+        const current = metric.values[metric.values.length - 1] || 0;
+        const previous = metric.values[metric.values.length - 2] || 0;
+        const change = current - previous;
+        const changePercent = previous > 0 ? ((current - previous) / previous) * 100 : 0;
         
         let trendClass = 'trend-neutral';
         let trendIcon = '●';
@@ -2089,15 +2324,17 @@
           trendIcon = '▼';
         }
         
-        row.innerHTML = `
-          <td class="text-left"><strong>${metric.name}</strong></td>
-          <td class="number-cell">${formatNumber(metric.current)}</td>
-          <td class="number-cell">${formatNumber(metric.previous)}</td>
-          <td class="number-cell ${trendClass}">${change > 0 ? '+' : ''}${formatNumber(change)} (${changePercent.toFixed(1)}%)</td>
-          <td class="${trendClass}">${trendIcon} ${Math.abs(changePercent).toFixed(1)}%</td>
-          <td class="number-cell">${formatNumber(metric.twoMonths)}</td>
-          <td class="number-cell">${formatNumber(metric.threeMonths)}</td>
-        `;
+        let html = `<td class="text-left"><strong>${metric.name}</strong></td>`;
+        
+        // Add all month values
+        metric.values.forEach(value => {
+          html += `<td class="number-cell">${formatNumber(value)}</td>`;
+        });
+        
+        // Add trend
+        html += `<td class="${trendClass}">${trendIcon} ${Math.abs(changePercent).toFixed(1)}%</td>`;
+        
+        row.innerHTML = html;
         tbody.appendChild(row);
       });
     }
@@ -2111,6 +2348,19 @@
             total += resource.included.used;
           }
         });
+      });
+      return total;
+    }
+
+    function getResourceTotalByCategory(data, categoryName) {
+      if (!data) return 0;
+      let total = 0;
+      data.resources.forEach(category => {
+        if (category.category.includes(categoryName)) {
+          category.items.forEach(resource => {
+            total += resource.qty;
+          });
+        }
       });
       return total;
     }
@@ -2442,8 +2692,8 @@
       csv += `Generated,${new Date().toLocaleString()}\n`;
       csv += `Organization,${appState.currentOrgId}\n\n`;
       
-      // Export each month
-      for (let i = 0; i < CONFIG.MAX_MONTHS; i++) {
+      // Export each month in chronological order
+      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
         const monthData = appState.billingHistory[i]?.data;
         if (!monthData) continue;
         
@@ -2544,6 +2794,22 @@
         if (appState.currentTab !== 'analytics') {
           fetchBillingData(selectedMonth);
         }
+      });
+      
+      // Graph selectors
+      el.minutesMetricSelector.addEventListener('change', function() {
+        appState.graphSelections.minutes = this.value;
+        updateCharts();
+      });
+      
+      el.licensesMetricSelector.addEventListener('change', function() {
+        appState.graphSelections.licenses = this.value;
+        updateCharts();
+      });
+      
+      el.volumesMetricSelector.addEventListener('change', function() {
+        appState.graphSelections.volumes = this.value;
+        updateCharts();
       });
       
       // Tab switching
