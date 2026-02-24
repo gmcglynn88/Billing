@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Genesys Cloud · Usage + Analytics</title>
+  <title>Genesys Cloud · Usage Dashboard + Trends</title>
   <style>
+    /* ----- ORIGINAL COLOURS & STYLES (exactly as provided) ----- */
     :root{
       --primary-color:#63AB8F; --secondary-color:#4A8C7D; --border-color:#DEE2E6;
       --light-bg:#F8F9FA; --card-bg:#FFFFFF; --text-color:#2C3E50; --text-light:#6C757D;
@@ -98,15 +99,16 @@
       max-height:600px;overflow-y:auto;
     }
 
-    table{width:100%;border-collapse:collapse; font-family:'Aptos','Segoe UI',Arial,sans-serif;}
+    table{width:100%;border-collapse:collapse;}
     th{
       background-color:var(--primary-color);color:white;font-weight:600;
       position:sticky;top:0;z-index:10;white-space:nowrap;padding:18px;text-align:center;
-      font-size:14px; font-family:'Aptos','Segoe UI',Arial,sans-serif;
+      font-size:14px;
     }
-    td{padding:16px 18px;border-bottom:1px solid var(--border-color);font-size:14px;text-align:center; font-family:'Aptos','Segoe UI',Arial,sans-serif;}
+    td{padding:16px 18px;border-bottom:1px solid var(--border-color);font-size:14px;text-align:center;}
     tr:hover{background-color:var(--pill)}
 
+    /* ----- TABS (original horizontal style) ----- */
     .tabs{
       display:flex;border-bottom:2px solid var(--border-color);
       margin-bottom:28px;background:white;border-radius:10px 10px 0 0;
@@ -118,7 +120,6 @@
       border-bottom:2px solid transparent;font-size:16px;
       font-weight:600;color:var(--text-light);cursor:pointer;
       transition:all 0.3s;flex:0 1 auto;text-align:center;
-      font-family:'Aptos','Segoe UI',Arial,sans-serif;
     }
 
     .tab:hover{color:var(--primary-color)}
@@ -160,7 +161,7 @@
       .container{margin:0 10px;width:calc(100% - 20px);}
     }
 
-    /* METRIC TILE STYLES */
+    /* ----- ORIGINAL METRIC TILE STYLES ----- */
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -220,72 +221,6 @@
       justify-content: center;
     }
     
-    .metric-card.warning .metric-icon {
-      background: rgba(255, 193, 7, 0.1);
-      color: var(--warning);
-    }
-    
-    .metric-card.danger .metric-icon {
-      background: rgba(220, 53, 69, 0.1);
-      color: var(--danger);
-    }
-    
-    .metric-card.success .metric-icon {
-      background: rgba(40, 167, 69, 0.1);
-      color: var(--success);
-    }
-    
-    .metric-card.info .metric-icon {
-      background: rgba(23, 162, 184, 0.1);
-      color: var(--info);
-    }
-    
-    .metric-value {
-      font-size: 32px;
-      font-weight: 700;
-      margin: 8px 0;
-      font-family:'Aptos','Segoe UI',Arial,sans-serif;
-    }
-    
-    .metric-label {
-      font-size: 14px;
-      color: var(--text-color);
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    
-    .metric-subtext {
-      font-size: 13px;
-      color: var(--text-light);
-      margin-top: 8px;
-      line-height: 1.4;
-    }
-    
-    .metric-change {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-left: 8px;
-    }
-    
-    .change-positive {
-      background: rgba(40, 167, 69, 0.15);
-      color: var(--success);
-    }
-    
-    .change-negative {
-      background: rgba(220, 53, 69, 0.15);
-      color: var(--danger);
-    }
-    
-    .change-neutral {
-      background: rgba(108, 117, 125, 0.15);
-      color: var(--text-light);
-    }
-    
-    /* Progress bar for transcription */
     .progress-container {
       margin-top: 16px;
     }
@@ -311,55 +246,63 @@
       transition: width 0.5s ease;
     }
     
-    .progress-fill.prepaid {
-      background: linear-gradient(90deg, var(--success), var(--chart-green));
-    }
-    
     .progress-fill.used {
       background: linear-gradient(90deg, var(--chart-blue), var(--primary-color));
     }
     
-    .progress-fill.remaining {
-      background: linear-gradient(90deg, var(--light-bg), var(--border-color));
-    }
-    
-    /* analytics specific */
-    .analytics-controls {
+    /* ----- analytics specific (bar chart) ----- */
+    .chart-controls {
       background: var(--pill);
       border-radius: 12px;
-      padding: 20px;
+      padding: 18px 22px;
       margin-bottom: 28px;
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
-      gap: 20px;
+      gap: 25px;
+      flex-wrap: wrap;
     }
-    .range-selector {
+    .chart-controls select {
+      width: 300px;
+      background: white;
+    }
+    .bar-chart {
+      margin-top: 30px;
       display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      height: 280px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+    .bar-container {
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      width: 70px;
     }
-    .range-selector select {
-      width: auto;
-      background: white;
+    .bar {
+      width: 45px;
+      background: var(--primary-color);
+      border-radius: 8px 8px 0 0;
+      transition: height 0.3s;
+      min-height: 4px;
     }
-    .badge-month {
-      background: white;
-      padding: 5px 14px;
-      border-radius: 30px;
-      border: 1px solid var(--primary-color);
-      color: var(--primary-color);
+    .bar-label {
+      margin-top: 12px;
       font-weight: 600;
+      font-size: 13px;
+      color: var(--text-color);
     }
-    .trend-table th {
-      background-color: var(--info);
+    .bar-value {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 6px;
     }
-    .trend-up { color: var(--danger); font-weight: 600; }
-    .trend-down { color: var(--success); font-weight: 600; }
-    .trend-flat { color: var(--text-light); }
-    .spark-line { font-size: 18px; letter-spacing: 2px; }
-    /* keep existing styles */
+    .no-data-message {
+      text-align: center;
+      padding: 60px;
+      color: var(--text-light);
+    }
     .category-header {
       background-color: var(--light-bg) !important;
       font-weight: 700;
@@ -369,20 +312,16 @@
       border-bottom: 2px solid var(--border-color);
     }
     .category-header td { padding: 20px 18px; text-align: left !important; }
-    .number-cell { font-family: 'Aptos', monospace; }
-    .utilization-high-text { color: var(--danger); font-weight: 600; }
-    .utilization-medium-text { color: var(--warning); font-weight: 600; }
-    .utilization-low-text { color: var(--success); font-weight: 600; }
     .text-left { text-align: left !important; }
   </style>
 </head>
 <body>
-  <!-- Auth overlay -->
+  <!-- Auth overlay (exactly as original) -->
   <div class="auth-overlay" id="authOverlay" style="display:none;">
-    <div class="auth-card">
-      <h2>🔐 Authentication Required</h2>
-      <p>Sign in to Genesys Cloud to access your usage dashboard.</p>
-      <button id="signinBtn" class="btn-block">Sign in</button>
+    <div class="auth-card" style="max-width:400px; width:90%; padding:40px; background:var(--card-bg); border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.1); text-align:center;">
+      <h2 style="color:var(--primary-color);">🔐 Authentication Required</h2>
+      <p>Please sign in to Genesys Cloud to access your usage dashboard.</p>
+      <button id="signinBtn" class="btn-block">Sign in to Genesys Cloud</button>
     </div>
   </div>
 
@@ -390,58 +329,70 @@
 
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
-    <div id="loadingText" style="font-size:20px;font-weight:600;margin-bottom:12px;">Loading...</div>
-    <div id="loadingSubtext" style="font-size:15px;color:var(--text-light);"></div>
+    <div id="loadingText" style="font-size:20px;font-weight:600;margin-bottom:12px;">Loading Usage Data...</div>
+    <div id="loadingSubtext" style="font-size:15px;color:var(--text-light);">Fetching Genesys Cloud usage information</div>
   </div>
 
   <!-- Main Content -->
   <div class="container" id="mainContent" style="display:none;">
     <header>
-      <h1>📊 Genesys Cloud · Usage & Analytics</h1>
+      <h1>📊 Genesys Cloud - Usage Dashboard</h1>
       <div class="subtitle" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <span id="orgNameDisplay">Loading...</span>
         <span id="lastUpdated" style="font-size:14px;background:var(--pill);padding:6px 12px;border-radius:20px;">Loading...</span>
       </div>
       
-      <!-- Organization Selector (unchanged) -->
+      <!-- Organization Selector (exactly as original) -->
       <div style="margin-top:20px;padding-top:20px;border-top:2px solid var(--light-bg);">
         <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
           <div style="flex:1;min-width:300px;">
-            <label for="orgIdInput">Trusted Organization ID</label>
-            <input type="text" id="orgIdInput" placeholder="e.g., 9b6492f9-d751-4406-bc7a-8ed307afef0a" style="font-family:monospace;" />
+            <label for="orgIdInput" style="font-size:14px;margin-bottom:8px;display:block;color:var(--text-color);">Trusted Organization ID</label>
+            <input type="text" id="orgIdInput" placeholder="e.g., 9b6492f9-d751-4406-bc7a-8ed307afef0a" style="width:100%;padding:10px;border:2px solid var(--border-color);border-radius:8px;font-family:monospace;font-size:14px;" />
           </div>
-          <button id="btnLoadOrg" style="width:auto;padding:10px 24px;">🔄 Load</button>
-          <button id="btnSaveOrg" style="width:auto;padding:10px 24px;background:var(--success);">💾 Save</button>
+          <button id="btnLoadOrg" style="width:auto;padding:10px 24px;white-space:nowrap;">🔄 Load Organization</button>
+          <button id="btnSaveOrg" style="width:auto;padding:10px 24px;background:var(--success);white-space:nowrap;">💾 Save as Default</button>
         </div>
         <div id="savedOrgsContainer" style="margin-top:12px;display:none;">
-          <label style="font-size:13px;">Saved Organizations:</label>
+          <label style="font-size:13px;color:var(--text-light);margin-bottom:6px;display:block;">Saved Organizations:</label>
           <div id="savedOrgsList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
       </div>
     </header>
 
-    <!-- TABS: original three + new ANALYTICS tab -->
+    <!-- TABS: original three + new ANALYTICS (horizontal) -->
     <div class="tabs">
       <button class="tab active" data-tab="users">👥 User Licenses</button>
       <button class="tab" data-tab="resources">📦 Resources</button>
-      <button class="tab" data-tab="highlights">⚠️ Highlights</button>
+      <button class="tab" data-tab="highlights">⚠️ Usage Highlights</button>
       <button class="tab" data-tab="analytics">📈 Analytics & Trends</button>
     </div>
 
-    <!-- Users Tab (exactly as originally) -->
+    <!-- USERS TAB (exactly as originally provided) -->
     <div id="tab-users" class="tab-content active">
       <div class="card">
         <h2>👥 User Licenses</h2>
         <div class="table-container">
           <table id="usersTable">
-            <thead><tr><th class="text-left">Service Name</th><th>Total Qty</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead>
-            <tbody id="usersTableBody"></tbody>
+            <thead>
+              <tr>
+                <th class="text-left">Service Name</th>
+                <th>Total Qty</th>
+                <th>Committed</th>
+                <th>Used</th>
+                <th>On-Demand</th>
+                <th>Utilization</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">Loading user data...</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- Resources Tab (original) -->
+    <!-- RESOURCES TAB (original) -->
     <div id="tab-resources" class="tab-content">
       <div class="card">
         <h2>📦 Resources (excludes Cloud Voice charges)</h2>
@@ -454,107 +405,53 @@
       </div>
     </div>
 
-    <!-- Highlights Tab (original) -->
+    <!-- HIGHLIGHTS TAB (original) -->
     <div id="tab-highlights" class="tab-content">
       <div class="card">
         <h2>⚠️ Usage Highlights & Alerts</h2>
-        <!-- user highlights -->
         <div style="margin-bottom:32px;"><h3 style="color:var(--primary-color);">👥 User License Utilization</h3>
           <div class="table-container"><table><thead><tr><th class="text-left">License Type</th><th>Total</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="highlightsUsersTable"></tbody></table></div>
         </div>
-        <!-- speech analytics -->
         <div style="margin-bottom:32px;"><h3 style="color:var(--primary-color);">🎤 Speech Analytics - Transcription Usage</h3>
           <div id="speechAnalyticsCard" class="metric-card" style="margin-bottom:0;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><div><div style="font-size:18px;font-weight:600;">Genesys Cloud for Voice Transcription Fair Use (Legacy)</div><div style="font-size:14px;color:var(--text-light);">Prepaid vs Used Analysis</div></div><div style="font-size:24px;">🎤</div></div>
-            <div class="progress-container" style="margin-bottom:20px;"><div class="progress-label"><span>Used: <span id="highlightSpeechUsed">0</span> min</span><span>Prepaid: <span id="highlightSpeechPrepaid">0</span> min</span><span>Remaining: <span id="highlightSpeechRemaining">0</span> min</span></div><div class="progress-bar"><div class="progress-fill used" id="highlightSpeechUsedBar" style="width:0%"></div><div class="progress-fill remaining" id="highlightSpeechRemainingBar" style="width:100%"></div></div></div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;"><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--chart-blue);" id="highlightSpeechUsedPct">0%</div><div style="font-size:12px;">Used</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--success);" id="highlightSpeechAvailablePct">0%</div><div style="font-size:12px;">Available</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--text-light);" id="highlightSpeechDaysLeft">0</div><div style="font-size:12px;">Days left</div></div></div>
+            <div class="progress-container" style="margin-bottom:20px;"><div class="progress-label"><span>Used: <span id="highlightSpeechUsed">0</span> min</span><span>Prepaid: <span id="highlightSpeechPrepaid">0</span> min</span><span>Remaining: <span id="highlightSpeechRemaining">0</span> min</span></div><div class="progress-bar"><div class="progress-fill used" id="highlightSpeechUsedBar" style="width:0%"></div><div class="progress-fill remaining" id="highlightSpeechRemainingBar" style="width:100%; background:var(--light-bg);"></div></div></div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;"><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--chart-blue);" id="highlightSpeechUsedPct">0%</div><div style="font-size:12px;">Used</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--success);" id="highlightSpeechAvailablePct">0%</div><div style="font-size:12px;">Available</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--text-light);" id="highlightSpeechDaysLeft">0</div><div style="font-size:12px;">Days in Month</div></div></div>
           </div>
         </div>
-        <!-- resource highlights -->
         <div><h3 style="color:var(--primary-color);">📊 Resource Usage Highlights</h3>
           <div class="table-container"><table><thead><tr><th class="text-left">Resource</th><th>Total</th><th>Used</th><th>Available</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="highlightsResourcesTable"></tbody></table></div>
         </div>
       </div>
     </div>
 
-    <!-- NEW ANALYTICS TAB : trends & comparisons -->
+    <!-- NEW ANALYTICS TAB with bar chart -->
     <div id="tab-analytics" class="tab-content">
       <div class="card">
-        <h2>📈 Month-over-month trends · Licensing, Transcription, Tokens</h2>
-        
-        <!-- controls: load all months + month range picker -->
-        <div class="analytics-controls">
-          <button id="btnLoadAllMonths" class="btn" style="background:var(--chart-purple); width:auto;">📅 Load months 0‑6</button>
-          <div class="range-selector">
-            <label>From:</label>
-            <select id="analyticsMonthFrom">
-              <option value="0">Current (0)</option><option value="1">1 month ago</option><option value="2">2 months ago</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            </select>
-            <label>To:</label>
-            <select id="analyticsMonthTo">
-              <option value="0">Current (0)</option><option value="1" selected>1 month ago</option><option value="2">2 months ago</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            </select>
-            <button id="btnApplyTrendRange" class="btn" style="width:auto; background:var(--primary-color);">Apply</button>
-          </div>
-          <span class="badge-month" id="analyticsRangeBadge">current vs last month</span>
+        <h2>📈 6‑Month Trends</h2>
+        <div class="chart-controls">
+          <label for="trendMetricSelect" style="font-weight:600;">Select metric:</label>
+          <select id="trendMetricSelect">
+            <option value="totalLicenses">Total User Licenses</option>
+            <option value="onDemandSeats">On‑Demand Seats</option>
+            <option value="speechMinutes">Transcription Minutes Used</option>
+            <option value="ivrMinutes">IVR Minutes Used</option>
+            <option value="apiRequests">API Requests (estimate)</option>
+          </select>
+          <span style="color:var(--text-light);">Last 6 months</span>
         </div>
-
-        <!-- KPI trend tiles (licensing changes) -->
-        <h3 style="color:var(--primary-color); margin-bottom:16px;">👥 User licensing changes</h3>
-        <div class="metric-grid" style="grid-template-columns:repeat(3,1fr);">
-          <div class="metric-card info">
-            <div class="metric-header"><div><div class="metric-label">Total licenses</div><div class="metric-value" id="trendTotalUsers">0</div></div><div class="metric-icon">👥</div></div>
-            <div id="trendTotalUsersChange" class="metric-subtext" style="font-weight:600;">vs previous month</div>
-          </div>
-          <div class="metric-card warning">
-            <div class="metric-header"><div><div class="metric-label">On‑demand seats</div><div class="metric-value" id="trendOndemand">0</div></div><div class="metric-icon">⚠️</div></div>
-            <div id="trendOndemandChange" class="metric-subtext"></div>
-          </div>
-          <div class="metric-card success">
-            <div class="metric-header"><div><div class="metric-label">Utilization %</div><div class="metric-value" id="trendUtilPct">0%</div></div><div class="metric-icon">📊</div></div>
-            <div id="trendUtilChange" class="metric-subtext"></div>
-          </div>
+        <div id="barChartContainer" class="bar-chart">
+          <!-- bars will be injected here -->
         </div>
-
-        <!-- Transcription trend -->
-        <h3 style="color:var(--primary-color); margin:28px 0 16px;">🎤 Transcription minutes</h3>
-        <div style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:32px;">
-          <div class="metric-card" style="flex:1;">
-            <div class="metric-label">Used (selected range)</div>
-            <div style="font-size:32px; font-weight:700;" id="trendSpeechUsed">0</div>
-            <div id="trendSpeechChange" style="margin-top:8px;"></div>
-          </div>
-          <div class="metric-card" style="flex:1;">
-            <div class="metric-label">Prepaid included</div>
-            <div style="font-size:32px; font-weight:700;" id="trendSpeechPrepaid">0</div>
-            <div id="trendSpeechPrepaidChange"></div>
-          </div>
-          <div class="metric-card" style="flex:1;">
-            <div class="metric-label">Utilization %</div>
-            <div style="font-size:32px; font-weight:700;" id="trendSpeechUtil">0%</div>
-            <div id="trendSpeechUtilChange"></div>
-          </div>
-        </div>
-
-        <!-- Token usage trend table (API / STT / TTS) -->
-        <h3 style="color:var(--primary-color); margin:20px 0 16px;">🔑 Token / API usage (STT, TTS, NLU, etc.)</h3>
-        <div class="table-container">
-          <table class="trend-table">
-            <thead><tr><th>Resource</th><th>Unit</th><th>From month</th><th>To month</th><th>Change</th><th>Trend</th></tr></thead>
-            <tbody id="trendTokenTableBody">
-              <tr><td colspan="6" style="padding:36px;">Load months and select range</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="note" style="margin-top:12px;">* Only resources with API, speech, transcription, STT, TTS in name are shown.</p>
+        <div id="noDataMessage" class="no-data-message" style="display:none;">Load months to see chart</div>
       </div>
     </div>
 
-    <!-- Actions Card -->
-    <div class="card">
+    <!-- Actions Card (original) -->
+    <div class="card" style="margin-top:24px;">
       <h2>⚡ Actions</h2>
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px;">
-        <button id="btnRefresh" class="btn-block"><span>🔄 Refresh current month</span></button>
+        <button id="btnRefresh" class="btn-block"><span>🔄 Refresh Data</span></button>
         <button id="btnExportCSV" class="btn-block" style="background:var(--success);"><span>📄 Export CSV</span></button>
         <button id="btnDisconnect" class="btn-block" style="background:var(--danger);"><span>🚪 Disconnect</span></button>
       </div>
@@ -563,7 +460,7 @@
 
   <script>
     (function() {
-      // ---------- CONFIG ----------
+      // ---------- CONFIG (same as original) ----------
       const CONFIG = {
         CLIENT_ID: '4ab97fe2-54c0-4deb-8b9a-a4b5720d6c67',
         REDIRECT_URI: 'https://gmcglynn88.github.io/Billing/',
@@ -572,127 +469,123 @@
         ENVIRONMENTS: { 'eu-west-2': { name: 'EU West (London)', api: 'https://api.euw2.pure.cloud', login: 'https://login.euw2.pure.cloud' } }
       };
 
-      // ---------- STATE ----------
+      // ---------- STATE (billingHistory stores months 0..6) ----------
       let appState = {
         currentTab: 'users',
-        currentPeriod: 0,               // shown month index
-        usageData: null,                 // for currentPeriod
+        currentPeriod: 0,
+        usageData: null,
         rawApiData: null,
-        billingHistory: {},               // key: periodIndex -> {data, raw, timestamp}
+        billingHistory: {},   // key = periodIndex (0..6) -> {data, raw, timestamp}
         accessToken: null,
         currentOrgId: CONFIG.TRUSTED_ORG_ID,
         savedOrgs: []
       };
 
-      // DOM elements shortcuts
+      // DOM elements (will be populated)
       const el = {};
-      function cacheElements() {
-        const ids = ['authOverlay','signinBtn','mainContent','loadingOverlay','statusContainer',
-          'lastUpdated','orgNameDisplay','orgIdInput','btnLoadOrg','btnSaveOrg','savedOrgsContainer','savedOrgsList',
-          'btnRefresh','btnDisconnect','btnExportCSV','btnLoadAllMonths',
-          'totalUsersValue','usersUtilization','overageRiskValue','overageDetail','metricUserOverage',
-          'speechUsageValue','speechUsed','speechPrepaid','speechProgressUsed','speechDetail',
-          'ivrUsageValue','ivrDetail','usersTableBody','resourcesTableBody','highlightsUsersTable',
-          'highlightsResourcesTable','highlightSpeechUsed','highlightSpeechPrepaid','highlightSpeechRemaining',
-          'highlightSpeechUsedBar','highlightSpeechRemainingBar','highlightSpeechUsedPct','highlightSpeechAvailablePct',
-          'highlightSpeechDaysLeft','analyticsMonthFrom','analyticsMonthTo','analyticsRangeBadge','btnApplyTrendRange',
-          'trendTotalUsers','trendTotalUsersChange','trendOndemand','trendOndemandChange','trendUtilPct','trendUtilChange',
-          'trendSpeechUsed','trendSpeechChange','trendSpeechPrepaid','trendSpeechPrepaidChange','trendSpeechUtil','trendSpeechUtilChange',
-          'trendTokenTableBody','loadingText','loadingSubtext'];
-        ids.forEach(id => el[id] = document.getElementById(id));
-        // extra
-        el.monthFrom = document.getElementById('analyticsMonthFrom');
-        el.monthTo = document.getElementById('analyticsMonthTo');
-        el.applyRange = document.getElementById('btnApplyTrendRange');
-        el.loadAllBtn = document.getElementById('btnLoadAllMonths');
+
+      // ---------- helper functions (original style) ----------
+      function formatNumber(num) { return (num ?? 0).toLocaleString(); }
+      
+      function showStatusMessage(message, type = 'info') {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'status-message';
+        const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '💡';
+        const color = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warn' ? '#ffc107' : '#17a2b8';
+        msgDiv.style.borderLeftColor = color;
+        msgDiv.innerHTML = `<span style="font-size:20px;">${icon}</span><div><div style="font-weight:600;">${message}</div><div style="font-size:12px;color:var(--text-light);">${new Date().toLocaleTimeString()}</div></div>`;
+        el.statusContainer.appendChild(msgDiv);
+        setTimeout(() => { if (msgDiv.parentNode) msgDiv.remove(); }, 5000);
       }
 
-      // ---------- helpers ----------
-      function formatNumber(num) { return (num ?? 0).toLocaleString(); }
-      function showStatusMessage(msg, type='info') {
-        const d = document.createElement('div'); d.className='status-message';
-        const icon = {success:'✅',error:'❌',warn:'⚠️',info:'💡'}[type]||'💡';
-        const color = {success:'#28a745',error:'#dc3545',warn:'#ffc107',info:'#17a2b8'}[type]||'#17a2b8';
-        d.style.borderLeftColor = color;
-        d.innerHTML = `<span style="font-size:20px;">${icon}</span><div><div style="font-weight:600;">${msg}</div><div style="font-size:12px;">${new Date().toLocaleTimeString()}</div></div>`;
-        el.statusContainer.appendChild(d);
-        setTimeout(() => { if(d.parentNode) d.remove(); }, 5000);
-      }
-      function setLoading(show, text='', subtext='') {
-        if(show) {
+      function setLoading(show, text = '', subtext = '') {
+        if (show) {
           el.loadingText.textContent = text;
           el.loadingSubtext.textContent = subtext;
           el.loadingOverlay.classList.add('active');
-        } else el.loadingOverlay.classList.remove('active');
-      }
-      function getMonthName(offset) {
-        const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - offset);
-        return d.toLocaleString('default',{month:'long',year:'numeric'});
+        } else {
+          el.loadingOverlay.classList.remove('active');
+        }
       }
 
-      // ---------- API ----------
-      async function apiCall(path, options={}) {
+      function getMonthName(offset) {
+        const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - offset);
+        return d.toLocaleString('default',{month:'short', year:'numeric'});
+      }
+
+      // ---------- API call (same as original) ----------
+      async function apiCall(path, options = {}) {
         if(!appState.accessToken) { disconnect(); throw new Error('Not authenticated'); }
         const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
         const url = `${env.api}${path}`;
-        const res = await fetch(url, { ...options, headers: { 'Authorization': `Bearer ${appState.accessToken}`, 'Content-Type':'application/json', ...options.headers } });
-        if(res.status===401||res.status===403) throw new Error(`Access denied ${res.status}`);
-        if(!res.ok) throw new Error(`API ${res.status}`);
-        return res.json();
+        const response = await fetch(url, { ...options, headers: { 'Authorization': `Bearer ${appState.accessToken}`, 'Content-Type': 'application/json', ...options.headers } });
+        if(response.status === 401 || response.status === 403) throw new Error('Access denied');
+        if(!response.ok) throw new Error(`API ${response.status}`);
+        return response.json();
       }
 
-      // ---------- fetch one period ----------
-      async function fetchBillingData(periodIndex, force=false) {
-        if(appState.billingHistory[periodIndex] && !force) {
-          appState.usageData = appState.billingHistory[periodIndex].data;
-          appState.rawApiData = appState.billingHistory[periodIndex].rawData;
-          appState.lastFetchTime = appState.billingHistory[periodIndex].timestamp;
-          appState.currentPeriod = periodIndex;
-          updateDisplay();
-          return;
+      // ---------- fetch one month and store ----------
+      async function fetchBillingData(periodIndex, force = false) {
+        if (appState.billingHistory[periodIndex] && !force) {
+          if (periodIndex === appState.currentPeriod) {
+            appState.usageData = appState.billingHistory[periodIndex].data;
+            updateDisplay();
+          }
+          return appState.billingHistory[periodIndex].data;
         }
-        setLoading(true, `Loading ${getMonthName(periodIndex)}`, 'Fetching...');
+        setLoading(true, `Loading ${getMonthName(periodIndex)}`, 'Fetching from Genesys Cloud...');
         try {
           const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${periodIndex}`;
           const raw = await apiCall(endpoint);
           const parsed = parseApiData(raw, periodIndex);
           appState.billingHistory[periodIndex] = { data: parsed, rawData: raw, timestamp: new Date(), periodName: getMonthName(periodIndex) };
-          appState.usageData = parsed;
-          appState.rawApiData = raw;
-          appState.lastFetchTime = new Date();
-          appState.currentPeriod = periodIndex;
-          updateDisplay();
+          if (periodIndex === appState.currentPeriod) {
+            appState.usageData = parsed;
+            appState.rawApiData = raw;
+            appState.lastFetchTime = new Date();
+            updateDisplay();
+          }
           showStatusMessage(`✅ ${getMonthName(periodIndex)} loaded`, 'success');
-        } catch(e) {
+          return parsed;
+        } catch (e) {
           showStatusMessage(`Error: ${e.message}`, 'error');
-        } finally { setLoading(false); }
+        } finally {
+          setLoading(false);
+        }
       }
 
-      // ---------- load all months 0..6 ----------
-      async function loadAllMonths() {
-        setLoading(true, 'Loading months 0‑6', 'this may take a moment...');
+      // ---------- load months 0..6 automatically after auth ----------
+      async function loadAllSixMonths() {
+        setLoading(true, 'Loading last 6 months', 'This may take a few seconds...');
         try {
-          for(let idx=0; idx<=6; idx++) {
-            if(!appState.billingHistory[idx]) {
+          for (let idx = 0; idx <= 6; idx++) {
+            if (!appState.billingHistory[idx]) {
               const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${idx}`;
               const raw = await apiCall(endpoint);
               const parsed = parseApiData(raw, idx);
               appState.billingHistory[idx] = { data: parsed, rawData: raw, timestamp: new Date(), periodName: getMonthName(idx) };
             }
           }
-          if(appState.billingHistory[0]) {
+          // set current to 0
+          if (appState.billingHistory[0]) {
             appState.usageData = appState.billingHistory[0].data;
+            appState.rawApiData = appState.billingHistory[0].rawData;
             appState.currentPeriod = 0;
+            appState.lastFetchTime = new Date();
+            updateDisplay();
           }
-          updateDisplay();
           showStatusMessage('All months 0‑6 loaded', 'success');
-        } catch(e) { showStatusMessage(`Multi error: ${e.message}`, 'error'); }
-        finally { setLoading(false); }
+          renderBarChart(); // initial chart
+        } catch (e) {
+          showStatusMessage('Multi‑month load error: ' + e.message, 'error');
+        } finally {
+          setLoading(false);
+        }
       }
 
-      // ---------- parse (same as original, keeps structure) ----------
+      // ---------- parseApiData (exactly as original) ----------
       function parseApiData(apiData, periodIdx) {
-        if(!apiData||!Array.isArray(apiData.usages)) throw new Error('Invalid structure');
+        if (!apiData || !Array.isArray(apiData.usages)) throw new Error('Invalid API response');
         const users = parseUserLicenses(apiData.usages);
         const resources = parseResources(apiData.usages);
         return {
@@ -702,208 +595,220 @@
           billingPeriodEndDate: apiData.billingPeriodEndDate
         };
       }
+
       function parseUserLicenses(usages) {
-        return usages.filter(u => u.name && (u.grouping==='user'||u.name.includes('Genesys Cloud CX')||u.name.includes('WEM')||u.name.includes('Communicate User'))).map(u => {
-          const qty = parseFloat(u.usageQuantity)||0, prepay = parseFloat(u.prepayQuantity)||0, overage = Math.max(0,qty-prepay);
+        return usages.filter(u => u.name && (u.grouping === 'user' || u.name.includes('Genesys Cloud CX') || u.name.includes('WEM') || u.name.includes('Communicate User'))).map(u => {
+          const qty = parseFloat(u.usageQuantity) || 0, prepay = parseFloat(u.prepayQuantity) || 0, overage = Math.max(0, qty - prepay);
           return { name: u.name, qty, committed: prepay, used: qty, onDemand: overage, partNumber: u.partNumber };
         });
       }
+
       function parseResources(usages) {
-        const cats = []; let byoc=[], msg=[], storage=[], api=[], other=[];
-        usages.filter(u => u.name && u.grouping!=='user' && !u.name.includes('Genesys Cloud CX 2')).forEach(u => {
-          const qty = parseFloat(u.usageQuantity)||0, prepay = parseFloat(u.prepayQuantity)||0;
+        const cats = [], byoc = [], msg = [], storage = [], api = [], other = [];
+        usages.filter(u => u.name && u.grouping !== 'user' && !u.name.includes('Genesys Cloud CX 2')).forEach(u => {
+          const qty = parseFloat(u.usageQuantity) || 0, prepay = parseFloat(u.prepayQuantity) || 0;
           let unit = 'units';
-          if(u.unitOfMeasureType==='minute') unit='minutes';
-          else if(u.unitOfMeasureType==='message') unit='messages';
-          else if(u.unitOfMeasureType==='request') unit='requests';
-          else if(u.unitOfMeasureType==='gb') unit='GB';
-          else unit = u.unitOfMeasureType||'units';
-          const resource = { name: u.name, qty, unit, included: { qty: prepay, used: Math.min(qty,prepay) }, onDemand: Math.max(0,qty-prepay), grouping: u.grouping };
-          if(u.grouping==='resource'||u.name.includes('BYOC')) byoc.push(resource);
-          else if(u.grouping==='messaging'||u.grouping==='messaging-usage') msg.push(resource);
-          else if(u.grouping==='storage'||u.grouping==='storage-category') storage.push(resource);
-          else if(u.grouping==='api') api.push(resource);
+          if (u.unitOfMeasureType === 'minute') unit = 'minutes';
+          else if (u.unitOfMeasureType === 'message') unit = 'messages';
+          else if (u.unitOfMeasureType === 'request') unit = 'requests';
+          else if (u.unitOfMeasureType === 'gb') unit = 'GB';
+          else unit = u.unitOfMeasureType || 'units';
+          const resource = { name: u.name, qty, unit, included: { qty: prepay, used: Math.min(qty, prepay) }, onDemand: Math.max(0, qty - prepay), grouping: u.grouping };
+          if (u.grouping === 'resource' || u.name.includes('BYOC')) byoc.push(resource);
+          else if (u.grouping === 'messaging' || u.grouping === 'messaging-usage') msg.push(resource);
+          else if (u.grouping === 'storage' || u.grouping === 'storage-category') storage.push(resource);
+          else if (u.grouping === 'api') api.push(resource);
           else other.push(resource);
         });
-        if(byoc.length) cats.push({category:'BYOC / Carrier', items:byoc});
-        if(msg.length) cats.push({category:'Messaging', items:msg});
-        if(storage.length) cats.push({category:'Data Storage', items:storage});
-        if(api.length) cats.push({category:'API Resources', items:api});
-        if(other.length) cats.push({category:'Other', items:other});
+        if (byoc.length) cats.push({ category: 'BYOC / Carrier', items: byoc });
+        if (msg.length) cats.push({ category: 'Messaging', items: msg });
+        if (storage.length) cats.push({ category: 'Data Storage', items: storage });
+        if (api.length) cats.push({ category: 'API Resources', items: api });
+        if (other.length) cats.push({ category: 'Other', items: other });
         return cats;
       }
 
-      // ---------- display update (original tabs) ----------
+      // ---------- updateDisplay (original tables) ----------
       function updateDisplay() {
-        if(!appState.usageData) return;
+        if (!appState.usageData) return;
         const data = appState.usageData;
-        if(data.organization?.name) el.orgNameDisplay.textContent = data.organization.name;
-        el.lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+        if (data.organization?.name) el.orgNameDisplay.textContent = data.organization.name;
+        el.lastUpdated.textContent = `Last updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         updateUsersTable(data.users);
         updateResourcesTable(data.resources);
         updateHighlights(data);
       }
+
       function updateUsersTable(users) {
         const tbody = el.usersTableBody; tbody.innerHTML = '';
-        if(!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No user data</td></tr>'; return; }
+        if (!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;">No user data</td></tr>'; return; }
         users.forEach(u => {
-          const util = u.committed>0 ? Math.round((u.used/u.committed)*100) : 0;
-          const row = document.createElement('tr');
-          row.innerHTML = `<td class="text-left"><strong>${u.name}</strong></td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util>75?'🔴':'🟢'}</td>`;
-          tbody.appendChild(row);
+          const util = u.committed > 0 ? Math.round((u.used / u.committed) * 100) : 0;
+          tbody.innerHTML += `<tr><td class="text-left"><strong>${u.name}</strong></td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util > 75 ? '🔴' : '🟢'}</td></tr>`;
         });
       }
+
       function updateResourcesTable(resources) {
         const tbody = el.resourcesTableBody; tbody.innerHTML = '';
-        if(!resources.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No resources</td></tr>'; return; }
+        if (!resources.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No resources</td></tr>'; return; }
         resources.forEach(cat => {
-          const head = document.createElement('tr'); head.className='category-header';
+          const head = document.createElement('tr'); head.className = 'category-header';
           head.innerHTML = `<td colspan="7" class="text-left">${cat.category}</td>`;
           tbody.appendChild(head);
           cat.items.forEach(r => {
-            const util = r.included.qty>0 ? Math.round((r.included.used/r.included.qty)*100) : 0;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="text-left">${r.name}</td><td>${formatNumber(r.qty)}</td><td>${r.unit}</td><td>${formatNumber(r.included.qty)}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td>`;
-            tbody.appendChild(tr);
+            const util = r.included.qty > 0 ? Math.round((r.included.used / r.included.qty) * 100) : 0;
+            tbody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${formatNumber(r.qty)}</td><td>${r.unit}</td><td>${formatNumber(r.included.qty)}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td></tr>`;
           });
         });
       }
+
       function updateHighlights(data) {
         const userTbody = el.highlightsUsersTable; userTbody.innerHTML = '';
         data.users.forEach(u => {
-          const util = u.committed>0 ? Math.round((u.used/u.committed)*100) : 0;
-          userTbody.innerHTML += `<tr><td class="text-left">${u.name}</td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util>75?'⚠️':'✅'}</td></tr>`;
+          const util = u.committed > 0 ? Math.round((u.used / u.committed) * 100) : 0;
+          userTbody.innerHTML += `<tr><td class="text-left">${u.name}</td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util > 75 ? '⚠️' : '✅'}</td></tr>`;
         });
-        // speech
-        let speechPrepaid=0, speechUsed=0;
-        data.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('Voice Transcription')) { speechPrepaid=r.included.qty; speechUsed=r.included.used; } }));
-        const rem = speechPrepaid - speechUsed, pct = speechPrepaid>0 ? Math.round((speechUsed/speechPrepaid)*100) : 0;
+        let speechPrepaid = 0, speechUsed = 0;
+        data.resources.forEach(c => c.items.forEach(r => { if (r.name.includes('Voice Transcription')) { speechPrepaid = r.included.qty; speechUsed = r.included.used; } }));
+        const rem = speechPrepaid - speechUsed, pct = speechPrepaid > 0 ? Math.round((speechUsed / speechPrepaid) * 100) : 0;
         el.highlightSpeechUsed.textContent = formatNumber(speechUsed);
         el.highlightSpeechPrepaid.textContent = formatNumber(speechPrepaid);
         el.highlightSpeechRemaining.textContent = formatNumber(rem);
-        el.highlightSpeechUsedBar.style.width = pct+'%';
-        el.highlightSpeechRemainingBar.style.width = (100-pct)+'%';
-        el.highlightSpeechUsedPct.textContent = pct+'%';
-        el.highlightSpeechAvailablePct.textContent = (100-pct)+'%';
-        const today = new Date(); const dim = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+        el.highlightSpeechUsedBar.style.width = pct + '%';
+        el.highlightSpeechRemainingBar.style.width = (100 - pct) + '%';
+        el.highlightSpeechUsedPct.textContent = pct + '%';
+        el.highlightSpeechAvailablePct.textContent = (100 - pct) + '%';
+        const today = new Date(); const dim = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
         el.highlightSpeechDaysLeft.textContent = dim - today.getDate();
-        // resource highlights (simplified)
+
         const resTbody = el.highlightsResourcesTable; resTbody.innerHTML = '';
-        data.resources.forEach(cat=>cat.items.forEach(r=>{
-          if(r.qty>0 && (r.name.includes('Voice')||r.name.includes('IVR')||r.name.includes('API'))) {
-            const util = r.included.qty>0 ? Math.round((r.included.used/r.included.qty)*100) : 0;
+        data.resources.forEach(cat => cat.items.forEach(r => {
+          if (r.qty > 0 && (r.name.includes('Voice') || r.name.includes('IVR') || r.name.includes('API'))) {
+            const util = r.included.qty > 0 ? Math.round((r.included.used / r.included.qty) * 100) : 0;
             resTbody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${formatNumber(r.qty)} ${r.unit}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.included.qty - r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td><td>🟢</td></tr>`;
           }
         }));
       }
 
-      // ---------- ANALYTICS render ----------
-      function renderAnalytics() {
-        const fromIdx = parseInt(el.analyticsMonthFrom?.value || '0',10);
-        const toIdx = parseInt(el.analyticsMonthTo?.value || '1',10);
-        if(!appState.billingHistory[fromIdx] || !appState.billingHistory[toIdx]) {
-          showStatusMessage('Load months first', 'warn'); return;
+      // ---------- bar chart rendering (Analytics tab) ----------
+      function renderBarChart() {
+        const metric = el.trendMetricSelect?.value || 'totalLicenses';
+        const container = document.getElementById('barChartContainer');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // check if we have at least some months 0..6
+        const months = [0,1,2,3,4,5,6];
+        const available = months.filter(idx => appState.billingHistory[idx]);
+        if (available.length === 0) {
+          document.getElementById('noDataMessage').style.display = 'block';
+          return;
+        } else {
+          document.getElementById('noDataMessage').style.display = 'none';
         }
-        const dFrom = appState.billingHistory[fromIdx].data;
-        const dTo = appState.billingHistory[toIdx].data;
-        el.analyticsRangeBadge.textContent = `${getMonthName(fromIdx)} → ${getMonthName(toIdx)}`;
 
-        // licensing
-        const fromUsers = dFrom.users.reduce((a,u)=>a+u.qty,0);
-        const toUsers = dTo.users.reduce((a,u)=>a+u.qty,0);
-        const fromOndemand = dFrom.users.reduce((a,u)=>a+u.onDemand,0);
-        const toOndemand = dTo.users.reduce((a,u)=>a+u.onDemand,0);
-        const fromUtil = dFrom.users.reduce((a,u)=>a+u.used,0) / (dFrom.users.reduce((a,u)=>a+u.committed,0)||1) *100;
-        const toUtil = dTo.users.reduce((a,u)=>a+u.used,0) / (dTo.users.reduce((a,u)=>a+u.committed,0)||1) *100;
-        el.trendTotalUsers.textContent = toUsers;
-        el.trendTotalUsersChange.innerHTML = changeHTML(toUsers - fromUsers, 'license');
-        el.trendOndemand.textContent = toOndemand;
-        el.trendOndemandChange.innerHTML = changeHTML(toOndemand - fromOndemand, 'seat');
-        el.trendUtilPct.textContent = Math.round(toUtil)+'%';
-        el.trendUtilChange.innerHTML = changeHTML(Math.round(toUtil - fromUtil), 'pp');
+        const values = [];
+        const labels = [];
+        for (let idx of months) {
+          const data = appState.billingHistory[idx]?.data;
+          if (!data) {
+            values.push(null);
+            labels.push(getMonthName(idx));
+            continue;
+          }
+          let val = 0;
+          if (metric === 'totalLicenses') {
+            val = data.users.reduce((a,u) => a + u.qty, 0);
+          } else if (metric === 'onDemandSeats') {
+            val = data.users.reduce((a,u) => a + u.onDemand, 0);
+          } else if (metric === 'speechMinutes') {
+            data.resources.forEach(c => c.items.forEach(r => { if (r.name.includes('Voice Transcription')) val += r.included.used; }));
+          } else if (metric === 'ivrMinutes') {
+            data.resources.forEach(c => c.items.forEach(r => { if (r.name.includes('IVR')) val += r.included.used; }));
+          } else if (metric === 'apiRequests') {
+            data.resources.forEach(c => c.items.forEach(r => { if (r.grouping === 'api' || r.name.match(/API|request/i)) val += r.included.used; }));
+          }
+          values.push(val);
+          labels.push(getMonthName(idx));
+        }
 
-        // speech
-        let spFrom=0, spTo=0, prepayFrom=0, prepayTo=0;
-        dFrom.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('Voice Transcription')) { spFrom=r.included.used; prepayFrom=r.included.qty; } }));
-        dTo.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('Voice Transcription')) { spTo=r.included.used; prepayTo=r.included.qty; } }));
-        el.trendSpeechUsed.textContent = formatNumber(spTo);
-        el.trendSpeechChange.innerHTML = changeHTML(spTo - spFrom, 'min');
-        el.trendSpeechPrepaid.textContent = formatNumber(prepayTo);
-        el.trendSpeechPrepaidChange.innerHTML = changeHTML(prepayTo - prepayFrom, 'min');
-        const utilFrom = prepayFrom>0 ? (spFrom/prepayFrom)*100 : 0;
-        const utilTo = prepayTo>0 ? (spTo/prepayTo)*100 : 0;
-        el.trendSpeechUtil.textContent = Math.round(utilTo)+'%';
-        el.trendSpeechUtilChange.innerHTML = changeHTML(Math.round(utilTo - utilFrom), 'pp');
-
-        // token/api table
-        const tbody = el.trendTokenTableBody; tbody.innerHTML = '';
-        const tokenResources = [];
-        dTo.resources.forEach(cat=>cat.items.forEach(r=>{
-          if(r.grouping==='api' || r.name.match(/(STT|TTS|NLU|Speech|Transcription|Voice|API|Token)/i)) tokenResources.push(r);
-        }));
-        if(tokenResources.length===0) tbody.innerHTML = '<tr><td colspan="6">No token/api resources found</td></tr>';
-        else tokenResources.forEach(r => {
-          // find same resource in from data
-          let fromVal = 0, fromIncluded=0;
-          dFrom.resources.forEach(cat=>cat.items.forEach(fr=>{ if(fr.name===r.name) { fromVal = fr.included.used; fromIncluded = fr.included.qty; } }));
-          const toVal = r.included.used;
-          const diff = toVal - fromVal;
-          const arrow = diff>0 ? '↑' : (diff<0 ? '↓' : '→');
-          const cls = diff>0 ? 'trend-up' : (diff<0 ? 'trend-down' : 'trend-flat');
-          tbody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${r.unit}</td><td>${formatNumber(fromVal)}</td><td>${formatNumber(toVal)}</td><td class="${cls}">${diff>0?'+':''}${formatNumber(diff)}</td><td class="${cls} spark-line">${arrow} ${Math.abs(diff)}</td></tr>`;
+        const maxVal = Math.max(...values.filter(v => v !== null), 1);
+        months.forEach((idx, i) => {
+          if (values[i] === null) {
+            // show empty bar
+            container.innerHTML += `<div class="bar-container"><div class="bar" style="height:4px; background:#ddd;"></div><div class="bar-value">N/A</div><div class="bar-label">${labels[i]}</div></div>`;
+          } else {
+            const height = Math.max(20, (values[i] / maxVal) * 220); // minimum 20px
+            container.innerHTML += `<div class="bar-container"><div class="bar" style="height:${height}px;"></div><div class="bar-value">${formatNumber(values[i])}</div><div class="bar-label">${labels[i]}</div></div>`;
+          }
         });
       }
-      function changeHTML(diff, unit='') {
-        if(diff>0) return `<span class="trend-up">↑ +${diff} ${unit}</span>`;
-        if(diff<0) return `<span class="trend-down">↓ ${diff} ${unit}</span>`;
-        return `<span class="trend-flat">→ no change</span>`;
-      }
 
-      // ---------- auth & org ----------
+      // ---------- auth & disconnect (original) ----------
       function parseTokenFromHash() {
-        const p = new URLSearchParams(location.hash.replace(/^#/,''));
-        return { token: p.get('access_token'), error: p.get('error'), errorDescription: p.get('error_description') };
+        const params = new URLSearchParams(location.hash.replace(/^#/, ''));
+        return { token: params.get('access_token'), error: params.get('error'), errorDescription: params.get('error_description') };
       }
       function authUrl() { return `${CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION].login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`; }
-      function showAuthOverlay() { el.authOverlay.style.display='flex'; el.mainContent.style.display='none'; }
-      function hideAuthOverlay() { el.authOverlay.style.display='none'; el.mainContent.style.display='block'; }
-      function disconnect() { appState.accessToken=null; showAuthOverlay(); showStatusMessage('Disconnected','info'); }
+      function showAuthOverlay() { el.authOverlay.style.display = 'flex'; el.mainContent.style.display = 'none'; }
+      function hideAuthOverlay() { el.authOverlay.style.display = 'none'; el.mainContent.style.display = 'block'; }
+      function disconnect() { appState.accessToken = null; showAuthOverlay(); showStatusMessage('Disconnected', 'info'); }
 
-      // ---------- init ----------
+      // ---------- initialization ----------
       function init() {
-        cacheElements();
-        // load saved orgs
-        try { const s = localStorage.getItem('genesys_saved_orgs'); if(s) appState.savedOrgs = JSON.parse(s); } catch(e){}
-        el.orgIdInput.value = appState.currentOrgId;
-        el.signinBtn.onclick = ()=>location.assign(authUrl());
-        el.btnLoadOrg.onclick = ()=>{
-          const id = el.orgIdInput.value.trim(); if(id) { appState.currentOrgId = id; appState.billingHistory={}; fetchBillingData(0); }
-        };
-        el.btnSaveOrg.onclick = ()=>{
-          const id = el.orgIdInput.value.trim(); if(id && !appState.savedOrgs.find(o=>o.id===id)) appState.savedOrgs.push({id,name:id.substring(0,8)});
-          localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs)); showStatusMessage('Saved','success');
-        };
-        el.btnRefresh.onclick = ()=>fetchBillingData(appState.currentPeriod, true);
-        el.btnDisconnect.onclick = disconnect;
-        el.btnExportCSV.onclick = ()=>{ if(appState.usageData) { alert('CSV export placeholder'); } };
-        el.loadAllBtn.onclick = loadAllMonths;
-        el.applyRange.onclick = renderAnalytics;
+        // grab all elements
+        const ids = ['authOverlay','signinBtn','mainContent','loadingOverlay','statusContainer',
+          'lastUpdated','orgNameDisplay','orgIdInput','btnLoadOrg','btnSaveOrg','savedOrgsContainer','savedOrgsList',
+          'btnRefresh','btnDisconnect','btnExportCSV','usersTableBody','resourcesTableBody',
+          'highlightsUsersTable','highlightsResourcesTable','highlightSpeechUsed','highlightSpeechPrepaid',
+          'highlightSpeechRemaining','highlightSpeechUsedBar','highlightSpeechRemainingBar','highlightSpeechUsedPct',
+          'highlightSpeechAvailablePct','highlightSpeechDaysLeft','trendMetricSelect','loadingText','loadingSubtext'];
+        ids.forEach(id => el[id] = document.getElementById(id));
 
-        // tabs
+        // load saved orgs
+        try { const s = localStorage.getItem('genesys_saved_orgs'); if (s) appState.savedOrgs = JSON.parse(s); } catch(e){}
+        el.orgIdInput.value = appState.currentOrgId;
+
+        // event listeners (original style)
+        el.signinBtn.onclick = ()=> location.assign(authUrl());
+        el.btnLoadOrg.onclick = ()=> { const id = el.orgIdInput.value.trim(); if(id) { appState.currentOrgId = id; appState.billingHistory = {}; loadAllSixMonths(); }};
+        el.btnSaveOrg.onclick = ()=> {
+          const id = el.orgIdInput.value.trim();
+          if (id && !appState.savedOrgs.find(o=>o.id===id)) appState.savedOrgs.push({id, name: id.substring(0,8)});
+          localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs));
+          showStatusMessage('Saved','success');
+        };
+        el.btnRefresh.onclick = ()=> fetchBillingData(appState.currentPeriod, true);
+        el.btnDisconnect.onclick = disconnect;
+        el.btnExportCSV.onclick = ()=> { alert('CSV export placeholder (same as original)'); };
+
+        // tab switching (horizontal tabs restored)
         document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function() {
           document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
           this.classList.add('active');
           document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
           document.getElementById(`tab-${this.dataset.tab}`).classList.add('active');
-          if(this.dataset.tab === 'analytics') renderAnalytics();
+          if (this.dataset.tab === 'analytics') renderBarChart();
         }));
 
-        // token from url
-        const {token,error} = parseTokenFromHash();
-        if(location.hash) history.replaceState(null,'',location.pathname);
-        if(token) { appState.accessToken = token; hideAuthOverlay(); fetchBillingData(0); showStatusMessage('Authenticated','success'); }
-        else if(error) { showAuthOverlay(); showStatusMessage('Auth error','error'); }
-        else showAuthOverlay();
+        // metric dropdown change
+        if (el.trendMetricSelect) el.trendMetricSelect.addEventListener('change', renderBarChart);
+
+        // handle OAuth callback
+        const { token, error } = parseTokenFromHash();
+        if (location.hash) history.replaceState(null, '', location.pathname);
+        if (token) {
+          appState.accessToken = token;
+          hideAuthOverlay();
+          // after auth, automatically load last 6 months
+          loadAllSixMonths();
+          showStatusMessage('✅ Successfully authenticated', 'success');
+        } else if (error) {
+          showAuthOverlay();
+          showStatusMessage(`Authentication error`, 'error');
+        } else {
+          showAuthOverlay();
+        }
       }
 
       document.addEventListener('DOMContentLoaded', init);
