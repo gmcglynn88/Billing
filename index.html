@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Genesys Cloud - Usage Dashboard</title>
+  <title>Genesys Cloud · Multi‑month Usage Dashboard</title>
   <style>
     :root{
       --primary-color:#63AB8F; --secondary-color:#4A8C7D; --border-color:#DEE2E6;
@@ -322,40 +322,60 @@
       background: linear-gradient(90deg, var(--light-bg), var(--border-color));
     }
     
-    /* Period selector */
-    .period-selector {
-      display: flex;
-      gap: 12px;
-      align-items: center;
+    /* Month selector (replaces old period pills) */
+    .month-selector-panel {
       background: var(--pill);
-      padding: 16px;
-      border-radius: 10px;
-      margin-bottom: 20px;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
     }
     
-    .period-option {
-      flex: 1;
-      text-align: center;
-      padding: 12px;
-      background: white;
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
-      cursor: pointer;
+    .month-selector-panel label {
       font-weight: 600;
+      margin: 0;
       color: var(--text-color);
-      transition: all 0.3s;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     
-    .period-option:hover {
-      border-color: var(--primary-color);
-      background: rgba(99, 171, 143, 0.05);
+    .month-selector-panel select {
+      width: auto;
+      min-width: 260px;
+      background: white;
+      border: 1px solid var(--border-color);
+      font-size: 15px;
+      cursor: pointer;
     }
     
-    .period-option.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
+    .month-badge {
+      background: white;
+      border-radius: 30px;
+      padding: 6px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
     }
+    
+    /* change pill inside tiles */
+    .trend-indicator {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+    
+    .trend-up { background: rgba(220, 53, 69, 0.1); color: var(--danger); }
+    .trend-down { background: rgba(40, 167, 69, 0.1); color: var(--success); }
+    .trend-flat { background: rgba(108, 117, 125, 0.1); color: var(--text-light); }
     
     /* Table styles */
     .category-header {
@@ -398,26 +418,14 @@
       border-left: 3px solid var(--warning);
     }
     
-    .highlight-row:hover {
-      background-color: rgba(255, 193, 7, 0.2) !important;
-    }
-    
     .danger-row {
       background-color: rgba(220, 53, 69, 0.1) !important;
       border-left: 3px solid var(--danger);
     }
     
-    .danger-row:hover {
-      background-color: rgba(220, 53, 69, 0.2) !important;
-    }
-    
     .success-row {
       background-color: rgba(40, 167, 69, 0.1) !important;
       border-left: 3px solid var(--success);
-    }
-    
-    .success-row:hover {
-      background-color: rgba(40, 167, 69, 0.2) !important;
     }
     
     .compact-table th,
@@ -445,18 +453,9 @@
       margin-top: 8px;
     }
     
-    /* Column alignment fix */
-    .text-left {
-      text-align: left !important;
-    }
-    
-    .text-center {
-      text-align: center !important;
-    }
-    
-    .text-right {
-      text-align: right !important;
-    }
+    .text-left { text-align: left !important; }
+    .text-center { text-align: center !important; }
+    .text-right { text-align: right !important; }
     
     /* Auth styles */
     .auth-overlay {
@@ -492,14 +491,13 @@
       margin-bottom: 30px;
     }
     
-    /* Color coding for utilization percentages */
     .utilization-high-text { color: var(--danger); font-weight: 600; }
     .utilization-medium-text { color: var(--warning); font-weight: 600; }
     .utilization-low-text { color: var(--success); font-weight: 600; }
   </style>
 </head>
 <body>
-  <!-- Auth overlay (hidden by default) -->
+  <!-- Auth overlay -->
   <div class="auth-overlay" id="authOverlay" style="display:none;">
     <div class="auth-card">
       <h2>🔐 Authentication Required</h2>
@@ -513,58 +511,53 @@
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
     <div id="loadingText" style="font-size:20px;font-weight:600;margin-bottom:12px;">Loading Usage Data...</div>
-    <div id="loadingSubtext" style="font-size:15px;color:var(--text-light);text-align:center;max-width:500px;">Fetching Genesys Cloud usage information</div>
+    <div id="loadingSubtext" style="font-size:15px;color:var(--text-light);text-align:center;max-width:500px;"></div>
   </div>
 
   <!-- Main Content -->
   <div class="container" id="mainContent" style="display:none;">
     <header>
-      <h1>📊 Genesys Cloud - Usage Dashboard</h1>
+      <h1>📊 Genesys Cloud · Multi‑month Usage</h1>
       <div class="subtitle" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <span id="orgNameDisplay">Loading...</span>
         <span id="lastUpdated" style="font-size:14px;background:var(--pill);padding:6px 12px;border-radius:20px;">Loading...</span>
       </div>
       
-      <!-- Organization Selector -->
+      <!-- Organization Selector (unchanged) -->
       <div style="margin-top:20px;padding-top:20px;border-top:2px solid var(--light-bg);">
         <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
           <div style="flex:1;min-width:300px;">
-            <label for="orgIdInput" style="font-size:14px;margin-bottom:8px;display:block;color:var(--text-color);">
-              Trusted Organization ID
-            </label>
-            <input 
-              type="text" 
-              id="orgIdInput" 
-              placeholder="e.g., 9b6492f9-d751-4406-bc7a-8ed307afef0a"
-              style="width:100%;padding:10px;border:2px solid var(--border-color);border-radius:8px;font-family:monospace;font-size:14px;"
-            />
+            <label for="orgIdInput">Trusted Organization ID</label>
+            <input type="text" id="orgIdInput" placeholder="e.g., 9b6492f9-d751-4406-bc7a-8ed307afef0a" style="font-family:monospace;" />
           </div>
-          <button id="btnLoadOrg" class="btn" style="width:auto;padding:10px 24px;white-space:nowrap;">
-            🔄 Load Organization
-          </button>
-          <button id="btnSaveOrg" class="btn" style="width:auto;padding:10px 24px;background:var(--success);white-space:nowrap;">
-            💾 Save as Default
-          </button>
+          <button id="btnLoadOrg" style="width:auto;padding:10px 24px;">🔄 Load</button>
+          <button id="btnSaveOrg" style="width:auto;padding:10px 24px;background:var(--success);">💾 Save</button>
         </div>
-        
-        <!-- Saved Organizations Quick Select -->
         <div id="savedOrgsContainer" style="margin-top:12px;display:none;">
-          <label style="font-size:13px;color:var(--text-light);margin-bottom:6px;display:block;">
-            Saved Organizations:
-          </label>
+          <label style="font-size:13px;">Saved Organizations:</label>
           <div id="savedOrgsList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
       </div>
     </header>
 
-    <!-- Period Selector -->
-    <div class="period-selector">
-      <div class="period-option active" data-period="0">Current Month</div>
-      <div class="period-option" data-period="1">Last Month</div>
-      <div class="period-option" data-period="2">Previous Month</div>
+    <!-- Month selector: now a dropdown with month names, not numbers -->
+    <div class="month-selector-panel">
+      <label>📅 <span style="font-size:16px;">Billing period:</span></label>
+      <select id="monthSelector">
+        <option value="0" selected>Current month (active)</option>
+        <option value="1">Last month</option>
+        <option value="2">2 months ago</option>
+        <!-- extendable: add more as needed -->
+        <option value="3">3 months ago</option>
+        <option value="4">4 months ago</option>
+        <option value="5">5 months ago</option>
+        <option value="6">6 months ago</option>
+      </select>
+      <span class="month-badge" id="selectedMonthDisplay">Current month</span>
+      <span style="margin-left:auto; font-size:14px; color:var(--text-light);">MoM changes shown in tiles</span>
     </div>
 
-    <!-- METRIC TILES -->
+    <!-- METRIC TILES (now enhanced with month-over-month deltas) -->
     <div class="metric-grid" id="metricTiles">
       <div class="metric-card info" id="metricTotalUsers">
         <div class="metric-header">
@@ -575,23 +568,25 @@
           <div class="metric-icon">👥</div>
         </div>
         <div class="metric-subtext" id="usersUtilization">Loading...</div>
+        <div id="userChangeBadge" style="margin-top:8px; font-size:13px;"></div>
       </div>
       
       <div class="metric-card warning" id="metricUserOverage">
         <div class="metric-header">
           <div>
-            <div class="metric-label">User Overage Risk</div>
+            <div class="metric-label">On‑demand / Overage</div>
             <div class="metric-value" id="overageRiskValue">0</div>
           </div>
           <div class="metric-icon">⚠️</div>
         </div>
         <div class="metric-subtext" id="overageDetail">No overage detected</div>
+        <div id="overageChangeBadge"></div>
       </div>
       
       <div class="metric-card success" id="metricSpeechAnalytics">
         <div class="metric-header">
           <div>
-            <div class="metric-label">Speech Analytics Usage</div>
+            <div class="metric-label">Speech Analytics (transcription)</div>
             <div class="metric-value" id="speechUsageValue">0%</div>
           </div>
           <div class="metric-icon">🎤</div>
@@ -605,7 +600,8 @@
             <div class="progress-fill used" id="speechProgressUsed" style="width:0%"></div>
           </div>
         </div>
-        <div class="metric-subtext" id="speechDetail">Transcription minutes utilization</div>
+        <div class="metric-subtext" id="speechDetail"></div>
+        <div id="speechChangeBadge"></div>
       </div>
       
       <div class="metric-card info" id="metricIVRUsage">
@@ -616,40 +612,24 @@
           </div>
           <div class="metric-icon">📞</div>
         </div>
-        <div class="metric-subtext" id="ivrDetail">IVR minutes utilization</div>
+        <div class="metric-subtext" id="ivrDetail"></div>
+        <div id="ivrChangeBadge"></div>
       </div>
     </div>
 
-    <!-- Tabs -->
+    <!-- Tabs (same) -->
     <div class="tabs">
       <button class="tab active" data-tab="users">👥 User Licenses</button>
       <button class="tab" data-tab="resources">📦 Resources</button>
-      <button class="tab" data-tab="highlights">⚠️ Usage Highlights</button>
+      <button class="tab" data-tab="highlights">⚠️ Highlights</button>
     </div>
 
     <!-- Users Tab -->
     <div id="tab-users" class="tab-content active">
       <div class="card">
-        <h2>👥 User Licenses</h2>
+        <h2>👥 User Licenses <span style="font-size:14px; font-weight:normal; margin-left:12px;" id="usersPeriodNote"></span></h2>
         <div class="table-container">
-          <table id="usersTable">
-            <thead>
-              <tr>
-                <th class="text-left">Service Name</th>
-                <th>Total Qty</th>
-                <th>Committed</th>
-                <th>Used</th>
-                <th>On-Demand</th>
-                <th>Utilization</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody">
-              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
-                Loading user data...
-              </td></tr>
-            </tbody>
-          </table>
+          <table id="usersTable"><thead><tr><th class="text-left">Service Name</th><th>Total Qty</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="usersTableBody"></tbody></table>
         </div>
       </div>
     </div>
@@ -657,1238 +637,503 @@
     <!-- Resources Tab -->
     <div id="tab-resources" class="tab-content">
       <div class="card">
-        <h2>📦 Resources (excludes Cloud Voice charges)</h2>
+        <h2>📦 Resources (excludes Cloud Voice) <span style="font-size:14px;" id="resourcesPeriodNote"></span></h2>
         <div class="table-container">
-          <table id="resourcesTable" class="compact-table">
-            <thead>
-              <tr>
-                <th class="text-left">Resource Name</th>
-                <th>Qty</th>
-                <th>Unit</th>
-                <th>Included</th>
-                <th>Used</th>
-                <th>On-Demand</th>
-                <th>Utilization</th>
-              </tr>
-            </thead>
-            <tbody id="resourcesTableBody">
-              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
-                Loading resource data...
-              </td></tr>
-            </tbody>
-          </table>
+          <table id="resourcesTable" class="compact-table"><thead><tr><th class="text-left">Resource Name</th><th>Qty</th><th>Unit</th><th>Included</th><th>Used</th><th>On-Demand</th><th>Utilization</th></tr></thead><tbody id="resourcesTableBody"></tbody></table>
         </div>
       </div>
     </div>
 
-    <!-- Highlights Tab -->
+    <!-- Highlights Tab (includes token usage + transcription focus) -->
     <div id="tab-highlights" class="tab-content">
       <div class="card">
-        <h2>⚠️ Usage Highlights & Alerts</h2>
+        <h2>⚠️ Usage Highlights · <span id="highlightsPeriodNote"></span></h2>
         
         <!-- User License Highlights -->
         <div style="margin-bottom: 32px;">
-          <h3 style="color: var(--primary-color); margin-bottom: 16px;">👥 User License Utilization</h3>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th class="text-left">License Type</th>
-                  <th>Total</th>
-                  <th>Committed</th>
-                  <th>Used</th>
-                  <th>On-Demand</th>
-                  <th>Utilization</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="highlightsUsersTable">
-                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
-                  Analyzing user license data...
-                </td></tr>
-              </tbody>
-            </table>
-          </div>
+          <h3 style="color: var(--primary-color);">👥 User License Utilization</h3>
+          <div class="table-container"><table><thead><tr><th class="text-left">License Type</th><th>Total</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="highlightsUsersTable"></tbody></table></div>
         </div>
         
-        <!-- Speech Analytics Highlight -->
+        <!-- Speech Analytics (transcription) deep dive -->
         <div style="margin-bottom: 32px;">
-          <h3 style="color: var(--primary-color); margin-bottom: 16px;">🎤 Speech Analytics - Transcription Usage</h3>
+          <h3 style="color: var(--primary-color);">🎤 Transcription Usage (Speech Analytics)</h3>
           <div id="speechAnalyticsCard" class="metric-card" style="margin-bottom: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-              <div>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Genesys Cloud for Voice Transcription Fair Use (Legacy)</div>
-                <div style="font-size: 14px; color: var(--text-light);">Prepaid vs Used Analysis</div>
-              </div>
+              <div><div style="font-size: 18px; font-weight: 600;">Genesys Cloud for Voice Transcription</div><div style="font-size: 14px; color: var(--text-light);">prepaid vs used</div></div>
               <div style="font-size: 24px;">🎤</div>
             </div>
-            
             <div class="progress-container" style="margin-bottom: 20px;">
-              <div class="progress-label">
-                <span>Used: <span id="highlightSpeechUsed">0</span> min</span>
-                <span>Prepaid: <span id="highlightSpeechPrepaid">0</span> min</span>
-                <span>Remaining: <span id="highlightSpeechRemaining">0</span> min</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill used" id="highlightSpeechUsedBar" style="width:0%"></div>
-                <div class="progress-fill remaining" id="highlightSpeechRemainingBar" style="width:100%"></div>
-              </div>
+              <div class="progress-label"><span>Used: <span id="highlightSpeechUsed">0</span> min</span><span>Prepaid: <span id="highlightSpeechPrepaid">0</span> min</span><span>Remaining: <span id="highlightSpeechRemaining">0</span> min</span></div>
+              <div class="progress-bar"><div class="progress-fill used" id="highlightSpeechUsedBar" style="width:0%"></div><div class="progress-fill remaining" id="highlightSpeechRemainingBar" style="width:100%"></div></div>
             </div>
-            
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px;">
-              <div style="text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: var(--chart-blue);" id="highlightSpeechUsedPct">0%</div>
-                <div style="font-size: 12px; color: var(--text-light);">Used</div>
-              </div>
-              <div style="text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: var(--success);" id="highlightSpeechAvailablePct">0%</div>
-                <div style="font-size: 12px; color: var(--text-light);">Available</div>
-              </div>
-              <div style="text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: var(--text-light);" id="highlightSpeechDaysLeft">0</div>
-                <div style="font-size: 12px; color: var(--text-light);">Days in Month</div>
-              </div>
+              <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: var(--chart-blue);" id="highlightSpeechUsedPct">0%</div><div style="font-size: 12px;">Used</div></div>
+              <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: var(--success);" id="highlightSpeechAvailablePct">0%</div><div style="font-size: 12px;">Available</div></div>
+              <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: var(--text-light);" id="highlightSpeechDaysLeft">0</div><div style="font-size: 12px;">Days left</div></div>
             </div>
           </div>
         </div>
         
-        <!-- Resource Highlights -->
-        <div>
-          <h3 style="color: var(--primary-color); margin-bottom: 16px;">📊 Resource Usage Highlights</h3>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th class="text-left">Resource</th>
-                  <th>Total</th>
-                  <th>Used</th>
-                  <th>Available</th>
-                  <th>On-Demand</th>
-                  <th>Utilization</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="highlightsResourcesTable">
-                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
-                  Analyzing resource usage...
-                </td></tr>
-              </tbody>
-            </table>
-          </div>
+        <!-- Token usage (example: API requests, STT/TTS) -->
+        <div style="margin-bottom: 32px;">
+          <h3 style="color: var(--primary-color);">🔑 Token / API Usage</h3>
+          <div class="table-container"><table><thead><tr><th>Resource</th><th>Total</th><th>Used</th><th>Available</th><th>On-Demand</th><th>Utilization</th></tr></thead><tbody id="tokenUsageTable"></tbody></table></div>
         </div>
       </div>
     </div>
 
     <!-- Actions Card -->
-    <div class="card" style="margin-top: 24px;">
+    <div class="card">
       <h2>⚡ Actions</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-        <button id="btnRefresh" class="btn btn-block">
-          <span>🔄 Refresh Data</span>
-        </button>
-        <button id="btnExportCSV" class="btn btn-block" style="background: var(--success);">
-          <span>📄 Export CSV</span>
-        </button>
-        <button id="btnExportJSON" class="btn btn-block" style="background: var(--info);">
-          <span>🔧 Export JSON</span>
-        </button>
-        <button id="btnDisconnect" class="btn btn-block" style="background: var(--danger);">
-          <span>🚪 Disconnect</span>
-        </button>
+        <button id="btnRefresh" class="btn-block"><span>🔄 Refresh current month</span></button>
+        <button id="btnLoadAllMonths" class="btn-block" style="background: var(--chart-purple);"><span>📅 Load all months (0‑6)</span></button>
+        <button id="btnExportCSV" class="btn-block" style="background: var(--success);"><span>📄 Export CSV</span></button>
+        <button id="btnDisconnect" class="btn-block" style="background: var(--danger);"><span>🚪 Disconnect</span></button>
       </div>
     </div>
   </div>
 
   <script>
-    // ==================== CONFIGURATION ====================
-    const CONFIG = {
-      CLIENT_ID: '4ab97fe2-54c0-4deb-8b9a-a4b5720d6c67',
-      REDIRECT_URI: 'https://gmcglynn88.github.io/Billing/',
-      TRUSTED_ORG_ID: '9b6492f9-d751-4406-bc7a-8ed307afef0a',
-      CUSTOMER_NAME: 'JLA',
-      ENVIRONMENT_REGION: 'eu-west-2',
-      ENVIRONMENTS: {
-        'eu-west-2': { 
-          name: 'EU West (London)', 
-          api: 'https://api.euw2.pure.cloud', 
-          login: 'https://login.euw2.pure.cloud' 
-        }
-      }
-    };
-
-    // ==================== STATE MANAGEMENT ====================
-    let appState = {
-      currentTab: 'users',
-      currentPeriod: 0,
-      usageData: null,
-      rawApiData: null,
-      lastFetchTime: null,
-      billingHistory: {},
-      accessToken: null,
-      currentOrgId: CONFIG.TRUSTED_ORG_ID,  // Current organization being viewed
-      savedOrgs: []  // Array of saved organizations
-    };
-
-    // ==================== DOM ELEMENTS ====================
-    const el = {
-      authOverlay: document.getElementById('authOverlay'),
-      signinBtn: document.getElementById('signinBtn'),
-      mainContent: document.getElementById('mainContent'),
-      loadingOverlay: document.getElementById('loadingOverlay'),
-      statusContainer: document.getElementById('statusContainer'),
-      lastUpdated: document.getElementById('lastUpdated'),
-      orgNameDisplay: document.getElementById('orgNameDisplay'),
-      
-      // Organization selector
-      orgIdInput: document.getElementById('orgIdInput'),
-      btnLoadOrg: document.getElementById('btnLoadOrg'),
-      btnSaveOrg: document.getElementById('btnSaveOrg'),
-      savedOrgsContainer: document.getElementById('savedOrgsContainer'),
-      savedOrgsList: document.getElementById('savedOrgsList'),
-      
-      // Metric tiles
-      totalUsersValue: document.getElementById('totalUsersValue'),
-      usersUtilization: document.getElementById('usersUtilization'),
-      overageRiskValue: document.getElementById('overageRiskValue'),
-      overageDetail: document.getElementById('overageDetail'),
-      metricUserOverage: document.getElementById('metricUserOverage'),
-      speechUsageValue: document.getElementById('speechUsageValue'),
-      speechUsed: document.getElementById('speechUsed'),
-      speechPrepaid: document.getElementById('speechPrepaid'),
-      speechProgressUsed: document.getElementById('speechProgressUsed'),
-      speechDetail: document.getElementById('speechDetail'),
-      ivrUsageValue: document.getElementById('ivrUsageValue'),
-      ivrDetail: document.getElementById('ivrDetail'),
-      
-      // Tables
-      usersTableBody: document.getElementById('usersTableBody'),
-      resourcesTableBody: document.getElementById('resourcesTableBody'),
-      highlightsUsersTable: document.getElementById('highlightsUsersTable'),
-      highlightsResourcesTable: document.getElementById('highlightsResourcesTable'),
-      
-      // Speech analytics highlights
-      highlightSpeechUsed: document.getElementById('highlightSpeechUsed'),
-      highlightSpeechPrepaid: document.getElementById('highlightSpeechPrepaid'),
-      highlightSpeechRemaining: document.getElementById('highlightSpeechRemaining'),
-      highlightSpeechUsedBar: document.getElementById('highlightSpeechUsedBar'),
-      highlightSpeechRemainingBar: document.getElementById('highlightSpeechRemainingBar'),
-      highlightSpeechUsedPct: document.getElementById('highlightSpeechUsedPct'),
-      highlightSpeechAvailablePct: document.getElementById('highlightSpeechAvailablePct'),
-      highlightSpeechDaysLeft: document.getElementById('highlightSpeechDaysLeft'),
-      
-      // Buttons
-      btnRefresh: document.getElementById('btnRefresh'),
-      btnExportCSV: document.getElementById('btnExportCSV'),
-      btnExportJSON: document.getElementById('btnExportJSON'),
-      btnDisconnect: document.getElementById('btnDisconnect'),
-      
-      // Loading
-      loadingText: document.getElementById('loadingText'),
-      loadingSubtext: document.getElementById('loadingSubtext')
-    };
-
-    // ==================== UTILITY FUNCTIONS ====================
-    function formatNumber(num) {
-      if (num === undefined || num === null) return '0';
-      return new Intl.NumberFormat().format(num);
-    }
-
-    function showStatusMessage(message, type = 'info') {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'status-message';
-      const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '💡';
-      const color = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warn' ? '#ffc107' : '#17a2b8';
-      msgDiv.style.borderLeftColor = color;
-      msgDiv.innerHTML = `
-        <span style="font-size:20px;">${icon}</span>
-        <div>
-          <div style="font-weight:600;">${message}</div>
-          <div style="font-size:12px;color:var(--text-light);">${new Date().toLocaleTimeString()}</div>
-        </div>
-      `;
-      el.statusContainer.appendChild(msgDiv);
-      
-      setTimeout(() => {
-        if (msgDiv.parentNode) {
-          msgDiv.style.opacity = '0';
-          msgDiv.style.transform = 'translateX(100%)';
-          setTimeout(() => msgDiv.remove(), 300);
-        }
-      }, 5000);
-    }
-
-    function setLoading(show, text = '', subtext = '') {
-      if (show) {
-        el.loadingText.textContent = text;
-        el.loadingSubtext.textContent = subtext;
-        el.loadingOverlay.classList.add('active');
-      } else {
-        el.loadingOverlay.classList.remove('active');
-      }
-    }
-
-    function getPeriodDisplayName(periodIndex) {
-      const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      
-      const today = new Date();
-      let targetMonth = today.getMonth() - periodIndex;
-      let targetYear = today.getFullYear();
-      
-      if (targetMonth < 0) {
-        targetMonth += 12;
-        targetYear -= 1;
-      }
-      
-      if (periodIndex === 0) return `Current Month (${monthNames[targetMonth]} ${targetYear})`;
-      if (periodIndex === 1) return `Last Month (${monthNames[targetMonth]} ${targetYear})`;
-      return `Previous Month (${monthNames[targetMonth]} ${targetYear})`;
-    }
-
-    function getUtilizationClass(utilization) {
-      if (utilization >= 90) return 'danger-row';
-      if (utilization >= 75) return 'highlight-row';
-      if (utilization <= 25) return 'highlight-row';
-      return 'success-row';
-    }
-
-    function getUtilizationIndicator(utilization) {
-      if (utilization >= 75) {
-        return '<span class="utilization-indicator utilization-high"></span><span class="utilization-high-text">High</span>';
-      }
-      if (utilization >= 50) {
-        return '<span class="utilization-indicator utilization-medium"></span><span class="utilization-medium-text">Medium</span>';
-      }
-      return '<span class="utilization-indicator utilization-low"></span><span class="utilization-low-text">Low</span>';
-    }
-
-    function getUtilizationTextColor(utilization) {
-      if (utilization >= 75) return 'utilization-high-text';
-      if (utilization >= 50) return 'utilization-medium-text';
-      return 'utilization-low-text';
-    }
-
-    // ==================== ORGANIZATION MANAGEMENT ====================
-    function loadSavedOrgs() {
-      try {
-        const saved = localStorage.getItem('genesys_saved_orgs');
-        if (saved) {
-          appState.savedOrgs = JSON.parse(saved);
-          updateSavedOrgsList();
-        }
-      } catch (error) {
-        console.error('Error loading saved orgs:', error);
-      }
-    }
-    
-    function saveOrganization() {
-      const orgId = el.orgIdInput.value.trim();
-      if (!orgId) {
-        showStatusMessage('Please enter an organization ID', 'warn');
-        return;
-      }
-      
-      // Check if already saved
-      const existing = appState.savedOrgs.find(org => org.id === orgId);
-      if (existing) {
-        showStatusMessage('Organization already saved', 'info');
-        return;
-      }
-      
-      // Get org name from current data if available
-      let orgName = orgId.substring(0, 8) + '...';
-      if (appState.usageData && appState.usageData.organization) {
-        orgName = appState.usageData.organization.name;
-      }
-      
-      // Add to saved orgs
-      appState.savedOrgs.push({
-        id: orgId,
-        name: orgName,
-        savedAt: new Date().toISOString()
-      });
-      
-      // Save to localStorage
-      try {
-        localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs));
-        updateSavedOrgsList();
-        showStatusMessage(`✅ Organization saved: ${orgName}`, 'success');
-      } catch (error) {
-        console.error('Error saving org:', error);
-        showStatusMessage('Failed to save organization', 'error');
-      }
-    }
-    
-    function loadOrganization(orgId) {
-      if (!orgId || !orgId.trim()) {
-        showStatusMessage('Please enter a valid organization ID', 'warn');
-        return;
-      }
-      
-      appState.currentOrgId = orgId.trim();
-      el.orgIdInput.value = appState.currentOrgId;
-      
-      // Clear current data
-      appState.usageData = null;
-      appState.rawApiData = null;
-      appState.billingHistory = {};
-      
-      // Fetch new data
-      fetchBillingData(appState.currentPeriod);
-    }
-    
-    function updateSavedOrgsList() {
-      if (appState.savedOrgs.length === 0) {
-        el.savedOrgsContainer.style.display = 'none';
-        return;
-      }
-      
-      el.savedOrgsContainer.style.display = 'block';
-      el.savedOrgsList.innerHTML = '';
-      
-      appState.savedOrgs.forEach((org, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'btn';
-        btn.style.cssText = 'width:auto;padding:8px 16px;font-size:13px;display:inline-flex;align-items:center;gap:8px;';
-        
-        // Highlight if it's the current org
-        if (org.id === appState.currentOrgId) {
-          btn.style.background = 'var(--primary-color)';
-        } else {
-          btn.style.background = 'var(--info)';
-        }
-        
-        btn.innerHTML = `
-          <span>${org.name}</span>
-          <span style="opacity:0.7;font-size:11px;font-family:monospace;">${org.id.substring(0, 8)}...</span>
-        `;
-        
-        btn.onclick = () => loadOrganization(org.id);
-        
-        // Add delete button
-        const deleteBtn = document.createElement('span');
-        deleteBtn.innerHTML = '×';
-        deleteBtn.style.cssText = 'margin-left:8px;padding:0 4px;cursor:pointer;font-size:18px;line-height:1;';
-        deleteBtn.onclick = (e) => {
-          e.stopPropagation();
-          if (confirm(`Remove "${org.name}" from saved organizations?`)) {
-            appState.savedOrgs.splice(index, 1);
-            localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs));
-            updateSavedOrgsList();
-            showStatusMessage('Organization removed', 'info');
-          }
-        };
-        
-        btn.appendChild(deleteBtn);
-        el.savedOrgsList.appendChild(btn);
-      });
-    }
-
-    // ==================== AUTHENTICATION ====================
-    function parseTokenFromHash(){
-      const params = new URLSearchParams(location.hash.replace(/^#/, ''));
-      return { 
-        token: params.get('access_token'), 
-        error: params.get('error'), 
-        errorDescription: params.get('error_description') 
+    (function() {
+      // ==================== CONFIG ====================
+      const CONFIG = {
+        CLIENT_ID: '4ab97fe2-54c0-4deb-8b9a-a4b5720d6c67',
+        REDIRECT_URI: 'https://gmcglynn88.github.io/Billing/',
+        TRUSTED_ORG_ID: '9b6492f9-d751-4406-bc7a-8ed307afef0a',
+        ENVIRONMENT_REGION: 'eu-west-2',
+        ENVIRONMENTS: { 'eu-west-2': { name: 'EU West (London)', api: 'https://api.euw2.pure.cloud', login: 'https://login.euw2.pure.cloud' } }
       };
-    }
-    
-    function authUrl(){
-      return `${CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION].login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`;
-    }
-    
-    function showAuthOverlay() {
-      el.authOverlay.style.display = 'flex';
-      el.mainContent.style.display = 'none';
-    }
-    
-    function hideAuthOverlay() {
-      el.authOverlay.style.display = 'none';
-      el.mainContent.style.display = 'block';
-    }
 
-    function disconnect() {
-      appState.accessToken = null;
-      appState.usageData = null;
-      appState.rawApiData = null;
-      showAuthOverlay();
-      showStatusMessage('Disconnected from Genesys Cloud', 'info');
-    }
-
-    // ==================== API FUNCTIONS ====================
-    async function apiCall(path, options = {}) {
-      if(!appState.accessToken) {
-        showStatusMessage('Authentication required', 'error');
-        disconnect();
-        throw new Error('Not authenticated');
-      }
-      
-      const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
-      const url = `${env.api}${path}`;
-      
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          'Authorization': `Bearer ${appState.accessToken}`,
-          'Content-Type': 'application/json',
-          ...options.headers
-        }
-      });
-
-      if(response.status === 401 || response.status === 403) {
-        showStatusMessage('Access denied - check your permissions', 'error');
-        throw new Error(`API returned ${response.status} - access denied`);
-      }
-      
-      if(!response.ok) {
-        const errorText = await response.text().catch(() => '');
-        console.error(`API Error ${response.status}:`, errorText);
-        throw new Error(`API request failed: ${response.status} ${errorText}`);
-      }
-      
-      return response.json();
-    }
-
-    async function fetchBillingData(periodIndex) {
-      setLoading(true, 'Fetching Billing Data', `Loading ${getPeriodDisplayName(periodIndex)} from Genesys Cloud...`);
-      
-      try {
-        // Use the current org ID from state
-        const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${periodIndex}`;
-        
-        console.log('Calling API endpoint:', endpoint);
-        const rawApiResponse = await apiCall(endpoint);
-        
-        console.log('API Response:', rawApiResponse);
-        console.log('API Response Structure:', JSON.stringify(rawApiResponse, null, 2));
-        
-        // Store raw API data
-        appState.rawApiData = rawApiResponse;
-        appState.lastFetchTime = new Date();
-        
-        // Parse the API response into our format
-        const parsedData = parseApiData(rawApiResponse, periodIndex);
-        appState.usageData = parsedData;
-        
-        // Store in history
-        appState.billingHistory[periodIndex] = {
-          period: periodIndex,
-          periodName: getPeriodDisplayName(periodIndex),
-          data: parsedData,
-          rawData: rawApiResponse,
-          timestamp: new Date()
-        };
-        
-        updateDisplay();
-        setLoading(false);
-        
-        showStatusMessage(`✅ ${getPeriodDisplayName(periodIndex)} data loaded successfully`, 'success');
-        
-      } catch (error) {
-        setLoading(false);
-        console.error('Error fetching billing data:', error);
-        console.error('Error stack:', error.stack);
-        showStatusMessage(`Failed to load billing data: ${error.message}`, 'error');
-      }
-    }
-
-    function parseApiData(apiData, periodIndex) {
-      console.log('Parsing API data:', apiData);
-      console.log('API data type:', typeof apiData);
-      console.log('API data keys:', Object.keys(apiData || {}));
-      
-      if (!apiData) {
-        throw new Error('API returned null or undefined');
-      }
-      
-      // The API returns 'usages' array, not 'products'
-      if (!Array.isArray(apiData.usages)) {
-        console.error('Unable to find usages array in API response');
-        console.error('Available keys:', Object.keys(apiData));
-        throw new Error(`Invalid API response structure. Expected 'usages' array. Available keys: ${Object.keys(apiData).join(', ')}`);
-      }
-      
-      const usages = apiData.usages;
-      console.log('Found usages array with', usages.length, 'items');
-      
-      // Parse user licenses
-      const users = parseUserLicenses(usages);
-      console.log('Parsed users:', users.length);
-      
-      // Parse resources
-      const resources = parseResources(usages);
-      console.log('Parsed resources:', resources.length);
-      
-      return {
-        period: periodIndex,
-        periodName: getPeriodDisplayName(periodIndex),
-        users: users,
-        resources: resources,
-        rawProducts: usages,
-        organization: apiData.organization,
-        currency: apiData.currency,
-        billingPeriodStartDate: apiData.billingPeriodStartDate,
-        billingPeriodEndDate: apiData.billingPeriodEndDate
+      // ==================== STATE ====================
+      let appState = {
+        currentTab: 'users',
+        currentPeriod: 0,               // displayed month index
+        usageData: null,                 // only for currentPeriod
+        rawApiData: null,
+        billingHistory: {},               // key: periodIndex -> {data, raw, timestamp}
+        accessToken: null,
+        currentOrgId: CONFIG.TRUSTED_ORG_ID,
+        savedOrgs: []
       };
-    }
 
-    function parseUserLicenses(usages) {
-      const userLicenses = [];
-      
-      // Filter for user license products - these typically have grouping 'user' or specific part numbers
-      const userProducts = usages.filter(usage => 
-        usage.name && (
-          usage.grouping === 'user' ||
-          usage.name.includes('Genesys Cloud CX') ||
-          usage.name.includes('CX 2') ||
-          usage.name.includes('WEM') ||
-          usage.name.includes('Communicate User') ||
-          usage.name.includes('Communicate Standalone') ||
-          usage.name.includes('Collaborate') ||
-          usage.name.includes('Wallboard')
-        )
-      );
-      
-      console.log('Found user license products:', userProducts.length);
-      
-      userProducts.forEach(usage => {
-        const usageQuantity = parseFloat(usage.usageQuantity) || 0;
-        const prepayQuantity = parseFloat(usage.prepayQuantity) || 0;
-        const overageQuantity = Math.max(0, usageQuantity - prepayQuantity);
-        
-        // For user licenses, used is typically the usageQuantity
-        const used = usageQuantity;
-        const committed = prepayQuantity;
-        const onDemand = overageQuantity;
-        
-        userLicenses.push({
-          name: usage.name,
-          qty: usageQuantity,
-          committed: committed,
-          used: used,
-          onDemand: onDemand,
-          partNumber: usage.partNumber,
-          items: [
-            { 
-              name: `Committed${used > 0 ? ` (${used} used)` : ''}`, 
-              qty: committed, 
-              used: used 
-            },
-            { name: "On-Demand", qty: onDemand, used: onDemand }
-          ]
-        });
-      });
-      
-      console.log('Parsed user licenses:', userLicenses);
-      return userLicenses;
-    }
+      // DOM shortcuts
+      const el = {
+        authOverlay: document.getElementById('authOverlay'),
+        signinBtn: document.getElementById('signinBtn'),
+        mainContent: document.getElementById('mainContent'),
+        loadingOverlay: document.getElementById('loadingOverlay'),
+        statusContainer: document.getElementById('statusContainer'),
+        lastUpdated: document.getElementById('lastUpdated'),
+        orgNameDisplay: document.getElementById('orgNameDisplay'),
+        orgIdInput: document.getElementById('orgIdInput'),
+        btnLoadOrg: document.getElementById('btnLoadOrg'),
+        btnSaveOrg: document.getElementById('btnSaveOrg'),
+        savedOrgsContainer: document.getElementById('savedOrgsContainer'),
+        savedOrgsList: document.getElementById('savedOrgsList'),
+        monthSelector: document.getElementById('monthSelector'),
+        selectedMonthDisplay: document.getElementById('selectedMonthDisplay'),
+        btnRefresh: document.getElementById('btnRefresh'),
+        btnLoadAllMonths: document.getElementById('btnLoadAllMonths'),
+        btnExportCSV: document.getElementById('btnExportCSV'),
+        btnDisconnect: document.getElementById('btnDisconnect'),
+        loadingText: document.getElementById('loadingText'),
+        loadingSubtext: document.getElementById('loadingSubtext'),
 
-    function parseResources(usages) {
-      const resources = [];
-      const byocItems = [];
-      const messagingItems = [];
-      const storageItems = [];
-      const apiItems = [];
-      const otherItems = [];
-      
-      // Filter for resource products (exclude user licenses)
-      const resourceProducts = usages.filter(usage => 
-        usage.name && 
-        usage.grouping !== 'user' &&
-        !usage.name.includes('Genesys Cloud CX 2') &&
-        !usage.name.includes('WEM Add-On') &&
-        !usage.name.includes('Communicate User') &&
-        !usage.name.includes('Communicate Standalone') &&
-        !usage.name.includes('Collaborate') &&
-        !usage.name.includes('Wallboard Device')
-      );
-      
-      console.log('Found resource products:', resourceProducts.length);
-      
-      resourceProducts.forEach(usage => {
-        const usageQuantity = parseFloat(usage.usageQuantity) || 0;
-        const prepayQuantity = parseFloat(usage.prepayQuantity) || 0;
-        const overageQuantity = Math.max(0, usageQuantity - prepayQuantity);
-        
-        // Determine unit from unitOfMeasureType
-        let unit = 'units';
-        if (usage.unitOfMeasureType === 'minute') unit = 'minutes';
-        else if (usage.unitOfMeasureType === 'message') unit = 'messages';
-        else if (usage.unitOfMeasureType === 'request') unit = 'requests';
-        else if (usage.unitOfMeasureType === 'gb') unit = 'GB';
-        else if (usage.unitOfMeasureType === 'number') unit = 'units';
-        else unit = usage.unitOfMeasureType || 'units';
-        
-        const resource = {
-          name: usage.name,
-          qty: usageQuantity,
-          unit: unit,
-          included: { 
-            qty: prepayQuantity, 
-            used: Math.min(usageQuantity, prepayQuantity) 
-          },
-          onDemand: overageQuantity,
-          partNumber: usage.partNumber,
-          grouping: usage.grouping
+        // metric tiles
+        totalUsersValue: document.getElementById('totalUsersValue'),
+        usersUtilization: document.getElementById('usersUtilization'),
+        overageRiskValue: document.getElementById('overageRiskValue'),
+        overageDetail: document.getElementById('overageDetail'),
+        metricUserOverage: document.getElementById('metricUserOverage'),
+        speechUsageValue: document.getElementById('speechUsageValue'),
+        speechUsed: document.getElementById('speechUsed'),
+        speechPrepaid: document.getElementById('speechPrepaid'),
+        speechProgressUsed: document.getElementById('speechProgressUsed'),
+        speechDetail: document.getElementById('speechDetail'),
+        ivrUsageValue: document.getElementById('ivrUsageValue'),
+        ivrDetail: document.getElementById('ivrDetail'),
+
+        // change badges
+        userChangeBadge: document.getElementById('userChangeBadge'),
+        overageChangeBadge: document.getElementById('overageChangeBadge'),
+        speechChangeBadge: document.getElementById('speechChangeBadge'),
+        ivrChangeBadge: document.getElementById('ivrChangeBadge'),
+
+        // tables bodies
+        usersTableBody: document.getElementById('usersTableBody'),
+        resourcesTableBody: document.getElementById('resourcesTableBody'),
+        highlightsUsersTable: document.getElementById('highlightsUsersTable'),
+        tokenUsageTable: document.getElementById('tokenUsageTable'),
+        // speech highlights
+        highlightSpeechUsed: document.getElementById('highlightSpeechUsed'),
+        highlightSpeechPrepaid: document.getElementById('highlightSpeechPrepaid'),
+        highlightSpeechRemaining: document.getElementById('highlightSpeechRemaining'),
+        highlightSpeechUsedBar: document.getElementById('highlightSpeechUsedBar'),
+        highlightSpeechRemainingBar: document.getElementById('highlightSpeechRemainingBar'),
+        highlightSpeechUsedPct: document.getElementById('highlightSpeechUsedPct'),
+        highlightSpeechAvailablePct: document.getElementById('highlightSpeechAvailablePct'),
+        highlightSpeechDaysLeft: document.getElementById('highlightSpeechDaysLeft'),
+
+        // period notes
+        usersPeriodNote: document.getElementById('usersPeriodNote'),
+        resourcesPeriodNote: document.getElementById('resourcesPeriodNote'),
+        highlightsPeriodNote: document.getElementById('highlightsPeriodNote')
+      };
+
+      // ========== helpers ==========
+      function formatNumber(num) { return (num ?? 0).toLocaleString(); }
+      function showStatusMessage(msg, type='info') {
+        const div = document.createElement('div');
+        div.className = 'status-message';
+        const icon = {success:'✅',error:'❌',warn:'⚠️',info:'💡'}[type]||'💡';
+        const color = {success:'#28a745',error:'#dc3545',warn:'#ffc107',info:'#17a2b8'}[type]||'#17a2b8';
+        div.style.borderLeftColor = color;
+        div.innerHTML = `<span style="font-size:20px;">${icon}</span><div><div style="font-weight:600;">${msg}</div><div style="font-size:12px;">${new Date().toLocaleTimeString()}</div></div>`;
+        el.statusContainer.appendChild(div);
+        setTimeout(() => { if(div.parentNode) div.remove(); }, 5000);
+      }
+      function setLoading(show, text='', subtext='') {
+        if(show) {
+          el.loadingText.textContent = text;
+          el.loadingSubtext.textContent = subtext;
+          el.loadingOverlay.classList.add('active');
+        } else el.loadingOverlay.classList.remove('active');
+      }
+      function getMonthName(offset) {
+        const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - offset);
+        return d.toLocaleString('default',{month:'long',year:'numeric'});
+      }
+      function updatePeriodNotes(period) {
+        const name = getMonthName(period);
+        if(el.usersPeriodNote) el.usersPeriodNote.textContent = `(${name})`;
+        if(el.resourcesPeriodNote) el.resourcesPeriodNote.textContent = `(${name})`;
+        if(el.highlightsPeriodNote) el.highlightsPeriodNote.textContent = name;
+      }
+
+      // ========== api call ==========
+      async function apiCall(path, options={}) {
+        if(!appState.accessToken) { disconnect(); throw new Error('Not authenticated'); }
+        const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
+        const url = `${env.api}${path}`;
+        const res = await fetch(url, { ...options, headers: { 'Authorization': `Bearer ${appState.accessToken}`, 'Content-Type':'application/json', ...options.headers } });
+        if(res.status===401||res.status===403) throw new Error(`Access denied ${res.status}`);
+        if(!res.ok) throw new Error(`API ${res.status}`);
+        return res.json();
+      }
+
+      // ========== fetch one period ==========
+      async function fetchBillingData(periodIndex, force=false) {
+        if(appState.billingHistory[periodIndex] && !force) {
+          appState.usageData = appState.billingHistory[periodIndex].data;
+          appState.rawApiData = appState.billingHistory[periodIndex].rawData;
+          appState.lastFetchTime = appState.billingHistory[periodIndex].timestamp;
+          appState.currentPeriod = periodIndex;
+          updateDisplay();
+          return;
+        }
+        setLoading(true, `Loading ${getMonthName(periodIndex)}`, 'Fetching from Genesys Cloud...');
+        try {
+          const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${periodIndex}`;
+          const raw = await apiCall(endpoint);
+          const parsed = parseApiData(raw, periodIndex);
+          appState.billingHistory[periodIndex] = { data: parsed, rawData: raw, timestamp: new Date(), periodName: getMonthName(periodIndex) };
+          appState.usageData = parsed;
+          appState.rawApiData = raw;
+          appState.lastFetchTime = new Date();
+          appState.currentPeriod = periodIndex;
+          updateDisplay();
+          showStatusMessage(`✅ ${getMonthName(periodIndex)} loaded`, 'success');
+        } catch(e) {
+          showStatusMessage(`Error: ${e.message}`, 'error');
+        } finally { setLoading(false); }
+      }
+
+      // ========== load all months 0..6 ==========
+      async function loadAllMonths() {
+        setLoading(true, 'Loading all months (0‑6)', 'this may take a moment...');
+        try {
+          for(let idx=0; idx<=6; idx++) {
+            if(!appState.billingHistory[idx]) {
+              const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${idx}`;
+              const raw = await apiCall(endpoint);
+              const parsed = parseApiData(raw, idx);
+              appState.billingHistory[idx] = { data: parsed, rawData: raw, timestamp: new Date(), periodName: getMonthName(idx) };
+            }
+          }
+          // set current to 0 (or keep current)
+          if(appState.billingHistory[0]) {
+            appState.usageData = appState.billingHistory[0].data;
+            appState.rawApiData = appState.billingHistory[0].rawData;
+            appState.currentPeriod = 0;
+          }
+          updateDisplay();
+          showStatusMessage('All months (0‑6) loaded', 'success');
+        } catch(e) { showStatusMessage(`Multi‑month error: ${e.message}`, 'error'); }
+        finally { setLoading(false); }
+      }
+
+      // ========== parse ==========
+      function parseApiData(apiData, periodIdx) {
+        if(!apiData||!Array.isArray(apiData.usages)) throw new Error('Invalid structure');
+        const users = parseUserLicenses(apiData.usages);
+        const resources = parseResources(apiData.usages);
+        return {
+          period: periodIdx, periodName: getMonthName(periodIdx), users, resources,
+          rawProducts: apiData.usages, organization: apiData.organization,
+          billingPeriodStartDate: apiData.billingPeriodStartDate,
+          billingPeriodEndDate: apiData.billingPeriodEndDate
         };
-        
-        // Categorize resources by grouping
-        if (usage.grouping === 'resource' || usage.name.includes('BYOT') || usage.name.includes('BYOC')) {
-          byocItems.push(resource);
-        } else if (usage.grouping === 'messaging' || usage.grouping === 'messaging-usage') {
-          messagingItems.push(resource);
-        } else if (usage.grouping === 'storage' || usage.grouping === 'storage-category') {
-          storageItems.push(resource);
-        } else if (usage.grouping === 'api') {
-          apiItems.push(resource);
+      }
+
+      function parseUserLicenses(usages) {
+        return usages.filter(u => u.name && (u.grouping==='user'||u.name.includes('Genesys Cloud CX')||u.name.includes('WEM')||u.name.includes('Communicate User'))).map(u => {
+          const qty = parseFloat(u.usageQuantity)||0, prepay = parseFloat(u.prepayQuantity)||0, overage = Math.max(0,qty-prepay);
+          return { name: u.name, qty, committed: prepay, used: qty, onDemand: overage, partNumber: u.partNumber };
+        });
+      }
+
+      function parseResources(usages) {
+        const cats = [];
+        const byoc=[], msg=[], storage=[], api=[], other=[];
+        usages.filter(u => u.name && u.grouping!=='user' && !u.name.includes('Genesys Cloud CX 2')).forEach(u => {
+          const qty = parseFloat(u.usageQuantity)||0, prepay = parseFloat(u.prepayQuantity)||0;
+          let unit = 'units';
+          if(u.unitOfMeasureType==='minute') unit='minutes';
+          else if(u.unitOfMeasureType==='message') unit='messages';
+          else if(u.unitOfMeasureType==='request') unit='requests';
+          else if(u.unitOfMeasureType==='gb') unit='GB';
+          else unit = u.unitOfMeasureType||'units';
+          const resource = { name: u.name, qty, unit, included: { qty: prepay, used: Math.min(qty,prepay) }, onDemand: Math.max(0,qty-prepay), grouping: u.grouping };
+          if(u.grouping==='resource'||u.name.includes('BYOC')) byoc.push(resource);
+          else if(u.grouping==='messaging'||u.grouping==='messaging-usage') msg.push(resource);
+          else if(u.grouping==='storage'||u.grouping==='storage-category') storage.push(resource);
+          else if(u.grouping==='api') api.push(resource);
+          else other.push(resource);
+        });
+        if(byoc.length) cats.push({category:'BYOC / Carrier', items:byoc});
+        if(msg.length) cats.push({category:'Messaging (SMS/MMS/WhatsApp)', items:msg});
+        if(storage.length) cats.push({category:'Data Storage', items:storage});
+        if(api.length) cats.push({category:'API Resources', items:api});
+        if(other.length) cats.push({category:'Other Resources', items:other});
+        return cats;
+      }
+
+      // ========== display ==========
+      function getPrevPeriodData() {
+        if(appState.currentPeriod===undefined) return null;
+        const prev = appState.currentPeriod+1; // prior billing cycle (1=last month relative to current)
+        return appState.billingHistory[prev]?.data || null;
+      }
+
+      function computeChange(current, prev, field) {
+        if(!prev) return null;
+        let curVal=0, prevVal=0;
+        if(field==='totalUsers') { curVal=current.users.reduce((a,u)=>a+u.qty,0); prevVal=prev.users.reduce((a,u)=>a+u.qty,0); }
+        else if(field==='overage') { curVal=current.users.reduce((a,u)=>a+u.onDemand,0); prevVal=prev.users.reduce((a,u)=>a+u.onDemand,0); }
+        else if(field==='speech') {
+          let cur=0, prev=0;
+          current.resources.forEach(c=>c.items.forEach(r=>{if(r.name.includes('Voice Transcription')) cur=r.included.used;}));
+          prev?.resources.forEach(c=>c.items.forEach(r=>{if(r.name.includes('Voice Transcription')) prev=r.included.used;}));
+          return {curVal:cur, prevVal:prev, diff:cur-prev};
+        } else if(field==='ivr') {
+          let cur=0, prev=0;
+          current.resources.forEach(c=>c.items.forEach(r=>{if(r.name.includes('IVR')) cur=r.included.used;}));
+          prev?.resources.forEach(c=>c.items.forEach(r=>{if(r.name.includes('IVR')) prev=r.included.used;}));
+          return {curVal:cur, prevVal:prev, diff:cur-prev};
+        }
+        return {curVal, prevVal, diff:curVal-prevVal};
+      }
+
+      function renderChangeBadge(changeObj, formatter=(v)=>v) {
+        if(!changeObj||changeObj.prevVal===undefined) return '<span class="trend-flat trend-indicator">—</span>';
+        const diff = changeObj.diff;
+        if(diff>0) return `<span class="trend-up trend-indicator">↑ +${formatter(diff)} vs last month</span>`;
+        if(diff<0) return `<span class="trend-down trend-indicator">↓ ${formatter(diff)} vs last month</span>`;
+        return '<span class="trend-flat trend-indicator">→ no change</span>';
+      }
+
+      function updateMetricTiles(data) {
+        const prevData = getPrevPeriodData();
+        // users
+        const totalUsers = data.users.reduce((a,u)=>a+u.qty,0);
+        const totalCommitted = data.users.reduce((a,u)=>a+u.committed,0);
+        const totalUsed = data.users.reduce((a,u)=>a+u.used,0);
+        const totalOnDemand = data.users.reduce((a,u)=>a+u.onDemand,0);
+        const util = totalCommitted>0 ? Math.round((totalUsed/totalCommitted)*100) : 0;
+        el.totalUsersValue.textContent = formatNumber(totalUsers);
+        el.usersUtilization.innerHTML = `<strong>Utilization:</strong> ${util}%<br> Committed:${formatNumber(totalCommitted)} Used:${formatNumber(totalUsed)} On‑demand:${formatNumber(totalOnDemand)}`;
+        const userChange = computeChange(data, prevData, 'totalUsers');
+        if(el.userChangeBadge) el.userChangeBadge.innerHTML = renderChangeBadge(userChange, formatNumber);
+
+        // overage risk
+        el.overageRiskValue.textContent = totalOnDemand>0 ? formatNumber(totalOnDemand) : 'None';
+        if(totalOnDemand>0) {
+          el.metricUserOverage.className='metric-card danger';
+          el.metricUserOverage.querySelector('.metric-icon').textContent='🚨';
+          el.overageDetail.textContent = `${formatNumber(totalOnDemand)} licenses on‑demand`;
         } else {
-          otherItems.push(resource);
+          el.metricUserOverage.className='metric-card success';
+          el.metricUserOverage.querySelector('.metric-icon').textContent='✅';
+          el.overageDetail.textContent = 'All committed';
         }
-      });
-      
-      // Add categorized resources
-      if (byocItems.length > 0) {
-        resources.push({
-          category: "BYOC / Carrier Resources",
-          items: byocItems
-        });
-      }
-      
-      if (messagingItems.length > 0) {
-        resources.push({
-          category: "Messaging (SMS/MMS/WhatsApp)",
-          items: messagingItems
-        });
-      }
-      
-      if (storageItems.length > 0) {
-        resources.push({
-          category: "Data Storage",
-          items: storageItems
-        });
-      }
-      
-      if (apiItems.length > 0) {
-        resources.push({
-          category: "API Resources",
-          items: apiItems
-        });
-      }
-      
-      if (otherItems.length > 0) {
-        resources.push({
-          category: "Other Resources",
-          items: otherItems
-        });
-      }
-      
-      console.log('Parsed resources by category:', resources.map(r => `${r.category}: ${r.items.length}`));
-      return resources;
-    }
+        const overageChange = computeChange(data, prevData, 'overage');
+        if(el.overageChangeBadge) el.overageChangeBadge.innerHTML = renderChangeBadge(overageChange, formatNumber);
 
-    // ==================== DISPLAY FUNCTIONS ====================
-    function updateDisplay() {
-      if (!appState.usageData) return;
-      
-      const data = appState.usageData;
-      
-      // Update organization name from API
-      if (data.organization && data.organization.name) {
-        el.orgNameDisplay.textContent = data.organization.name;
-      }
-      
-      // Update last updated time
-      el.lastUpdated.textContent = `Last updated: ${appState.lastFetchTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-      
-      // Update period selector
-      document.querySelectorAll('.period-option').forEach(option => {
-        if (parseInt(option.dataset.period) === appState.currentPeriod) {
-          option.classList.add('active');
-        } else {
-          option.classList.remove('active');
-        }
-      });
-      
-      // Update metric tiles
-      updateMetricTiles(data);
-      
-      // Update tables
-      updateUsersTable(data.users);
-      updateResourcesTable(data.resources);
-      updateHighlightsTable(data);
-    }
+        // speech
+        let speechPrepaid=0, speechUsed=0;
+        data.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('Voice Transcription')) { speechPrepaid=r.included.qty; speechUsed=r.included.used; } }));
+        const speechPct = speechPrepaid>0 ? Math.round((speechUsed/speechPrepaid)*100) : 0;
+        el.speechUsageValue.textContent = speechPct+'%';
+        el.speechUsed.textContent = formatNumber(speechUsed);
+        el.speechPrepaid.textContent = formatNumber(speechPrepaid);
+        el.speechProgressUsed.style.width = speechPct+'%';
+        el.speechDetail.textContent = `${formatNumber(speechUsed)} of ${formatNumber(speechPrepaid)} minutes`;
+        const speechChange = computeChange(data, prevData, 'speech');
+        if(el.speechChangeBadge) el.speechChangeBadge.innerHTML = renderChangeBadge(speechChange, formatNumber);
 
-    function updateMetricTiles(data) {
-      // Calculate user metrics
-      let totalUsers = 0;
-      let totalCommitted = 0;
-      let totalUsed = 0;
-      let totalOnDemand = 0;
-      let overageRisk = 0;
-      
-      data.users.forEach(user => {
-        totalUsers += user.qty;
-        totalCommitted += user.committed;
-        totalUsed += user.used;
-        totalOnDemand += user.onDemand;
-        
-        // Check for overage risk (On-Demand usage)
-        if (user.onDemand > 0) {
-          overageRisk += user.onDemand;
-        }
-      });
-      
-      const utilizationPct = totalCommitted > 0 ? Math.round((totalUsed / totalCommitted) * 100) : 0;
-      
-      // Update total users tile
-      el.totalUsersValue.textContent = formatNumber(totalUsers);
-      el.usersUtilization.innerHTML = `
-        <strong>Utilization:</strong> ${utilizationPct}%<br>
-        <strong>Committed:</strong> ${formatNumber(totalCommitted)} | <strong>Used:</strong> ${formatNumber(totalUsed)} | <strong>On-Demand:</strong> ${formatNumber(totalOnDemand)}
-      `;
-      
-      // Update overage risk tile
-      el.overageRiskValue.textContent = overageRisk > 0 ? `${formatNumber(overageRisk)}` : 'None';
-      const overageTile = el.metricUserOverage;
-      if (overageRisk > 0) {
-        overageTile.className = 'metric-card danger';
-        overageTile.querySelector('.metric-icon').textContent = '🚨';
-        el.overageDetail.textContent = `${formatNumber(overageRisk)} user licenses on-demand (potential overage)`;
-      } else {
-        overageTile.className = 'metric-card success';
-        overageTile.querySelector('.metric-icon').textContent = '✅';
-        el.overageDetail.textContent = 'All licenses are committed (no overage risk)';
+        // ivr
+        let ivrPrepaid=0, ivrUsed=0;
+        data.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('IVR')) { ivrPrepaid=r.included.qty; ivrUsed=r.included.used; } }));
+        const ivrPct = ivrPrepaid>0 ? Math.round((ivrUsed/ivrPrepaid)*100) : 0;
+        el.ivrUsageValue.textContent = ivrPct+'%';
+        el.ivrDetail.textContent = `${formatNumber(ivrUsed)} of ${formatNumber(ivrPrepaid)} minutes`;
+        const ivrChange = computeChange(data, prevData, 'ivr');
+        if(el.ivrChangeBadge) el.ivrChangeBadge.innerHTML = renderChangeBadge(ivrChange, formatNumber);
       }
-      
-      // Calculate speech analytics metrics
-      let speechPrepaid = 0;
-      let speechUsed = 0;
-      let ivrPrepaid = 0;
-      let ivrUsed = 0;
-      
-      data.resources.forEach(category => {
-        category.items.forEach(resource => {
-          if (resource.name.includes('Voice Transcription')) {
-            speechPrepaid = resource.included.qty;
-            speechUsed = resource.included.used;
-          }
-          if (resource.name.includes('IVR Basic')) {
-            ivrPrepaid = resource.included.qty;
-            ivrUsed = resource.included.used;
-          }
-        });
-      });
-      
-      const speechUtilization = speechPrepaid > 0 ? Math.round((speechUsed / speechPrepaid) * 100) : 0;
-      const ivrUtilization = ivrPrepaid > 0 ? Math.round((ivrUsed / ivrPrepaid) * 100) : 0;
-      
-      // Update speech analytics tile
-      el.speechUsageValue.textContent = `${speechUtilization}%`;
-      el.speechUsed.textContent = formatNumber(speechUsed);
-      el.speechPrepaid.textContent = formatNumber(speechPrepaid);
-      el.speechProgressUsed.style.width = `${speechUtilization}%`;
-      el.speechDetail.textContent = `${formatNumber(speechUsed)} of ${formatNumber(speechPrepaid)} minutes used`;
-      
-      // Update IVR tile
-      el.ivrUsageValue.textContent = `${ivrUtilization}%`;
-      el.ivrDetail.textContent = `${formatNumber(ivrUsed)} of ${formatNumber(ivrPrepaid)} minutes used`;
-    }
 
-    function updateUsersTable(users) {
-      const tbody = el.usersTableBody;
-      tbody.innerHTML = '';
-      
-      if (!users || users.length === 0) {
-        tbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
-            No user license data available
-          </td></tr>
-        `;
-        return;
-      }
-      
-      users.forEach(user => {
-        const utilization = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
-        const rowClass = getUtilizationClass(utilization);
-        const utilizationColorClass = getUtilizationTextColor(utilization);
-        
-        const row = document.createElement('tr');
-        row.className = rowClass;
-        row.innerHTML = `
-          <td class="text-left" style="font-family:'Aptos','Segoe UI',Arial,sans-serif;"><strong>${user.name}</strong></td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.qty)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.committed)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.used)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.onDemand)}</td>
-          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${utilization}%</td>
-          <td style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${getUtilizationIndicator(utilization)}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    function updateResourcesTable(resources) {
-      const tbody = el.resourcesTableBody;
-      tbody.innerHTML = '';
-      
-      if (!resources || resources.length === 0) {
-        tbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
-            No resource data available
-          </td></tr>
-        `;
-        return;
-      }
-      
-      resources.forEach(category => {
-        // Category header
-        if (category.category) {
-          const headerRow = document.createElement('tr');
-          headerRow.className = 'category-header';
-          headerRow.innerHTML = `
-            <td colspan="7" style="font-weight:700;font-size:14px;font-family:'Aptos','Segoe UI',Arial,sans-serif;" class="text-left">${category.category}</td>
-          `;
-          tbody.appendChild(headerRow);
-        }
-        
-        // Resource items
-        category.items.forEach(resource => {
-          const includedQty = resource.included.qty;
-          const usedQty = resource.included.used;
-          const utilization = includedQty > 0 ? Math.round((usedQty / includedQty) * 100) : 0;
-          const utilizationColorClass = getUtilizationTextColor(utilization);
-          
+      function updateUsersTable(users) {
+        const tbody = el.usersTableBody; tbody.innerHTML = '';
+        if(!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No user data</td></tr>'; return; }
+        users.forEach(u => {
+          const util = u.committed>0 ? Math.round((u.used/u.committed)*100) : 0;
           const row = document.createElement('tr');
-          row.innerHTML = `
-            <td class="text-left" style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${resource.name}</td>
-            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(resource.qty)}</td>
-            <td style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${resource.unit}</td>
-            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(includedQty)}</td>
-            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(usedQty)}</td>
-            <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(resource.onDemand)}</td>
-            <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${includedQty > 0 ? `${utilization}%` : 'N/A'}</td>
-          `;
+          row.innerHTML = `<td class="text-left"><strong>${u.name}</strong></td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util>75?'🔴':'🟢'}</td>`;
           tbody.appendChild(row);
         });
-      });
-    }
+      }
 
-    function updateHighlightsTable(data) {
-      // Update user highlights
-      const userTbody = el.highlightsUsersTable;
-      userTbody.innerHTML = '';
-      
-      if (!data.users || data.users.length === 0) {
-        userTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
-            No user license data available
-          </td></tr>
-        `;
-        return;
-      }
-      
-      data.users.forEach(user => {
-        const utilization = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
-        const utilizationColorClass = getUtilizationTextColor(utilization);
-        let status = '';
-        
-        if (utilization <= 25) {
-          status = '<span style="color:var(--danger);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">⚠️ Underutilized</span>';
-        } else if (user.onDemand > 0) {
-          status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">⚠️ Using On-Demand</span>';
-        } else if (utilization >= 90) {
-          status = '<span style="color:var(--danger);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">🚨 Near Capacity</span>';
-        } else {
-          status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">✅ Optimal</span>';
-        }
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="text-left" style="font-family:'Aptos','Segoe UI',Arial,sans-serif;"><strong>${user.name}</strong></td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.qty)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.committed)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.used)}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(user.onDemand)}</td>
-          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${utilization}%</td>
-          <td style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${status}</td>
-        `;
-        userTbody.appendChild(row);
-      });
-      
-      // Update speech analytics highlights
-      let speechResource = null;
-      data.resources.forEach(category => {
-        category.items.forEach(resource => {
-          if (resource.name.includes('Voice Transcription')) {
-            speechResource = resource;
-          }
-        });
-      });
-      
-      if (speechResource) {
-        const speechPrepaid = speechResource.included.qty;
-        const speechUsed = speechResource.included.used;
-        const speechRemaining = speechPrepaid - speechUsed;
-        const speechUtilization = Math.round((speechUsed / speechPrepaid) * 100);
-        
-        el.highlightSpeechUsed.textContent = formatNumber(speechUsed);
-        el.highlightSpeechPrepaid.textContent = formatNumber(speechPrepaid);
-        el.highlightSpeechRemaining.textContent = formatNumber(speechRemaining);
-        el.highlightSpeechUsedBar.style.width = `${speechUtilization}%`;
-        el.highlightSpeechRemainingBar.style.width = `${100 - speechUtilization}%`;
-        el.highlightSpeechUsedPct.textContent = `${speechUtilization}%`;
-        el.highlightSpeechAvailablePct.textContent = `${100 - speechUtilization}%`;
-        
-        const today = new Date();
-        const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-        el.highlightSpeechDaysLeft.textContent = daysInMonth - today.getDate();
-      }
-      
-      // Update resource highlights
-      const resourceTbody = el.highlightsResourcesTable;
-      resourceTbody.innerHTML = '';
-      
-      if (!data.resources || data.resources.length === 0) {
-        resourceTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
-            No resource data available
-          </td></tr>
-        `;
-        return;
-      }
-      
-      const highlightResources = [];
-      data.resources.forEach(category => {
-        category.items.forEach(resource => {
-          if (resource.qty > 0 && (resource.name.includes('Voice Transcription') || 
-                                   resource.name.includes('IVR') || 
-                                   resource.name.includes('API Resource'))) {
-            highlightResources.push(resource);
-          }
-        });
-      });
-      
-      if (highlightResources.length === 0) {
-        resourceTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);font-family:'Aptos','Segoe UI',Arial,sans-serif;">
-            No highlight resources found
-          </td></tr>
-        `;
-        return;
-      }
-      
-      highlightResources.forEach(resource => {
-        const total = resource.qty;
-        const used = resource.included.used;
-        const available = resource.included.qty - resource.included.used;
-        const utilization = resource.included.qty > 0 
-          ? Math.round((used / resource.included.qty) * 100)
-          : 0;
-        const utilizationColorClass = getUtilizationTextColor(utilization);
-        
-        let status = '';
-        if (resource.name.includes('Voice Transcription')) {
-          if (utilization > 50) {
-            status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">⚠️ High Usage</span>';
-          } else {
-            status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">✅ Normal</span>';
-          }
-        } else if (resource.name.includes('IVR')) {
-          if (utilization > 10) {
-            status = '<span style="color:var(--warning);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">⚠️ Monitor</span>';
-          } else {
-            status = '<span style="color:var(--success);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">✅ Low</span>';
-          }
-        } else {
-          status = '<span style="color:var(--info);font-family:\'Aptos\',\'Segoe UI\',Arial,sans-serif;">📊 Active</span>';
-        }
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="text-left" style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${resource.name}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(total)} ${resource.unit}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(used)} ${resource.unit}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(available)} ${resource.unit}</td>
-          <td class="number-cell" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${formatNumber(resource.onDemand)} ${resource.unit}</td>
-          <td class="number-cell ${utilizationColorClass}" style="font-family:'Aptos',monospace,'Segoe UI',Arial,sans-serif;">${utilization}%</td>
-          <td style="font-family:'Aptos','Segoe UI',Arial,sans-serif;">${status}</td>
-        `;
-        resourceTbody.appendChild(row);
-      });
-    }
-
-    // ==================== EXPORT FUNCTIONS ====================
-    function exportToCSV() {
-      if (!appState.usageData) {
-        showStatusMessage('No data to export', 'warn');
-        return;
-      }
-      
-      let csv = `Genesys Cloud Usage Dashboard - ${getPeriodDisplayName(appState.currentPeriod)}\n`;
-      csv += `Generated,${new Date().toLocaleString()}\n\n`;
-      
-      // Users section
-      csv += 'USER LICENSES\n';
-      csv += 'Service,Total Qty,Committed,Used,On-Demand,Utilization%\n';
-      
-      appState.usageData.users.forEach(user => {
-        const utilization = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
-        csv += `"${user.name}",${user.qty},${user.committed},${user.used},${user.onDemand},${utilization}%\n`;
-      });
-      
-      csv += '\nRESOURCES (excludes Cloud Voice charges)\n';
-      csv += 'Resource,Total Qty,Unit,Included Qty,Used,On-Demand,Utilization%\n';
-      
-      appState.usageData.resources.forEach(category => {
-        category.items.forEach(resource => {
-          const utilization = resource.included.qty > 0 
-            ? Math.round((resource.included.used / resource.included.qty) * 100)
-            : 0;
-          csv += `"${resource.name}",${resource.qty},${resource.unit},${resource.included.qty},${resource.included.used},${resource.onDemand},${utilization}%\n`;
-        });
-      });
-      
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      a.href = url;
-      a.download = `genesys_usage_${dateStr}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      showStatusMessage('✅ CSV exported successfully', 'success');
-    }
-
-    function exportToJSON() {
-      if (!appState.usageData || !appState.rawApiData) {
-        showStatusMessage('No data to export', 'warn');
-        return;
-      }
-      
-      const exportData = {
-        period: getPeriodDisplayName(appState.currentPeriod),
-        periodIndex: appState.currentPeriod,
-        generated: new Date().toISOString(),
-        parsedData: appState.usageData,
-        rawApiData: appState.rawApiData
-      };
-      
-      const json = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      a.href = url;
-      a.download = `genesys_usage_${dateStr}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      showStatusMessage('✅ JSON exported successfully', 'success');
-    }
-
-    // ==================== EVENT HANDLERS ====================
-    function setupEventListeners() {
-      // Signin button
-      el.signinBtn.addEventListener('click', function() {
-        location.assign(authUrl());
-      });
-      
-      // Organization management
-      el.btnLoadOrg.addEventListener('click', function() {
-        loadOrganization(el.orgIdInput.value);
-      });
-      
-      el.btnSaveOrg.addEventListener('click', function() {
-        saveOrganization();
-      });
-      
-      // Allow Enter key to load org
-      el.orgIdInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          loadOrganization(el.orgIdInput.value);
-        }
-      });
-      
-      // Tab switching
-      document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-          const tabId = this.dataset.tab;
-          appState.currentTab = tabId;
-          
-          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-          this.classList.add('active');
-          
-          document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-            if (content.id === `tab-${tabId}`) content.classList.add('active');
+      function updateResourcesTable(resources) {
+        const tbody = el.resourcesTableBody; tbody.innerHTML = '';
+        if(!resources.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No resources</td></tr>'; return; }
+        resources.forEach(cat => {
+          const head = document.createElement('tr'); head.className='category-header';
+          head.innerHTML = `<td colspan="7" class="text-left">${cat.category}</td>`;
+          tbody.appendChild(head);
+          cat.items.forEach(r => {
+            const util = r.included.qty>0 ? Math.round((r.included.used/r.included.qty)*100) : 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td class="text-left">${r.name}</td><td>${formatNumber(r.qty)}</td><td>${r.unit}</td><td>${formatNumber(r.included.qty)}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td>`;
+            tbody.appendChild(tr);
           });
         });
-      });
-      
-      // Period selection
-      document.querySelectorAll('.period-option').forEach(option => {
-        option.addEventListener('click', function() {
-          const periodIndex = parseInt(this.dataset.period);
-          appState.currentPeriod = periodIndex;
-          fetchBillingData(periodIndex);
-        });
-      });
-      
-      // Action buttons
-      el.btnRefresh.addEventListener('click', function() {
-        fetchBillingData(appState.currentPeriod);
-      });
-      
-      el.btnExportCSV.addEventListener('click', exportToCSV);
-      el.btnExportJSON.addEventListener('click', exportToJSON);
-      el.btnDisconnect.addEventListener('click', disconnect);
-    }
-
-    // ==================== INITIALIZATION ====================
-    function initializeApp() {
-      // Load saved organizations from localStorage
-      loadSavedOrgs();
-      
-      // Populate the input field with current org ID
-      el.orgIdInput.value = appState.currentOrgId;
-      
-      // Fetch billing data for the default org
-      fetchBillingData(0);
-    }
-
-    // ==================== START APPLICATION ====================
-    document.addEventListener('DOMContentLoaded', function() {
-      const {token, error, errorDescription} = parseTokenFromHash();
-      
-      // Clear hash from URL
-      if(location.hash) history.replaceState(null,'',location.pathname);
-      
-      // Setup event listeners
-      setupEventListeners();
-      
-      if(token) {
-        // We have a token from OAuth callback
-        appState.accessToken = token;
-        hideAuthOverlay();
-        initializeApp();
-        showStatusMessage('✅ Successfully authenticated', 'success');
-      } else if (error) {
-        // Auth error
-        showAuthOverlay();
-        showStatusMessage(`Authentication error: ${errorDescription || error}`, 'error');
-      } else {
-        // No token, show auth overlay
-        showAuthOverlay();
       }
-    });
+
+      function updateHighlights(data) {
+        const userTbody = el.highlightsUsersTable; userTbody.innerHTML = '';
+        data.users.forEach(u => {
+          const util = u.committed>0 ? Math.round((u.used/u.committed)*100) : 0;
+          userTbody.innerHTML += `<tr><td class="text-left">${u.name}</td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util>75?'⚠️':'✅'}</td></tr>`;
+        });
+        // speech highlight
+        let speechPrepaid=0, speechUsed=0;
+        data.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('Voice Transcription')) { speechPrepaid=r.included.qty; speechUsed=r.included.used; } }));
+        const remaining = speechPrepaid - speechUsed;
+        const pct = speechPrepaid>0 ? Math.round((speechUsed/speechPrepaid)*100) : 0;
+        el.highlightSpeechUsed.textContent = formatNumber(speechUsed);
+        el.highlightSpeechPrepaid.textContent = formatNumber(speechPrepaid);
+        el.highlightSpeechRemaining.textContent = formatNumber(remaining);
+        el.highlightSpeechUsedBar.style.width = pct+'%';
+        el.highlightSpeechRemainingBar.style.width = (100-pct)+'%';
+        el.highlightSpeechUsedPct.textContent = pct+'%';
+        el.highlightSpeechAvailablePct.textContent = (100-pct)+'%';
+        const today = new Date(); const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+        el.highlightSpeechDaysLeft.textContent = daysInMonth - today.getDate();
+
+        // token usage table (filter api resources)
+        const tokenBody = el.tokenUsageTable; tokenBody.innerHTML = '';
+        data.resources.forEach(cat => cat.items.forEach(r => {
+          if(r.grouping==='api' || r.name.includes('API') || r.name.includes('STT') || r.name.includes('TTS') || r.name.includes('Speech')) {
+            const util = r.included.qty>0 ? Math.round((r.included.used/r.included.qty)*100) : 0;
+            tokenBody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${formatNumber(r.qty)}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.included.qty - r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td></tr>`;
+          }
+        }));
+        if(!tokenBody.children.length) tokenBody.innerHTML = '<tr><td colspan="6" style="padding:24px;">No token/API resources</td></tr>';
+      }
+
+      function updateDisplay() {
+        if(!appState.usageData) return;
+        const data = appState.usageData;
+        if(data.organization?.name) el.orgNameDisplay.textContent = data.organization.name;
+        el.lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+        const monthName = getMonthName(appState.currentPeriod);
+        el.selectedMonthDisplay.textContent = monthName;
+        updatePeriodNotes(appState.currentPeriod);
+        updateMetricTiles(data);
+        updateUsersTable(data.users);
+        updateResourcesTable(data.resources);
+        updateHighlights(data);
+      }
+
+      // ========== auth ==========
+      function parseTokenFromHash() {
+        const p = new URLSearchParams(location.hash.replace(/^#/,''));
+        return { token: p.get('access_token'), error: p.get('error'), errorDescription: p.get('error_description') };
+      }
+      function authUrl() { return `${CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION].login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`; }
+      function showAuthOverlay() { el.authOverlay.style.display='flex'; el.mainContent.style.display='none'; }
+      function hideAuthOverlay() { el.authOverlay.style.display='none'; el.mainContent.style.display='block'; }
+      function disconnect() { appState.accessToken=null; showAuthOverlay(); showStatusMessage('Disconnected','info'); }
+
+      // ========== orgs ==========
+      function loadSavedOrgs() { try { const s = localStorage.getItem('genesys_saved_orgs'); if(s) appState.savedOrgs = JSON.parse(s); } catch(e){} }
+      function saveOrg() {
+        const id = el.orgIdInput.value.trim(); if(!id) return;
+        if(!appState.savedOrgs.find(o=>o.id===id)) appState.savedOrgs.push({id,name:id.substring(0,8),savedAt:new Date().toISOString()});
+        localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs));
+        showStatusMessage('Saved','success');
+      }
+      function loadOrganization(orgId) { appState.currentOrgId = orgId; el.orgIdInput.value = orgId; appState.billingHistory={}; fetchBillingData(0); }
+
+      // ========== events ==========
+      function init() {
+        loadSavedOrgs();
+        el.orgIdInput.value = appState.currentOrgId;
+        el.signinBtn.onclick = ()=>location.assign(authUrl());
+        el.btnLoadOrg.onclick = ()=>loadOrganization(el.orgIdInput.value);
+        el.btnSaveOrg.onclick = saveOrg;
+        el.btnRefresh.onclick = ()=>fetchBillingData(appState.currentPeriod, true);
+        el.btnLoadAllMonths.onclick = loadAllMonths;
+        el.btnDisconnect.onclick = disconnect;
+        el.btnExportCSV.onclick = ()=>{
+          if(!appState.usageData) return;
+          let csv = 'Multi-month data. For full history use JSON.\n';
+          const blob = new Blob([csv],{type:'text/csv'}); // simplistic
+          const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='export.csv'; a.click();
+        };
+        el.monthSelector.addEventListener('change', function(e) {
+          const val = parseInt(e.target.value,10);
+          fetchBillingData(val);
+        });
+        document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function() {
+          document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+          this.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+          document.getElementById(`tab-${this.dataset.tab}`).classList.add('active');
+        }));
+      }
+
+      // start
+      document.addEventListener('DOMContentLoaded', ()=>{
+        const {token,error} = parseTokenFromHash();
+        if(location.hash) history.replaceState(null,'',location.pathname);
+        init();
+        if(token) { appState.accessToken=token; hideAuthOverlay(); fetchBillingData(0); showStatusMessage('Authenticated','success'); }
+        else if(error) { showAuthOverlay(); showStatusMessage('Auth error','error'); }
+        else showAuthOverlay();
+      });
+    })();
   </script>
 </body>
 </html>
