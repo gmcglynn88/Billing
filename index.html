@@ -706,11 +706,12 @@
       border-radius: 3px;
     }
 
-    /* Data label styles */
+    /* Data label styles - ENHANCED */
     .data-label {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       fill: var(--text-color);
+      text-shadow: 0px 0px 2px white;
     }
 
     .trend-badge {
@@ -735,6 +736,13 @@
     .trend-badge-neutral {
       background: rgba(108, 117, 125, 0.15);
       color: var(--neutral);
+    }
+
+    /* Dynamic license breakdown container */
+    #dynamicLicenseBreakdown {
+      max-height: 200px;
+      overflow-y: auto;
+      padding-right: 8px;
     }
   </style>
   
@@ -876,11 +884,7 @@
               <div class="graph-selector">
                 <select id="licensesMetricSelector">
                   <option value="all">All License Types</option>
-                  <option value="cx2">Genesys Cloud CX 2</option>
-                  <option value="wem">Genesys Cloud CX 2 WEM Add-On I</option>
-                  <option value="communicate">Communicate</option>
-                  <option value="collaborate">Collaborate</option>
-                  <option value="ondemand">On-Demand Usage</option>
+                  <!-- Dynamic options will be added here -->
                 </select>
               </div>
             </div>
@@ -909,7 +913,7 @@
           </div>
         </div>
         
-        <!-- License Breakdown Tile -->
+        <!-- Dynamic License Breakdown Tile -->
         <div class="metric-card info" style="margin-bottom: 24px;">
           <div class="metric-header">
             <div>
@@ -918,27 +922,8 @@
             </div>
             <div class="metric-icon">👥</div>
           </div>
-          <div class="license-breakdown" id="licenseBreakdown">
-            <div class="license-item">
-              <span class="license-name">Genesys Cloud CX 2</span>
-              <span class="license-count" id="cx2Count">0</span>
-            </div>
-            <div class="license-item">
-              <span class="license-name">Genesys Cloud CX 2 WEM Add-On I</span>
-              <span class="license-count" id="wemCount">0</span>
-            </div>
-            <div class="license-item">
-              <span class="license-name">Communicate</span>
-              <span class="license-count" id="communicateCount">0</span>
-            </div>
-            <div class="license-item">
-              <span class="license-name">Collaborate</span>
-              <span class="license-count" id="collaborateCount">0</span>
-            </div>
-            <div class="license-item">
-              <span class="license-name">On-Demand</span>
-              <span class="license-count" id="ondemandCount">0</span>
-            </div>
+          <div class="license-breakdown" id="dynamicLicenseBreakdown">
+            <!-- Dynamic license items will be inserted here -->
           </div>
         </div>
         
@@ -1183,7 +1168,9 @@
         minutes: 'speech',
         licenses: 'all',
         volumes: 'byoc'
-      }
+      },
+      licenseTypes: new Map(), // Store dynamic license types with colors
+      resourceCategories: new Set()
     };
 
     // ==================== DOM ELEMENTS ====================
@@ -1228,16 +1215,8 @@
       licensesGraphTitle: document.getElementById('licensesGraphTitle'),
       volumesGraphTitle: document.getElementById('volumesGraphTitle'),
       
-      minutesLegend: document.getElementById('minutesLegend'),
-      licensesLegend: document.getElementById('licensesLegend'),
-      volumesLegend: document.getElementById('volumesLegend'),
-      
+      dynamicLicenseBreakdown: document.getElementById('dynamicLicenseBreakdown'),
       totalLicensesValue: document.getElementById('totalLicensesValue'),
-      cx2Count: document.getElementById('cx2Count'),
-      wemCount: document.getElementById('wemCount'),
-      communicateCount: document.getElementById('communicateCount'),
-      collaborateCount: document.getElementById('collaborateCount'),
-      ondemandCount: document.getElementById('ondemandCount'),
       comparisonTableBody: document.getElementById('comparisonTableBody'),
       
       // Metric tiles
@@ -1435,6 +1414,31 @@
       }
     }
 
+    // Generate a consistent color based on string
+    function getColorForString(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      
+      const colors = [
+        'rgba(99, 171, 143, 0.7)',   // primary green
+        'rgba(78, 115, 223, 0.7)',   // blue
+        'rgba(246, 194, 62, 0.7)',   // yellow
+        'rgba(28, 200, 138, 0.7)',   // green
+        'rgba(220, 53, 69, 0.7)',    // red
+        'rgba(111, 66, 193, 0.7)',   // purple
+        'rgba(253, 126, 20, 0.7)',   // orange
+        'rgba(23, 162, 184, 0.7)',   // teal
+        'rgba(108, 117, 125, 0.7)',  // gray
+        'rgba(0, 123, 255, 0.7)',    // blue
+        'rgba(40, 167, 69, 0.7)',    // green
+        'rgba(255, 193, 7, 0.7)'     // yellow
+      ];
+      
+      return colors[Math.abs(hash) % colors.length];
+    }
+
     // ==================== ORGANIZATION MANAGEMENT ====================
     function loadSavedOrgs() {
       try {
@@ -1499,6 +1503,7 @@
       appState.usageData = null;
       appState.rawApiData = null;
       appState.billingHistory = {};
+      appState.licenseTypes.clear();
       
       // Fetch all months data
       fetchAllMonthsData();
@@ -1623,6 +1628,7 @@
       
       try {
         appState.billingHistory = {};
+        appState.licenseTypes.clear();
         let successCount = 0;
         
         for (let i = 0; i < CONFIG.MAX_MONTHS; i++) {
@@ -1653,6 +1659,9 @@
             showStatusMessage(`Month ${i} failed: ${error.message}`, 'warn');
           }
         }
+        
+        // Update license selector with dynamic types
+        updateLicenseSelector();
         
         appState.lastFetchTime = new Date();
         appState.currentPeriod = 0; // Default to current month
@@ -1795,14 +1804,14 @@
     function parseUserLicenses(usages) {
       const userLicenses = [];
       
+      // Filter for user license products
       const userProducts = usages.filter(usage => 
         usage.name && (
           usage.grouping === 'user' ||
           usage.name.includes('Genesys Cloud CX') ||
           usage.name.includes('CX 2') ||
           usage.name.includes('WEM') ||
-          usage.name.includes('Communicate User') ||
-          usage.name.includes('Communicate Standalone') ||
+          usage.name.includes('Communicate') ||
           usage.name.includes('Collaborate') ||
           usage.name.includes('Wallboard')
         )
@@ -1813,6 +1822,15 @@
         const prepayQuantity = parseFloat(usage.prepayQuantity) || 0;
         const overageQuantity = Math.max(0, usageQuantity - prepayQuantity);
         
+        // Store license type dynamically
+        if (!appState.licenseTypes.has(usage.name)) {
+          appState.licenseTypes.set(usage.name, {
+            name: usage.name,
+            color: getColorForString(usage.name),
+            count: 0
+          });
+        }
+        
         userLicenses.push({
           name: usage.name,
           qty: usageQuantity,
@@ -1820,7 +1838,6 @@
           used: usageQuantity,
           onDemand: overageQuantity,
           partNumber: usage.partNumber,
-          type: getLicenseType(usage.name),
           items: [
             { name: `Committed${usageQuantity > 0 ? ` (${usageQuantity} used)` : ''}`, qty: prepayQuantity, used: usageQuantity },
             { name: "On-Demand", qty: overageQuantity, used: overageQuantity }
@@ -1829,15 +1846,6 @@
       });
       
       return userLicenses;
-    }
-
-    function getLicenseType(name) {
-      if (name.includes('CX 2') && name.includes('WEM')) return 'wem';
-      if (name.includes('CX 2')) return 'cx2';
-      if (name.includes('WEM')) return 'wem';
-      if (name.includes('Communicate')) return 'communicate';
-      if (name.includes('Collaborate')) return 'collaborate';
-      return 'other';
     }
 
     function parseResources(usages) {
@@ -1886,14 +1894,19 @@
           grouping: usage.grouping
         };
         
+        // Categorize resources
         if (usage.grouping === 'resource' || usage.name.includes('BYOT') || usage.name.includes('BYOC')) {
           byocItems.push(resource);
+          appState.resourceCategories.add('byoc');
         } else if (usage.grouping === 'messaging' || usage.grouping === 'messaging-usage' || usage.name.includes('SMS') || usage.name.includes('MMS')) {
           messagingItems.push(resource);
+          appState.resourceCategories.add('messaging');
         } else if (usage.grouping === 'storage' || usage.grouping === 'storage-category' || usage.name.includes('Storage') || usage.unit === 'GB') {
           storageItems.push(resource);
+          appState.resourceCategories.add('storage');
         } else if (usage.grouping === 'api' || usage.name.includes('API') || usage.unit === 'requests') {
           apiItems.push(resource);
+          appState.resourceCategories.add('api');
         } else if (usage.name.includes('Voice') || usage.name.includes('IVR') || usage.unit === 'minutes') {
           voiceItems.push(resource);
         } else {
@@ -1926,6 +1939,31 @@
       }
       
       return resources;
+    }
+
+    function updateLicenseSelector() {
+      const selector = el.licensesMetricSelector;
+      selector.innerHTML = '';
+      
+      // Add "All License Types" option
+      const allOption = document.createElement('option');
+      allOption.value = 'all';
+      allOption.textContent = 'All License Types';
+      selector.appendChild(allOption);
+      
+      // Add dynamic license types
+      appState.licenseTypes.forEach((value, key) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = key;
+        selector.appendChild(option);
+      });
+      
+      // Add On-Demand option
+      const ondemandOption = document.createElement('option');
+      ondemandOption.value = 'ondemand';
+      ondemandOption.textContent = 'On-Demand Usage';
+      selector.appendChild(ondemandOption);
     }
 
     // ==================== CHART FUNCTIONS ====================
@@ -1974,7 +2012,6 @@
       let title = '';
       let data = [];
       let backgroundColors = [];
-      let previousValues = [];
       
       // Get data in chronological order (oldest to newest)
       for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
@@ -2039,11 +2076,6 @@
           data.push(utilization);
           backgroundColors.push('rgba(220, 53, 69, 0.7)');
         }
-        
-        // Store for trend calculation
-        if (monthData) {
-          previousValues[i] = data[data.length - 1];
-        }
       }
       
       el.minutesGraphTitle.textContent = title;
@@ -2061,23 +2093,42 @@
             datalabels: {
               anchor: 'end',
               align: 'top',
-              offset: 4,
+              offset: 8,
               formatter: (value, context) => {
                 const index = context.dataIndex;
                 const prevValue = index > 0 ? data[index - 1] : null;
-                const trend = prevValue ? ((value - prevValue) / prevValue * 100).toFixed(1) : null;
                 
-                if (trend && !isNaN(trend) && trend !== '0.0') {
-                  const trendIcon = trend > 0 ? '▲' : '▼';
-                  const trendColor = trend > 0 ? 'green' : 'red';
-                  return `${value}\n${trendIcon} ${Math.abs(trend)}%`;
+                if (value === 0) return '';
+                
+                // Value inside the bar (smaller)
+                const valueText = value.toString();
+                
+                // Trend above the bar (with arrow)
+                if (prevValue && prevValue > 0) {
+                  const change = ((value - prevValue) / prevValue * 100).toFixed(1);
+                  if (Math.abs(change) > 0.1) {
+                    const trendIcon = change > 0 ? '▲' : '▼';
+                    const trendColor = change > 0 ? 'green' : 'red';
+                    return [
+                      valueText,
+                      { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
+                    ];
+                  }
                 }
-                return value.toString();
+                return valueText;
               },
               color: '#2C3E50',
               font: {
                 weight: 'bold',
-                size: 10
+                size: 12  // Increased from 10 to 12
+              },
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              borderRadius: 4,
+              padding: {
+                top: 2,
+                bottom: 2,
+                left: 4,
+                right: 4
               }
             }
           }]
@@ -2106,24 +2157,15 @@
       if (metric === 'all') {
         title = 'All License Types';
         
-        // Get unique license types with proper names
-        const licenseTypes = {
-          'cx2': { name: 'Genesys Cloud CX 2', color: 'rgba(99, 171, 143, 0.7)' },
-          'wem': { name: 'Genesys Cloud CX 2 WEM Add-On I', color: 'rgba(78, 115, 223, 0.7)' },
-          'communicate': { name: 'Communicate', color: 'rgba(246, 194, 62, 0.7)' },
-          'collaborate': { name: 'Collaborate', color: 'rgba(28, 200, 138, 0.7)' },
-          'other': { name: 'Other Licenses', color: 'rgba(220, 53, 69, 0.7)' }
-        };
-        
         // Create datasets for each license type
-        Object.keys(licenseTypes).forEach(type => {
+        appState.licenseTypes.forEach((licenseInfo, licenseName) => {
           const typeData = [];
           for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
             const monthData = appState.billingHistory[i]?.data;
             let count = 0;
             if (monthData) {
               monthData.users.forEach(user => {
-                if (getLicenseType(user.name) === type) {
+                if (user.name === licenseName) {
                   count += user.qty;
                 }
               });
@@ -2134,65 +2176,63 @@
           // Only add dataset if there's any data
           if (typeData.some(v => v > 0)) {
             datasets.push({
-              label: licenseTypes[type].name,
+              label: licenseName,
               data: typeData,
-              backgroundColor: licenseTypes[type].color,
-              borderColor: licenseTypes[type].color.replace('0.7', '1'),
+              backgroundColor: licenseInfo.color,
+              borderColor: licenseInfo.color.replace('0.7', '1'),
               borderWidth: 1,
               datalabels: {
                 anchor: 'end',
                 align: 'top',
-                offset: 4,
+                offset: 8,
                 formatter: (value, context) => {
                   if (value === 0) return '';
                   const index = context.dataIndex;
                   const datasetIndex = context.datasetIndex;
                   const prevValue = index > 0 ? datasets[datasetIndex]?.data[index - 1] : null;
                   
+                  // Value inside the bar
+                  const valueText = value.toString();
+                  
+                  // Trend above the bar
                   if (prevValue && prevValue > 0) {
                     const change = ((value - prevValue) / prevValue * 100).toFixed(1);
                     if (Math.abs(change) > 0.1) {
                       const trendIcon = change > 0 ? '▲' : '▼';
-                      return `${value}\n${trendIcon} ${Math.abs(change)}%`;
+                      const trendColor = change > 0 ? 'green' : 'red';
+                      return [
+                        valueText,
+                        { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
+                      ];
                     }
                   }
-                  return value.toString();
+                  return valueText;
                 },
                 color: '#2C3E50',
                 font: {
                   weight: 'bold',
-                  size: 9
+                  size: 11  // Increased from 9 to 11
+                },
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                borderRadius: 4,
+                padding: {
+                  top: 2,
+                  bottom: 2,
+                  left: 4,
+                  right: 4
                 }
               }
             });
           }
         });
-      } else {
-        // Single license type
-        const licenseNames = {
-          'cx2': 'Genesys Cloud CX 2',
-          'wem': 'Genesys Cloud CX 2 WEM Add-On I',
-          'communicate': 'Communicate',
-          'collaborate': 'Collaborate',
-          'ondemand': 'On-Demand Usage'
-        };
-        
-        title = licenseNames[metric] || metric;
-        
+      } else if (metric === 'ondemand') {
+        title = 'On-Demand Usage';
         const data = [];
         for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
           const monthData = appState.billingHistory[i]?.data;
           let count = 0;
           if (monthData) {
-            if (metric === 'ondemand') {
-              monthData.users.forEach(user => count += user.onDemand);
-            } else {
-              monthData.users.forEach(user => {
-                if (getLicenseType(user.name) === metric) {
-                  count += user.qty;
-                }
-              });
-            }
+            monthData.users.forEach(user => count += user.onDemand);
           }
           data.push(count);
         }
@@ -2200,32 +2240,92 @@
         datasets = [{
           label: title,
           data: data,
-          backgroundColor: getLicenseColor(metric),
-          borderColor: getLicenseColor(metric).replace('0.7', '1'),
+          backgroundColor: 'rgba(108, 117, 125, 0.7)',
+          borderColor: 'rgba(108, 117, 125, 1)',
           borderWidth: 1,
           datalabels: {
             anchor: 'end',
             align: 'top',
-            offset: 4,
+            offset: 8,
             formatter: (value, context) => {
               if (value === 0) return '';
               const index = context.dataIndex;
               const prevValue = index > 0 ? data[index - 1] : null;
               
+              const valueText = value.toString();
+              
               if (prevValue && prevValue > 0) {
                 const change = ((value - prevValue) / prevValue * 100).toFixed(1);
                 if (Math.abs(change) > 0.1) {
                   const trendIcon = change > 0 ? '▲' : '▼';
-                  return `${value}\n${trendIcon} ${Math.abs(change)}%`;
+                  return [
+                    valueText,
+                    { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
+                  ];
                 }
               }
-              return value.toString();
+              return valueText;
             },
             color: '#2C3E50',
-            font: {
-              weight: 'bold',
-              size: 10
-            }
+            font: { weight: 'bold', size: 12 },
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            borderRadius: 4,
+            padding: { top: 2, bottom: 2, left: 4, right: 4 }
+          }
+        }];
+      } else {
+        // Single license type from dynamic map
+        const licenseInfo = appState.licenseTypes.get(metric);
+        title = licenseInfo?.name || metric;
+        
+        const data = [];
+        for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
+          const monthData = appState.billingHistory[i]?.data;
+          let count = 0;
+          if (monthData) {
+            monthData.users.forEach(user => {
+              if (user.name === metric) {
+                count += user.qty;
+              }
+            });
+          }
+          data.push(count);
+        }
+        
+        datasets = [{
+          label: title,
+          data: data,
+          backgroundColor: licenseInfo?.color || 'rgba(99, 171, 143, 0.7)',
+          borderColor: (licenseInfo?.color || 'rgba(99, 171, 143, 0.7)').replace('0.7', '1'),
+          borderWidth: 1,
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            offset: 8,
+            formatter: (value, context) => {
+              if (value === 0) return '';
+              const index = context.dataIndex;
+              const prevValue = index > 0 ? data[index - 1] : null;
+              
+              const valueText = value.toString();
+              
+              if (prevValue && prevValue > 0) {
+                const change = ((value - prevValue) / prevValue * 100).toFixed(1);
+                if (Math.abs(change) > 0.1) {
+                  const trendIcon = change > 0 ? '▲' : '▼';
+                  return [
+                    valueText,
+                    { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
+                  ];
+                }
+              }
+              return valueText;
+            },
+            color: '#2C3E50',
+            font: { weight: 'bold', size: 12 },
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            borderRadius: 4,
+            padding: { top: 2, bottom: 2, left: 4, right: 4 }
           }
         }];
       }
@@ -2258,18 +2358,6 @@
           }
         }
       });
-    }
-
-    function getLicenseColor(type) {
-      const colors = {
-        'cx2': 'rgba(99, 171, 143, 0.7)',
-        'wem': 'rgba(78, 115, 223, 0.7)',
-        'communicate': 'rgba(246, 194, 62, 0.7)',
-        'collaborate': 'rgba(28, 200, 138, 0.7)',
-        'other': 'rgba(220, 53, 69, 0.7)',
-        'ondemand': 'rgba(108, 117, 125, 0.7)'
-      };
-      return colors[type] || 'rgba(99, 171, 143, 0.7)';
     }
 
     function updateVolumesGraph(ctx, months) {
@@ -2340,25 +2428,38 @@
             datalabels: {
               anchor: 'end',
               align: 'top',
-              offset: 4,
+              offset: 8,
               formatter: (value, context) => {
                 if (value === 0) return '';
                 const index = context.dataIndex;
                 const prevValue = index > 0 ? data[index - 1] : null;
                 
+                const valueText = value.toString();
+                
                 if (prevValue && prevValue > 0) {
                   const change = ((value - prevValue) / prevValue * 100).toFixed(1);
                   if (Math.abs(change) > 0.1) {
                     const trendIcon = change > 0 ? '▲' : '▼';
-                    return `${value}\n${trendIcon} ${Math.abs(change)}%`;
+                    return [
+                      valueText,
+                      { text: `${trendIcon} ${Math.abs(change)}%`, color: change > 0 ? '#28a745' : '#dc3545', font: { weight: 'bold', size: 11 } }
+                    ];
                   }
                 }
-                return value.toString();
+                return valueText;
               },
               color: '#2C3E50',
               font: {
                 weight: 'bold',
-                size: 10
+                size: 12
+              },
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              borderRadius: 4,
+              padding: {
+                top: 2,
+                bottom: 2,
+                left: 4,
+                right: 4
               }
             }
           }]
@@ -2435,45 +2536,58 @@
       el.currentMonthName.textContent = currentMonth.name;
       el.currentMonthDates.textContent = `${currentMonth.firstDay} - ${currentMonth.lastDay}`;
       
-      // Update license breakdown
-      let totalLicenses = 0;
-      let cx2Count = 0;
-      let wemCount = 0;
-      let communicateCount = 0;
-      let collaborateCount = 0;
-      let ondemandCount = 0;
-      
-      if (appState.usageData) {
-        appState.usageData.users.forEach(user => {
-          totalLicenses += user.qty;
-          ondemandCount += user.onDemand;
-          
-          if (user.name.includes('CX 2') && user.name.includes('WEM')) {
-            wemCount += user.qty;
-          } else if (user.name.includes('CX 2')) {
-            cx2Count += user.qty;
-          } else if (user.name.includes('WEM')) {
-            wemCount += user.qty;
-          } else if (user.name.includes('Communicate')) {
-            communicateCount += user.qty;
-          } else if (user.name.includes('Collaborate')) {
-            collaborateCount += user.qty;
-          }
-        });
-      }
-      
-      el.totalLicensesValue.textContent = formatNumber(totalLicenses);
-      el.cx2Count.textContent = formatNumber(cx2Count);
-      el.wemCount.textContent = formatNumber(wemCount);
-      el.communicateCount.textContent = formatNumber(communicateCount);
-      el.collaborateCount.textContent = formatNumber(collaborateCount);
-      el.ondemandCount.textContent = formatNumber(ondemandCount);
+      // Update dynamic license breakdown
+      updateLicenseBreakdown();
       
       // Update comparison table
       updateComparisonTable();
       
       // Update charts
       updateCharts();
+    }
+
+    function updateLicenseBreakdown() {
+      const container = el.dynamicLicenseBreakdown;
+      container.innerHTML = '';
+      
+      let totalLicenses = 0;
+      const licenseCounts = new Map();
+      
+      // Initialize counts
+      appState.licenseTypes.forEach((value, key) => {
+        licenseCounts.set(key, 0);
+      });
+      
+      // Count licenses from current month
+      if (appState.usageData) {
+        appState.usageData.users.forEach(user => {
+          totalLicenses += user.qty;
+          licenseCounts.set(user.name, (licenseCounts.get(user.name) || 0) + user.qty);
+        });
+      }
+      
+      el.totalLicensesValue.textContent = formatNumber(totalLicenses);
+      
+      // Sort licenses by count (descending)
+      const sortedLicenses = Array.from(licenseCounts.entries())
+        .filter(([_, count]) => count > 0)
+        .sort((a, b) => b[1] - a[1]);
+      
+      sortedLicenses.forEach(([name, count]) => {
+        const licenseInfo = appState.licenseTypes.get(name);
+        const color = licenseInfo?.color || 'rgba(99, 171, 143, 0.7)';
+        
+        const item = document.createElement('div');
+        item.className = 'license-item';
+        item.innerHTML = `
+          <span class="license-name">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${color};margin-right:8px;"></span>
+            ${name}
+          </span>
+          <span class="license-count">${formatNumber(count)}</span>
+        `;
+        container.appendChild(item);
+      });
     }
 
     function updateComparisonTable() {
@@ -2491,33 +2605,66 @@
         months.push(appState.billingHistory[i]?.data);
       }
       
-      // Calculate metrics
+      // Build metrics dynamically
       const metrics = [
         { name: 'Total User Licenses', 
           values: months.map(m => m?.users.reduce((sum, u) => sum + u.qty, 0) || 0)
         },
-        { name: 'Genesys Cloud CX 2', 
-          values: months.map(m => getLicenseCountByType(m, 'cx2'))
-        },
-        { name: 'WEM Add-On I', 
-          values: months.map(m => getLicenseCountByType(m, 'wem'))
-        },
         { name: 'On-Demand Licenses', 
           values: months.map(m => m?.users.reduce((sum, u) => sum + u.onDemand, 0) || 0)
-        },
+        }
+      ];
+      
+      // Add top license types
+      const licenseCounts = new Map();
+      months.forEach(month => {
+        if (month) {
+          month.users.forEach(user => {
+            licenseCounts.set(user.name, (licenseCounts.get(user.name) || 0) + user.qty);
+          });
+        }
+      });
+      
+      // Get top 5 license types
+      const topLicenses = Array.from(licenseCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([name]) => name);
+      
+      topLicenses.forEach(licenseName => {
+        metrics.push({
+          name: licenseName,
+          values: months.map(m => {
+            if (!m) return 0;
+            const license = m.users.find(u => u.name === licenseName);
+            return license?.qty || 0;
+          })
+        });
+      });
+      
+      // Add resource metrics
+      metrics.push(
         { name: 'Speech Minutes', 
           values: months.map(m => getResourceTotal(m, 'Voice Transcription'))
         },
         { name: 'IVR Minutes', 
           values: months.map(m => getResourceTotal(m, 'IVR'))
-        },
-        { name: 'API Requests', 
-          values: months.map(m => getResourceTotalByCategory(m, 'API'))
-        },
-        { name: 'SMS/MMS Messages', 
-          values: months.map(m => getResourceTotalByCategory(m, 'Messaging'))
         }
-      ];
+      );
+      
+      if (appState.resourceCategories.has('api')) {
+        metrics.push({
+          name: 'API Requests',
+          values: months.map(m => getResourceTotalByCategory(m, 'API'))
+        });
+      }
+      
+      if (appState.resourceCategories.has('messaging')) {
+        metrics.push({
+          name: 'SMS/MMS Messages',
+          values: months.map(m => getResourceTotalByCategory(m, 'Messaging'))
+        });
+      }
       
       metrics.forEach(metric => {
         const row = document.createElement('tr');
@@ -2537,17 +2684,6 @@
         row.innerHTML = html;
         tbody.appendChild(row);
       });
-    }
-
-    function getLicenseCountByType(data, type) {
-      if (!data) return 0;
-      let count = 0;
-      data.users.forEach(user => {
-        if (getLicenseType(user.name) === type) {
-          count += user.qty;
-        }
-      });
-      return count;
     }
 
     function getResourceTotal(data, nameContains) {
