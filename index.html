@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Genesys Cloud · Usage Dashboard + Trends</title>
+  <title>Genesys Cloud · Unified Dashboard</title>
   <style>
     /* ----- ORIGINAL COLOURS & STYLES (exactly as provided) ----- */
     :root{
@@ -108,7 +108,7 @@
     td{padding:16px 18px;border-bottom:1px solid var(--border-color);font-size:14px;text-align:center;}
     tr:hover{background-color:var(--pill)}
 
-    /* ----- TABS (original horizontal style) ----- */
+    /* ----- HORIZONTAL TABS (original style) ----- */
     .tabs{
       display:flex;border-bottom:2px solid var(--border-color);
       margin-bottom:28px;background:white;border-radius:10px 10px 0 0;
@@ -161,7 +161,7 @@
       .container{margin:0 10px;width:calc(100% - 20px);}
     }
 
-    /* ----- ORIGINAL METRIC TILE STYLES ----- */
+    /* ----- ORIGINAL METRIC TILES ----- */
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -249,60 +249,96 @@
     .progress-fill.used {
       background: linear-gradient(90deg, var(--chart-blue), var(--primary-color));
     }
-    
-    /* ----- analytics specific (bar chart) ----- */
-    .chart-controls {
-      background: var(--pill);
-      border-radius: 12px;
-      padding: 18px 22px;
-      margin-bottom: 28px;
+
+    /* month selector row */
+    .month-selector-row {
       display: flex;
       align-items: center;
-      gap: 25px;
+      gap: 20px;
+      background: var(--pill);
+      padding: 16px 24px;
+      border-radius: 12px;
+      margin-bottom: 28px;
       flex-wrap: wrap;
     }
-    .chart-controls select {
-      width: 300px;
+    .month-selector-row label {
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    .month-selector-row select {
+      width: 260px;
       background: white;
     }
-    .bar-chart {
-      margin-top: 30px;
+    .month-badge {
+      background: white;
+      border-radius: 30px;
+      padding: 8px 24px;
+      font-weight: 600;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+
+    /* chart grid */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin: 30px 0;
+    }
+    .chart-card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .chart-card h3 {
+      color: var(--primary-color);
+      font-size: 18px;
+      margin-top: 0;
+      margin-bottom: 20px;
+      border-bottom: 1px dashed var(--border-color);
+      padding-bottom: 12px;
+    }
+    .simple-bar-container {
       display: flex;
       align-items: flex-end;
       justify-content: space-around;
-      height: 280px;
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: 10px;
+      height: 180px;
     }
-    .bar-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 70px;
-    }
-    .bar {
-      width: 45px;
+    .simple-bar {
+      width: 40px;
       background: var(--primary-color);
       border-radius: 8px 8px 0 0;
-      transition: height 0.3s;
-      min-height: 4px;
+      transition: height 0.2s;
     }
     .bar-label {
-      margin-top: 12px;
-      font-weight: 600;
-      font-size: 13px;
-      color: var(--text-color);
-    }
-    .bar-value {
-      font-size: 13px;
-      color: var(--text-light);
-      margin-bottom: 6px;
-    }
-    .no-data-message {
       text-align: center;
-      padding: 60px;
+      font-size: 12px;
+      margin-top: 10px;
       color: var(--text-light);
     }
+    .breakdown-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .breakdown-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--light-bg);
+      font-size: 14px;
+    }
+    .trend-indicator {
+      display: inline-block;
+      margin-left: 8px;
+      font-weight: 600;
+    }
+    .trend-up { color: var(--danger); }
+    .trend-down { color: var(--success); }
+    .trend-flat { color: var(--text-light); }
+
     .category-header {
       background-color: var(--light-bg) !important;
       font-weight: 700;
@@ -316,7 +352,7 @@
   </style>
 </head>
 <body>
-  <!-- Auth overlay (exactly as original) -->
+  <!-- Auth overlay (original) -->
   <div class="auth-overlay" id="authOverlay" style="display:none;">
     <div class="auth-card" style="max-width:400px; width:90%; padding:40px; background:var(--card-bg); border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.1); text-align:center;">
       <h2 style="color:var(--primary-color);">🔐 Authentication Required</h2>
@@ -342,7 +378,7 @@
         <span id="lastUpdated" style="font-size:14px;background:var(--pill);padding:6px 12px;border-radius:20px;">Loading...</span>
       </div>
       
-      <!-- Organization Selector (exactly as original) -->
+      <!-- Organization Selector (original) -->
       <div style="margin-top:20px;padding-top:20px;border-top:2px solid var(--light-bg);">
         <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
           <div style="flex:1;min-width:300px;">
@@ -359,34 +395,110 @@
       </div>
     </header>
 
-    <!-- TABS: original three + new ANALYTICS (horizontal) -->
+    <!-- HORIZONTAL TABS (original style) -->
     <div class="tabs">
-      <button class="tab active" data-tab="users">👥 User Licenses</button>
+      <button class="tab active" data-tab="dashboard">📊 Dashboard</button>
+      <button class="tab" data-tab="licenses">👥 User Licenses</button>
       <button class="tab" data-tab="resources">📦 Resources</button>
-      <button class="tab" data-tab="highlights">⚠️ Usage Highlights</button>
       <button class="tab" data-tab="analytics">📈 Analytics & Trends</button>
     </div>
 
-    <!-- USERS TAB (exactly as originally provided) -->
-    <div id="tab-users" class="tab-content active">
+    <!-- Month selector row (appears on Dashboard & Licenses & Resources – Analytics shows all) -->
+    <div class="month-selector-row" id="monthSelectorRow">
+      <label>📅 Select month:</label>
+      <select id="monthSelector">
+        <option value="0">Current month (active)</option>
+        <option value="1">1 month ago</option>
+        <option value="2">2 months ago</option>
+        <option value="3">3 months ago</option>
+        <option value="4">4 months ago</option>
+        <option value="5">5 months ago</option>
+        <option value="6">6 months ago</option>
+      </select>
+      <span class="month-badge" id="selectedMonthDisplay">Current month</span>
+      <span style="margin-left:auto; font-size:14px; color:var(--text-light);" id="prevMonthChange"></span>
+    </div>
+
+    <!-- DASHBOARD TAB (merged with original highlights) -->
+    <div id="tab-dashboard" class="tab-content active">
       <div class="card">
-        <h2>👥 User Licenses</h2>
+        <h2>📊 Dashboard · Overview & Highlights</h2>
+        
+        <!-- Tiles for month context -->
+        <div class="metric-grid" style="grid-template-columns:repeat(2,1fr);">
+          <div class="metric-card info">
+            <div class="metric-header"><div><div class="metric-label">Current period</div><div class="metric-value" id="dashCurrentMonth">-</div></div><div class="metric-icon">📅</div></div>
+            <div class="metric-subtext" id="dashCurrentRange"></div>
+          </div>
+          <div class="metric-card success">
+            <div class="metric-header"><div><div class="metric-label">vs previous month</div><div class="metric-value" id="dashVsPrev">-</div></div><div class="metric-icon">📊</div></div>
+            <div class="metric-subtext" id="dashVsPrevDetail"></div>
+          </div>
+        </div>
+
+        <!-- Three graphs: Licenses (total+breakdown), Minutes, Volumes -->
+        <div class="chart-grid">
+          <!-- Licenses chart (total + breakdown) -->
+          <div class="chart-card">
+            <h3>👥 Licenses</h3>
+            <div style="margin-bottom:20px;">
+              <div style="display:flex; justify-content:space-between;"><span>Total seats</span> <strong><span id="licTotal">0</span></strong></div>
+              <div style="display:flex; justify-content:space-between;"><span>Committed</span> <span id="licCommitted">0</span></div>
+              <div style="display:flex; justify-content:space-between;"><span>Used</span> <span id="licUsed">0</span></div>
+              <div style="display:flex; justify-content:space-between;"><span>On‑demand</span> <span id="licOndemand">0</span></div>
+            </div>
+            <div class="simple-bar-container" id="licChartBars">
+              <!-- bars injected -->
+            </div>
+          </div>
+          <!-- Minutes chart (Transcription & IVR) -->
+          <div class="chart-card">
+            <h3>🎤 Minutes</h3>
+            <div style="margin-bottom:20px;">
+              <div><span>Transcription used</span> <strong><span id="minTranscript">0</span></strong></div>
+              <div><span>Transcription prepaid</span> <span id="minTranscriptPre">0</span></div>
+              <div><span>IVR used</span> <span id="minIvr">0</span></div>
+            </div>
+            <div class="simple-bar-container" id="minChartBars"></div>
+          </div>
+          <!-- Volumes chart (API / messages / requests) -->
+          <div class="chart-card">
+            <h3>📦 Volumes</h3>
+            <div style="margin-bottom:20px;">
+              <div><span>API requests</span> <strong><span id="volApi">0</span></strong></div>
+              <div><span>SMS/Messages</span> <span id="volMsg">0</span></div>
+              <div><span>Storage (GB)</span> <span id="volStorage">0</span></div>
+            </div>
+            <div class="simple-bar-container" id="volChartBars"></div>
+          </div>
+        </div>
+
+        <!-- Original highlights tables (moved from old Highlights tab) -->
+        <h3 style="color:var(--primary-color); margin:30px 0 16px;">👥 User License Utilization</h3>
+        <div class="table-container">
+          <table><thead><tr><th class="text-left">License Type</th><th>Total</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="dashboardUsersTable"></tbody></table>
+        </div>
+
+        <h3 style="color:var(--primary-color); margin:30px 0 16px;">🎤 Speech Analytics - Transcription Usage</h3>
+        <div id="dashSpeechCard" class="metric-card" style="margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><div><div style="font-size:18px;font-weight:600;">Genesys Cloud for Voice Transcription Fair Use (Legacy)</div><div style="font-size:14px;color:var(--text-light);">Prepaid vs Used Analysis</div></div><div style="font-size:24px;">🎤</div></div>
+          <div class="progress-container"><div class="progress-label"><span>Used: <span id="dashSpeechUsed">0</span> min</span><span>Prepaid: <span id="dashSpeechPrepaid">0</span> min</span><span>Remaining: <span id="dashSpeechRemaining">0</span> min</span></div><div class="progress-bar"><div class="progress-fill used" id="dashSpeechUsedBar" style="width:0%"></div><div class="progress-fill remaining" id="dashSpeechRemainingBar" style="width:100%; background:var(--light-bg);"></div></div></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;"><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--chart-blue);" id="dashSpeechUsedPct">0%</div><div>Used</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--success);" id="dashSpeechAvailablePct">0%</div><div>Available</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--text-light);" id="dashSpeechDaysLeft">0</div><div>Days left</div></div></div>
+        </div>
+
+        <h3 style="color:var(--primary-color); margin:30px 0 16px;">📊 Resource Usage Highlights</h3>
+        <div class="table-container"><table><thead><tr><th class="text-left">Resource</th><th>Total</th><th>Used</th><th>Available</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="dashboardResourcesTable"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- USER LICENSES TAB (original full table) -->
+    <div id="tab-licenses" class="tab-content">
+      <div class="card">
+        <h2>👥 User Licenses · <span id="licensesMonthNote"></span></h2>
         <div class="table-container">
           <table id="usersTable">
-            <thead>
-              <tr>
-                <th class="text-left">Service Name</th>
-                <th>Total Qty</th>
-                <th>Committed</th>
-                <th>Used</th>
-                <th>On-Demand</th>
-                <th>Utilization</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody">
-              <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-light);">Loading user data...</td></tr>
-            </tbody>
+            <thead><tr><th class="text-left">Service Name</th><th>Total Qty</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead>
+            <tbody id="usersTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -395,7 +507,7 @@
     <!-- RESOURCES TAB (original) -->
     <div id="tab-resources" class="tab-content">
       <div class="card">
-        <h2>📦 Resources (excludes Cloud Voice charges)</h2>
+        <h2>📦 Resources (excludes Cloud Voice charges) · <span id="resourcesMonthNote"></span></h2>
         <div class="table-container">
           <table id="resourcesTable" class="compact-table">
             <thead><tr><th class="text-left">Resource Name</th><th>Qty</th><th>Unit</th><th>Included</th><th>Used</th><th>On-Demand</th><th>Utilization</th></tr></thead>
@@ -405,45 +517,21 @@
       </div>
     </div>
 
-    <!-- HIGHLIGHTS TAB (original) -->
-    <div id="tab-highlights" class="tab-content">
-      <div class="card">
-        <h2>⚠️ Usage Highlights & Alerts</h2>
-        <div style="margin-bottom:32px;"><h3 style="color:var(--primary-color);">👥 User License Utilization</h3>
-          <div class="table-container"><table><thead><tr><th class="text-left">License Type</th><th>Total</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="highlightsUsersTable"></tbody></table></div>
-        </div>
-        <div style="margin-bottom:32px;"><h3 style="color:var(--primary-color);">🎤 Speech Analytics - Transcription Usage</h3>
-          <div id="speechAnalyticsCard" class="metric-card" style="margin-bottom:0;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><div><div style="font-size:18px;font-weight:600;">Genesys Cloud for Voice Transcription Fair Use (Legacy)</div><div style="font-size:14px;color:var(--text-light);">Prepaid vs Used Analysis</div></div><div style="font-size:24px;">🎤</div></div>
-            <div class="progress-container" style="margin-bottom:20px;"><div class="progress-label"><span>Used: <span id="highlightSpeechUsed">0</span> min</span><span>Prepaid: <span id="highlightSpeechPrepaid">0</span> min</span><span>Remaining: <span id="highlightSpeechRemaining">0</span> min</span></div><div class="progress-bar"><div class="progress-fill used" id="highlightSpeechUsedBar" style="width:0%"></div><div class="progress-fill remaining" id="highlightSpeechRemainingBar" style="width:100%; background:var(--light-bg);"></div></div></div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;"><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--chart-blue);" id="highlightSpeechUsedPct">0%</div><div style="font-size:12px;">Used</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--success);" id="highlightSpeechAvailablePct">0%</div><div style="font-size:12px;">Available</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--text-light);" id="highlightSpeechDaysLeft">0</div><div style="font-size:12px;">Days in Month</div></div></div>
-          </div>
-        </div>
-        <div><h3 style="color:var(--primary-color);">📊 Resource Usage Highlights</h3>
-          <div class="table-container"><table><thead><tr><th class="text-left">Resource</th><th>Total</th><th>Used</th><th>Available</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="highlightsResourcesTable"></tbody></table></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- NEW ANALYTICS TAB with bar chart -->
+    <!-- ANALYTICS TAB (always shows all months) -->
     <div id="tab-analytics" class="tab-content">
       <div class="card">
-        <h2>📈 6‑Month Trends</h2>
-        <div class="chart-controls">
-          <label for="trendMetricSelect" style="font-weight:600;">Select metric:</label>
-          <select id="trendMetricSelect">
-            <option value="totalLicenses">Total User Licenses</option>
-            <option value="onDemandSeats">On‑Demand Seats</option>
-            <option value="speechMinutes">Transcription Minutes Used</option>
-            <option value="ivrMinutes">IVR Minutes Used</option>
-            <option value="apiRequests">API Requests (estimate)</option>
-          </select>
-          <span style="color:var(--text-light);">Last 6 months</span>
+        <h2>📈 6‑Month Trends (all months)</h2>
+        <div style="margin-bottom:20px; background:var(--pill); padding:16px; border-radius:12px;">
+          <span class="month-badge">All months 0‑6</span>
         </div>
-        <div id="barChartContainer" class="bar-chart">
-          <!-- bars will be injected here -->
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px;">
+          <div class="chart-card"><h3>Total Licenses</h3><div class="simple-bar-container" id="analyticsLicBar"></div></div>
+          <div class="chart-card"><h3>Transcription minutes</h3><div class="simple-bar-container" id="analyticsSpeechBar"></div></div>
+          <div class="chart-card"><h3>On‑demand seats</h3><div class="simple-bar-container" id="analyticsOndemandBar"></div></div>
         </div>
-        <div id="noDataMessage" class="no-data-message" style="display:none;">Load months to see chart</div>
+        <div style="margin-top:30px;">
+          <p class="note">* Bar values shown on hover (simplified). Full data in other tabs.</p>
+        </div>
       </div>
     </div>
 
@@ -469,346 +557,339 @@
         ENVIRONMENTS: { 'eu-west-2': { name: 'EU West (London)', api: 'https://api.euw2.pure.cloud', login: 'https://login.euw2.pure.cloud' } }
       };
 
-      // ---------- STATE (billingHistory stores months 0..6) ----------
       let appState = {
-        currentTab: 'users',
+        currentTab: 'dashboard',
         currentPeriod: 0,
         usageData: null,
-        rawApiData: null,
-        billingHistory: {},   // key = periodIndex (0..6) -> {data, raw, timestamp}
+        billingHistory: {},   // periodIndex -> {data, raw, timestamp}
         accessToken: null,
         currentOrgId: CONFIG.TRUSTED_ORG_ID,
         savedOrgs: []
       };
 
-      // DOM elements (will be populated)
       const el = {};
 
-      // ---------- helper functions (original style) ----------
+      // ---------- helpers ----------
       function formatNumber(num) { return (num ?? 0).toLocaleString(); }
-      
-      function showStatusMessage(message, type = 'info') {
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'status-message';
-        const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '💡';
-        const color = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warn' ? '#ffc107' : '#17a2b8';
-        msgDiv.style.borderLeftColor = color;
-        msgDiv.innerHTML = `<span style="font-size:20px;">${icon}</span><div><div style="font-weight:600;">${message}</div><div style="font-size:12px;color:var(--text-light);">${new Date().toLocaleTimeString()}</div></div>`;
-        el.statusContainer.appendChild(msgDiv);
-        setTimeout(() => { if (msgDiv.parentNode) msgDiv.remove(); }, 5000);
+      function showStatusMessage(msg, type='info') {
+        const d = document.createElement('div'); d.className='status-message';
+        const icon = {success:'✅',error:'❌',warn:'⚠️',info:'💡'}[type]||'💡';
+        const color = {success:'#28a745',error:'#dc3545',warn:'#ffc107',info:'#17a2b8'}[type]||'#17a2b8';
+        d.style.borderLeftColor = color;
+        d.innerHTML = `<span style="font-size:20px;">${icon}</span><div><div style="font-weight:600;">${msg}</div><div style="font-size:12px;">${new Date().toLocaleTimeString()}</div></div>`;
+        el.statusContainer.appendChild(d);
+        setTimeout(() => { if(d.parentNode) d.remove(); }, 5000);
       }
-
-      function setLoading(show, text = '', subtext = '') {
-        if (show) {
-          el.loadingText.textContent = text;
-          el.loadingSubtext.textContent = subtext;
-          el.loadingOverlay.classList.add('active');
-        } else {
-          el.loadingOverlay.classList.remove('active');
-        }
+      function setLoading(show, text='', subtext='') {
+        if(show) { el.loadingText.textContent = text; el.loadingSubtext.textContent = subtext; el.loadingOverlay.classList.add('active'); }
+        else el.loadingOverlay.classList.remove('active');
       }
+      function getMonthName(offset) { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - offset); return d.toLocaleString('default',{month:'long', year:'numeric'}); }
+      function getMonthShort(offset) { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - offset); return d.toLocaleString('default',{month:'short', year:'2-digit'}); }
 
-      function getMonthName(offset) {
-        const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - offset);
-        return d.toLocaleString('default',{month:'short', year:'numeric'});
-      }
-
-      // ---------- API call (same as original) ----------
-      async function apiCall(path, options = {}) {
+      // ---------- API ----------
+      async function apiCall(path, options={}) {
         if(!appState.accessToken) { disconnect(); throw new Error('Not authenticated'); }
         const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
         const url = `${env.api}${path}`;
-        const response = await fetch(url, { ...options, headers: { 'Authorization': `Bearer ${appState.accessToken}`, 'Content-Type': 'application/json', ...options.headers } });
-        if(response.status === 401 || response.status === 403) throw new Error('Access denied');
-        if(!response.ok) throw new Error(`API ${response.status}`);
-        return response.json();
+        const res = await fetch(url, { ...options, headers: { 'Authorization': `Bearer ${appState.accessToken}`, 'Content-Type':'application/json' } });
+        if(res.status===401||res.status===403) throw new Error('Access denied');
+        if(!res.ok) throw new Error(`API ${res.status}`);
+        return res.json();
       }
 
-      // ---------- fetch one month and store ----------
-      async function fetchBillingData(periodIndex, force = false) {
-        if (appState.billingHistory[periodIndex] && !force) {
-          if (periodIndex === appState.currentPeriod) {
-            appState.usageData = appState.billingHistory[periodIndex].data;
-            updateDisplay();
-          }
+      async function fetchBillingData(periodIndex, force=false) {
+        if(appState.billingHistory[periodIndex] && !force) {
+          if(periodIndex === appState.currentPeriod) { appState.usageData = appState.billingHistory[periodIndex].data; updateAllDisplays(); }
           return appState.billingHistory[periodIndex].data;
         }
-        setLoading(true, `Loading ${getMonthName(periodIndex)}`, 'Fetching from Genesys Cloud...');
+        setLoading(true, `Loading ${getMonthName(periodIndex)}`, 'Fetching...');
         try {
           const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${periodIndex}`;
           const raw = await apiCall(endpoint);
           const parsed = parseApiData(raw, periodIndex);
           appState.billingHistory[periodIndex] = { data: parsed, rawData: raw, timestamp: new Date(), periodName: getMonthName(periodIndex) };
-          if (periodIndex === appState.currentPeriod) {
-            appState.usageData = parsed;
-            appState.rawApiData = raw;
-            appState.lastFetchTime = new Date();
-            updateDisplay();
-          }
+          if(periodIndex === appState.currentPeriod) { appState.usageData = parsed; appState.lastFetchTime = new Date(); updateAllDisplays(); }
           showStatusMessage(`✅ ${getMonthName(periodIndex)} loaded`, 'success');
-          return parsed;
-        } catch (e) {
-          showStatusMessage(`Error: ${e.message}`, 'error');
-        } finally {
-          setLoading(false);
-        }
+        } catch(e) { showStatusMessage(`Error: ${e.message}`, 'error'); } finally { setLoading(false); }
       }
 
-      // ---------- load months 0..6 automatically after auth ----------
-      async function loadAllSixMonths() {
-        setLoading(true, 'Loading last 6 months', 'This may take a few seconds...');
-        try {
-          for (let idx = 0; idx <= 6; idx++) {
-            if (!appState.billingHistory[idx]) {
-              const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${idx}`;
-              const raw = await apiCall(endpoint);
-              const parsed = parseApiData(raw, idx);
-              appState.billingHistory[idx] = { data: parsed, rawData: raw, timestamp: new Date(), periodName: getMonthName(idx) };
-            }
-          }
-          // set current to 0
-          if (appState.billingHistory[0]) {
-            appState.usageData = appState.billingHistory[0].data;
-            appState.rawApiData = appState.billingHistory[0].rawData;
-            appState.currentPeriod = 0;
-            appState.lastFetchTime = new Date();
-            updateDisplay();
-          }
-          showStatusMessage('All months 0‑6 loaded', 'success');
-          renderBarChart(); // initial chart
-        } catch (e) {
-          showStatusMessage('Multi‑month load error: ' + e.message, 'error');
-        } finally {
-          setLoading(false);
-        }
+      async function loadAllMonths() {
+        setLoading(true, 'Loading months 0‑6', 'Please wait...');
+        try { for(let i=0;i<=6;i++) { if(!appState.billingHistory[i]) { const raw = await apiCall(`/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${i}`); appState.billingHistory[i] = { data: parseApiData(raw,i), rawData:raw, timestamp:new Date(), periodName:getMonthName(i) }; } }
+          if(appState.billingHistory[0]) { appState.usageData = appState.billingHistory[0].data; appState.currentPeriod=0; updateAllDisplays(); }
+          showStatusMessage('All months 0‑6 loaded','success');
+        } catch(e) { showStatusMessage('Multi load error','error'); } finally { setLoading(false); }
       }
 
-      // ---------- parseApiData (exactly as original) ----------
+      // ---------- parse (original) ----------
       function parseApiData(apiData, periodIdx) {
-        if (!apiData || !Array.isArray(apiData.usages)) throw new Error('Invalid API response');
-        const users = parseUserLicenses(apiData.usages);
-        const resources = parseResources(apiData.usages);
-        return {
-          period: periodIdx, periodName: getMonthName(periodIdx), users, resources,
-          rawProducts: apiData.usages, organization: apiData.organization,
-          billingPeriodStartDate: apiData.billingPeriodStartDate,
-          billingPeriodEndDate: apiData.billingPeriodEndDate
-        };
+ if(!apiData||!Array.isArray(apiData.usages)) throw new Error('Invalid');
+ const users = parseUserLicenses(apiData.usages); const resources = parseResources(apiData.usages);
+ return { period:periodIdx, periodName:getMonthName(periodIdx), users, resources, organization:apiData.organization };
       }
-
       function parseUserLicenses(usages) {
-        return usages.filter(u => u.name && (u.grouping === 'user' || u.name.includes('Genesys Cloud CX') || u.name.includes('WEM') || u.name.includes('Communicate User'))).map(u => {
-          const qty = parseFloat(u.usageQuantity) || 0, prepay = parseFloat(u.prepayQuantity) || 0, overage = Math.max(0, qty - prepay);
-          return { name: u.name, qty, committed: prepay, used: qty, onDemand: overage, partNumber: u.partNumber };
+        return usages.filter(u => u.name && (u.grouping==='user'||u.name.includes('Genesys Cloud CX')||u.name.includes('WEM')||u.name.includes('Communicate User'))).map(u => {
+          const qty = parseFloat(u.usageQuantity)||0, prepay = parseFloat(u.prepayQuantity)||0, overage = Math.max(0,qty-prepay);
+          return { name:u.name, qty, committed:prepay, used:qty, onDemand:overage };
         });
       }
-
       function parseResources(usages) {
-        const cats = [], byoc = [], msg = [], storage = [], api = [], other = [];
-        usages.filter(u => u.name && u.grouping !== 'user' && !u.name.includes('Genesys Cloud CX 2')).forEach(u => {
-          const qty = parseFloat(u.usageQuantity) || 0, prepay = parseFloat(u.prepayQuantity) || 0;
+        const cats=[]; const byoc=[], msg=[], storage=[], api=[], other=[];
+        usages.filter(u => u.name && u.grouping!=='user' && !u.name.includes('Genesys Cloud CX 2')).forEach(u => {
+          const qty = parseFloat(u.usageQuantity)||0, prepay = parseFloat(u.prepayQuantity)||0;
           let unit = 'units';
-          if (u.unitOfMeasureType === 'minute') unit = 'minutes';
-          else if (u.unitOfMeasureType === 'message') unit = 'messages';
-          else if (u.unitOfMeasureType === 'request') unit = 'requests';
-          else if (u.unitOfMeasureType === 'gb') unit = 'GB';
-          else unit = u.unitOfMeasureType || 'units';
-          const resource = { name: u.name, qty, unit, included: { qty: prepay, used: Math.min(qty, prepay) }, onDemand: Math.max(0, qty - prepay), grouping: u.grouping };
-          if (u.grouping === 'resource' || u.name.includes('BYOC')) byoc.push(resource);
-          else if (u.grouping === 'messaging' || u.grouping === 'messaging-usage') msg.push(resource);
-          else if (u.grouping === 'storage' || u.grouping === 'storage-category') storage.push(resource);
-          else if (u.grouping === 'api') api.push(resource);
+          if(u.unitOfMeasureType==='minute') unit='minutes';
+          else if(u.unitOfMeasureType==='message') unit='messages';
+          else if(u.unitOfMeasureType==='request') unit='requests';
+          else if(u.unitOfMeasureType==='gb') unit='GB';
+          else unit = u.unitOfMeasureType||'units';
+          const resource = { name:u.name, qty, unit, included:{ qty:prepay, used:Math.min(qty,prepay) }, onDemand:Math.max(0,qty-prepay), grouping:u.grouping };
+          if(u.grouping==='resource'||u.name.includes('BYOC')) byoc.push(resource);
+          else if(u.grouping==='messaging'||u.grouping==='messaging-usage') msg.push(resource);
+          else if(u.grouping==='storage'||u.grouping==='storage-category') storage.push(resource);
+          else if(u.grouping==='api') api.push(resource);
           else other.push(resource);
         });
-        if (byoc.length) cats.push({ category: 'BYOC / Carrier', items: byoc });
-        if (msg.length) cats.push({ category: 'Messaging', items: msg });
-        if (storage.length) cats.push({ category: 'Data Storage', items: storage });
-        if (api.length) cats.push({ category: 'API Resources', items: api });
-        if (other.length) cats.push({ category: 'Other', items: other });
+        if(byoc.length) cats.push({category:'BYOC / Carrier', items:byoc});
+        if(msg.length) cats.push({category:'Messaging', items:msg});
+        if(storage.length) cats.push({category:'Data Storage', items:storage});
+        if(api.length) cats.push({category:'API Resources', items:api});
+        if(other.length) cats.push({category:'Other', items:other});
         return cats;
       }
 
-      // ---------- updateDisplay (original tables) ----------
-      function updateDisplay() {
-        if (!appState.usageData) return;
+      // ---------- update all displays ----------
+      function updateAllDisplays() {
+        if(!appState.usageData) return;
         const data = appState.usageData;
-        if (data.organization?.name) el.orgNameDisplay.textContent = data.organization.name;
-        el.lastUpdated.textContent = `Last updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        if(data.organization?.name) el.orgNameDisplay.textContent = data.organization.name;
+        el.lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+        el.selectedMonthDisplay.textContent = getMonthName(appState.currentPeriod);
+        if(el.monthSelector) el.monthSelector.value = appState.currentPeriod;
+
+        // update month notes on tabs
+        if(el.licensesMonthNote) el.licensesMonthNote.textContent = getMonthName(appState.currentPeriod);
+        if(el.resourcesMonthNote) el.resourcesMonthNote.textContent = getMonthName(appState.currentPeriod);
+
+        // get previous month data for change
+        const prevData = appState.billingHistory[appState.currentPeriod+1]?.data;
+        const changeStr = prevData ? computeChangeSummary(data, prevData) : 'No prior data';
+        if(el.prevMonthChange) el.prevMonthChange.innerHTML = changeStr;
+
+        // Dashboard specific
+        updateDashboard(data, prevData);
+        // User Licenses table
         updateUsersTable(data.users);
+        // Resources table
         updateResourcesTable(data.resources);
-        updateHighlights(data);
+        // Analytics charts (always all months)
+        updateAnalyticsCharts();
       }
 
-      function updateUsersTable(users) {
-        const tbody = el.usersTableBody; tbody.innerHTML = '';
-        if (!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;">No user data</td></tr>'; return; }
-        users.forEach(u => {
-          const util = u.committed > 0 ? Math.round((u.used / u.committed) * 100) : 0;
-          tbody.innerHTML += `<tr><td class="text-left"><strong>${u.name}</strong></td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util > 75 ? '🔴' : '🟢'}</td></tr>`;
-        });
+      function computeChangeSummary(current, prev) {
+        const curLic = current.users.reduce((a,u)=>a+u.qty,0);
+        const prevLic = prev.users.reduce((a,u)=>a+u.qty,0);
+        const diff = curLic - prevLic;
+        const arrow = diff>0 ? '↑' : (diff<0 ? '↓' : '→');
+        const color = diff>0 ? 'trend-up' : (diff<0 ? 'trend-down' : 'trend-flat');
+        return `vs previous month: <span class="${color}">${arrow} ${Math.abs(diff)} licenses</span>`;
       }
 
-      function updateResourcesTable(resources) {
-        const tbody = el.resourcesTableBody; tbody.innerHTML = '';
-        if (!resources.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No resources</td></tr>'; return; }
-        resources.forEach(cat => {
-          const head = document.createElement('tr'); head.className = 'category-header';
-          head.innerHTML = `<td colspan="7" class="text-left">${cat.category}</td>`;
-          tbody.appendChild(head);
-          cat.items.forEach(r => {
-            const util = r.included.qty > 0 ? Math.round((r.included.used / r.included.qty) * 100) : 0;
-            tbody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${formatNumber(r.qty)}</td><td>${r.unit}</td><td>${formatNumber(r.included.qty)}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td></tr>`;
-          });
-        });
-      }
+      function updateDashboard(data, prevData) {
+        // month tiles
+        el.dashCurrentMonth.textContent = getMonthName(appState.currentPeriod);
+        if(data.billingPeriodStartDate) el.dashCurrentRange.textContent = data.billingPeriodStartDate?.slice(0,10) + ' to ' + (data.billingPeriodEndDate?.slice(0,10)||'');
+        if(prevData) {
+          const prevLic = prevData.users.reduce((a,u)=>a+u.qty,0);
+          const curLic = data.users.reduce((a,u)=>a+u.qty,0);
+          const diff = curLic - prevLic;
+          el.dashVsPrev.textContent = diff>0 ? `+${diff}` : diff;
+          el.dashVsPrevDetail.textContent = `Total licenses ${diff>0 ? 'increased' : (diff<0?'decreased':'unchanged')}`;
+        } else { el.dashVsPrev.textContent = '-'; el.dashVsPrevDetail.textContent = 'Previous month not loaded'; }
 
-      function updateHighlights(data) {
-        const userTbody = el.highlightsUsersTable; userTbody.innerHTML = '';
+        // license breakdown
+        const totalLic = data.users.reduce((a,u)=>a+u.qty,0);
+        const committed = data.users.reduce((a,u)=>a+u.committed,0);
+        const used = data.users.reduce((a,u)=>a+u.used,0);
+        const ondemand = data.users.reduce((a,u)=>a+u.onDemand,0);
+        el.licTotal.textContent = formatNumber(totalLic);
+        el.licCommitted.textContent = formatNumber(committed);
+        el.licUsed.textContent = formatNumber(used);
+        el.licOndemand.textContent = formatNumber(ondemand);
+
+        // minutes
+        let speechUsed=0, speechPre=0, ivrUsed=0;
+        data.resources.forEach(c=>c.items.forEach(r=>{
+          if(r.name.includes('Voice Transcription')) { speechUsed=r.included.used; speechPre=r.included.qty; }
+          if(r.name.includes('IVR')) ivrUsed=r.included.used;
+        }));
+        el.minTranscript.textContent = formatNumber(speechUsed);
+        el.minTranscriptPre.textContent = formatNumber(speechPre);
+        el.minIvr.textContent = formatNumber(ivrUsed);
+
+        // volumes (API, messages, storage)
+        let apiReq=0, msgVol=0, storageGb=0;
+        data.resources.forEach(c=>c.items.forEach(r=>{
+          if(r.grouping==='api') apiReq += r.included.used;
+          if(r.grouping==='messaging') msgVol += r.included.used;
+          if(r.unit==='GB') storageGb += r.included.used;
+        }));
+        el.volApi.textContent = formatNumber(apiReq);
+        el.volMsg.textContent = formatNumber(msgVol);
+        el.volStorage.textContent = formatNumber(storageGb);
+
+        // simple bars
+        drawSimpleBars('licChartBars', [committed, used, ondemand], ['Comm','Used','OD']);
+        drawSimpleBars('minChartBars', [speechUsed, ivrUsed, speechPre], ['Trans','IVR','Pre']);
+        drawSimpleBars('volChartBars', [apiReq, msgVol, storageGb], ['API','Msg','GB']);
+
+        // highlights tables
+        const userTbody = el.dashboardUsersTable; userTbody.innerHTML = '';
         data.users.forEach(u => {
-          const util = u.committed > 0 ? Math.round((u.used / u.committed) * 100) : 0;
-          userTbody.innerHTML += `<tr><td class="text-left">${u.name}</td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util > 75 ? '⚠️' : '✅'}</td></tr>`;
+          const util = u.committed>0 ? Math.round((u.used/u.committed)*100) : 0;
+          userTbody.innerHTML += `<tr><td class="text-left">${u.name}</td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util>75?'⚠️':'✅'}</td></tr>`;
         });
-        let speechPrepaid = 0, speechUsed = 0;
-        data.resources.forEach(c => c.items.forEach(r => { if (r.name.includes('Voice Transcription')) { speechPrepaid = r.included.qty; speechUsed = r.included.used; } }));
-        const rem = speechPrepaid - speechUsed, pct = speechPrepaid > 0 ? Math.round((speechUsed / speechPrepaid) * 100) : 0;
-        el.highlightSpeechUsed.textContent = formatNumber(speechUsed);
-        el.highlightSpeechPrepaid.textContent = formatNumber(speechPrepaid);
-        el.highlightSpeechRemaining.textContent = formatNumber(rem);
-        el.highlightSpeechUsedBar.style.width = pct + '%';
-        el.highlightSpeechRemainingBar.style.width = (100 - pct) + '%';
-        el.highlightSpeechUsedPct.textContent = pct + '%';
-        el.highlightSpeechAvailablePct.textContent = (100 - pct) + '%';
-        const today = new Date(); const dim = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-        el.highlightSpeechDaysLeft.textContent = dim - today.getDate();
 
-        const resTbody = el.highlightsResourcesTable; resTbody.innerHTML = '';
-        data.resources.forEach(cat => cat.items.forEach(r => {
-          if (r.qty > 0 && (r.name.includes('Voice') || r.name.includes('IVR') || r.name.includes('API'))) {
-            const util = r.included.qty > 0 ? Math.round((r.included.used / r.included.qty) * 100) : 0;
+        // speech card
+        const rem = speechPre - speechUsed; const pct = speechPre>0 ? Math.round((speechUsed/speechPre)*100) : 0;
+        el.dashSpeechUsed.textContent = formatNumber(speechUsed);
+        el.dashSpeechPrepaid.textContent = formatNumber(speechPre);
+        el.dashSpeechRemaining.textContent = formatNumber(rem);
+        el.dashSpeechUsedBar.style.width = pct+'%';
+        el.dashSpeechRemainingBar.style.width = (100-pct)+'%';
+        el.dashSpeechUsedPct.textContent = pct+'%';
+        el.dashSpeechAvailablePct.textContent = (100-pct)+'%';
+        const today = new Date(); const dim = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+        el.dashSpeechDaysLeft.textContent = dim - today.getDate();
+
+        // resource highlights
+        const resTbody = el.dashboardResourcesTable; resTbody.innerHTML = '';
+        data.resources.forEach(cat=>cat.items.forEach(r=>{
+          if(r.qty>0) {
+            const util = r.included.qty>0 ? Math.round((r.included.used/r.included.qty)*100) : 0;
             resTbody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${formatNumber(r.qty)} ${r.unit}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.included.qty - r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td><td>🟢</td></tr>`;
           }
         }));
       }
 
-      // ---------- bar chart rendering (Analytics tab) ----------
-      function renderBarChart() {
-        const metric = el.trendMetricSelect?.value || 'totalLicenses';
-        const container = document.getElementById('barChartContainer');
-        if (!container) return;
-        container.innerHTML = '';
-
-        // check if we have at least some months 0..6
-        const months = [0,1,2,3,4,5,6];
-        const available = months.filter(idx => appState.billingHistory[idx]);
-        if (available.length === 0) {
-          document.getElementById('noDataMessage').style.display = 'block';
-          return;
-        } else {
-          document.getElementById('noDataMessage').style.display = 'none';
-        }
-
-        const values = [];
-        const labels = [];
-        for (let idx of months) {
-          const data = appState.billingHistory[idx]?.data;
-          if (!data) {
-            values.push(null);
-            labels.push(getMonthName(idx));
-            continue;
-          }
-          let val = 0;
-          if (metric === 'totalLicenses') {
-            val = data.users.reduce((a,u) => a + u.qty, 0);
-          } else if (metric === 'onDemandSeats') {
-            val = data.users.reduce((a,u) => a + u.onDemand, 0);
-          } else if (metric === 'speechMinutes') {
-            data.resources.forEach(c => c.items.forEach(r => { if (r.name.includes('Voice Transcription')) val += r.included.used; }));
-          } else if (metric === 'ivrMinutes') {
-            data.resources.forEach(c => c.items.forEach(r => { if (r.name.includes('IVR')) val += r.included.used; }));
-          } else if (metric === 'apiRequests') {
-            data.resources.forEach(c => c.items.forEach(r => { if (r.grouping === 'api' || r.name.match(/API|request/i)) val += r.included.used; }));
-          }
-          values.push(val);
-          labels.push(getMonthName(idx));
-        }
-
-        const maxVal = Math.max(...values.filter(v => v !== null), 1);
-        months.forEach((idx, i) => {
-          if (values[i] === null) {
-            // show empty bar
-            container.innerHTML += `<div class="bar-container"><div class="bar" style="height:4px; background:#ddd;"></div><div class="bar-value">N/A</div><div class="bar-label">${labels[i]}</div></div>`;
-          } else {
-            const height = Math.max(20, (values[i] / maxVal) * 220); // minimum 20px
-            container.innerHTML += `<div class="bar-container"><div class="bar" style="height:${height}px;"></div><div class="bar-value">${formatNumber(values[i])}</div><div class="bar-label">${labels[i]}</div></div>`;
-          }
+      function drawSimpleBars(containerId, values, labels) {
+        const c = document.getElementById(containerId); if(!c) return;
+        c.innerHTML = '';
+        const max = Math.max(...values,1);
+        values.forEach((v,i)=>{
+          const h = Math.max(20, (v/max)*120);
+          c.innerHTML += `<div style="display:flex; flex-direction:column; align-items:center;"><div class="simple-bar" style="height:${h}px;"></div><div class="bar-label">${labels[i]}</div><div style="font-size:10px;">${formatNumber(v)}</div></div>`;
         });
       }
 
-      // ---------- auth & disconnect (original) ----------
-      function parseTokenFromHash() {
-        const params = new URLSearchParams(location.hash.replace(/^#/, ''));
-        return { token: params.get('access_token'), error: params.get('error'), errorDescription: params.get('error_description') };
+      function updateUsersTable(users) {
+        const tbody = el.usersTableBody; tbody.innerHTML = '';
+        if(!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No user data</td></tr>'; return; }
+        users.forEach(u => {
+          const util = u.committed>0 ? Math.round((u.used/u.committed)*100) : 0;
+          tbody.innerHTML += `<tr><td class="text-left"><strong>${u.name}</strong></td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util>75?'🔴':'🟢'}</td></tr>`;
+        });
       }
-      function authUrl() { return `${CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION].login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`; }
-      function showAuthOverlay() { el.authOverlay.style.display = 'flex'; el.mainContent.style.display = 'none'; }
-      function hideAuthOverlay() { el.authOverlay.style.display = 'none'; el.mainContent.style.display = 'block'; }
-      function disconnect() { appState.accessToken = null; showAuthOverlay(); showStatusMessage('Disconnected', 'info'); }
 
-      // ---------- initialization ----------
+      function updateResourcesTable(resources) {
+        const tbody = el.resourcesTableBody; tbody.innerHTML = '';
+        if(!resources.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No resources</td></tr>'; return; }
+        resources.forEach(cat => {
+          const head = document.createElement('tr'); head.className='category-header';
+          head.innerHTML = `<td colspan="7" class="text-left">${cat.category}</td>`;
+          tbody.appendChild(head);
+          cat.items.forEach(r => {
+            const util = r.included.qty>0 ? Math.round((r.included.used/r.included.qty)*100) : 0;
+            tbody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${formatNumber(r.qty)}</td><td>${r.unit}</td><td>${formatNumber(r.included.qty)}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td></tr>`;
+          });
+        });
+      }
+
+      function updateAnalyticsCharts() {
+        const months = [0,1,2,3,4,5,6];
+        const licVals = [], speechVals = [], odVals = [];
+        months.forEach(idx => {
+          const d = appState.billingHistory[idx]?.data;
+          if(d) {
+            licVals.push(d.users.reduce((a,u)=>a+u.qty,0));
+            let sp=0; d.resources.forEach(c=>c.items.forEach(r=>{if(r.name.includes('Voice Transcription')) sp=r.included.used;}));
+            speechVals.push(sp);
+            odVals.push(d.users.reduce((a,u)=>a+u.onDemand,0));
+          } else { licVals.push(0); speechVals.push(0); odVals.push(0); }
+        });
+        drawSimpleBars('analyticsLicBar', licVals, months.map(m=>getMonthShort(m)));
+        drawSimpleBars('analyticsSpeechBar', speechVals, months.map(m=>getMonthShort(m)));
+        drawSimpleBars('analyticsOndemandBar', odVals, months.map(m=>getMonthShort(m)));
+      }
+
+      // ---------- auth ----------
+      function parseTokenFromHash() { const p = new URLSearchParams(location.hash.replace(/^#/,'')); return { token: p.get('access_token'), error: p.get('error') }; }
+      function authUrl() { return `${CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION].login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`; }
+      function showAuthOverlay() { el.authOverlay.style.display='flex'; el.mainContent.style.display='none'; }
+      function hideAuthOverlay() { el.authOverlay.style.display='none'; el.mainContent.style.display='block'; }
+      function disconnect() { appState.accessToken=null; showAuthOverlay(); showStatusMessage('Disconnected','info'); }
+
+      // ---------- init ----------
       function init() {
-        // grab all elements
-        const ids = ['authOverlay','signinBtn','mainContent','loadingOverlay','statusContainer',
-          'lastUpdated','orgNameDisplay','orgIdInput','btnLoadOrg','btnSaveOrg','savedOrgsContainer','savedOrgsList',
-          'btnRefresh','btnDisconnect','btnExportCSV','usersTableBody','resourcesTableBody',
-          'highlightsUsersTable','highlightsResourcesTable','highlightSpeechUsed','highlightSpeechPrepaid',
-          'highlightSpeechRemaining','highlightSpeechUsedBar','highlightSpeechRemainingBar','highlightSpeechUsedPct',
-          'highlightSpeechAvailablePct','highlightSpeechDaysLeft','trendMetricSelect','loadingText','loadingSubtext'];
+        const ids = ['authOverlay','signinBtn','mainContent','loadingOverlay','statusContainer','lastUpdated','orgNameDisplay',
+          'orgIdInput','btnLoadOrg','btnSaveOrg','savedOrgsContainer','savedOrgsList','btnRefresh','btnDisconnect','btnExportCSV',
+          'usersTableBody','resourcesTableBody','dashboardUsersTable','dashboardResourcesTable',
+          'dashSpeechUsed','dashSpeechPrepaid','dashSpeechRemaining','dashSpeechUsedBar','dashSpeechRemainingBar',
+          'dashSpeechUsedPct','dashSpeechAvailablePct','dashSpeechDaysLeft','monthSelector','selectedMonthDisplay','prevMonthChange',
+          'dashCurrentMonth','dashCurrentRange','dashVsPrev','dashVsPrevDetail','licTotal','licCommitted','licUsed','licOndemand',
+          'minTranscript','minTranscriptPre','minIvr','volApi','volMsg','volStorage','licensesMonthNote','resourcesMonthNote'];
         ids.forEach(id => el[id] = document.getElementById(id));
 
-        // load saved orgs
-        try { const s = localStorage.getItem('genesys_saved_orgs'); if (s) appState.savedOrgs = JSON.parse(s); } catch(e){}
+        // load orgs
+        try { const s = localStorage.getItem('genesys_saved_orgs'); if(s) appState.savedOrgs = JSON.parse(s); } catch(e){}
         el.orgIdInput.value = appState.currentOrgId;
 
-        // event listeners (original style)
+        // events
         el.signinBtn.onclick = ()=> location.assign(authUrl());
-        el.btnLoadOrg.onclick = ()=> { const id = el.orgIdInput.value.trim(); if(id) { appState.currentOrgId = id; appState.billingHistory = {}; loadAllSixMonths(); }};
+        el.btnLoadOrg.onclick = ()=> { const id = el.orgIdInput.value.trim(); if(id) { appState.currentOrgId = id; appState.billingHistory = {}; loadAllMonths(); }};
         el.btnSaveOrg.onclick = ()=> {
           const id = el.orgIdInput.value.trim();
-          if (id && !appState.savedOrgs.find(o=>o.id===id)) appState.savedOrgs.push({id, name: id.substring(0,8)});
-          localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs));
-          showStatusMessage('Saved','success');
+          if(id && !appState.savedOrgs.find(o=>o.id===id)) appState.savedOrgs.push({id,name:id.substring(0,8)});
+          localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs)); showStatusMessage('Saved','success');
         };
         el.btnRefresh.onclick = ()=> fetchBillingData(appState.currentPeriod, true);
         el.btnDisconnect.onclick = disconnect;
-        el.btnExportCSV.onclick = ()=> { alert('CSV export placeholder (same as original)'); };
+        el.btnExportCSV.onclick = ()=> alert('CSV placeholder');
 
-        // tab switching (horizontal tabs restored)
+        el.monthSelector.addEventListener('change', (e)=> {
+          const newPeriod = parseInt(e.target.value,10);
+          appState.currentPeriod = newPeriod;
+          if(appState.billingHistory[newPeriod]) {
+            appState.usageData = appState.billingHistory[newPeriod].data;
+            updateAllDisplays();
+          } else {
+            fetchBillingData(newPeriod);
+          }
+        });
+
+        // tabs horizontal
         document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function() {
           document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
           this.classList.add('active');
           document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
           document.getElementById(`tab-${this.dataset.tab}`).classList.add('active');
-          if (this.dataset.tab === 'analytics') renderBarChart();
+          // show/hide month selector (hide on analytics)
+          if(this.dataset.tab === 'analytics') el.monthSelectorRow.style.display = 'none';
+          else el.monthSelectorRow.style.display = 'flex';
+          if(this.dataset.tab === 'analytics') updateAnalyticsCharts();
         }));
 
-        // metric dropdown change
-        if (el.trendMetricSelect) el.trendMetricSelect.addEventListener('change', renderBarChart);
-
-        // handle OAuth callback
+        // handle OAuth
         const { token, error } = parseTokenFromHash();
-        if (location.hash) history.replaceState(null, '', location.pathname);
-        if (token) {
+        if(location.hash) history.replaceState(null,'',location.pathname);
+        if(token) {
           appState.accessToken = token;
           hideAuthOverlay();
-          // after auth, automatically load last 6 months
-          loadAllSixMonths();
-          showStatusMessage('✅ Successfully authenticated', 'success');
-        } else if (error) {
-          showAuthOverlay();
-          showStatusMessage(`Authentication error`, 'error');
-        } else {
-          showAuthOverlay();
-        }
+          loadAllMonths();  // auto load 6 months
+          showStatusMessage('✅ Authenticated','success');
+        } else if(error) { showAuthOverlay(); showStatusMessage('Auth error','error'); }
+        else { showAuthOverlay(); }
       }
 
       document.addEventListener('DOMContentLoaded', init);
