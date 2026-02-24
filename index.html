@@ -14,6 +14,8 @@
       --increase: #28a745; --decrease: #dc3545; --neutral: #6c757d;
     }
 
+    *, *::before, *::after { box-sizing: border-box; }
+
     body, h1, h2, h3, h4, h5, h6, p, div, span, label, button, input, select, textarea, th, td, li, ul, ol, details, summary, pre, code{
       font-family:'Aptos','Segoe UI',Arial,sans-serif;
     }
@@ -139,7 +141,7 @@
 
     .loading-overlay{
       position:fixed;top:0;left:0;right:0;bottom:0;
-      background:rgba(255,255,255,0.95);display:flex;
+      background:rgba(255,255,255,0.95);
       flex-direction:column;justify-content:center;align-items:center;
       z-index:9999;display:none;
     }
@@ -154,12 +156,11 @@
     @keyframes spin{to{transform:rotate(360deg)}}
 
     @media(max-width:768px){
-      body{margin:10px;padding:0}
+      .container{margin:0 10px;width:calc(100% - 20px);}
       .card{padding:20px}
       header{padding:20px;margin-top:10px;}
       h1{font-size:28px}
       .btn-block{padding:12px 18px;font-size:15px}
-      .container{margin:0 10px;width:calc(100% - 20px);}
     }
 
     /* METRIC TILE STYLES */
@@ -246,7 +247,6 @@
       font-size: 32px;
       font-weight: 700;
       margin: 8px 0;
-      font-family:'Aptos','Segoe UI',Arial,sans-serif;
     }
     
     .metric-label {
@@ -287,10 +287,8 @@
       color: var(--neutral);
     }
     
-    /* Progress bar for transcription */
-    .progress-container {
-      margin-top: 16px;
-    }
+    /* Progress bar */
+    .progress-container { margin-top: 16px; }
     
     .progress-label {
       display: flex;
@@ -313,54 +311,11 @@
       transition: width 0.5s ease;
     }
     
-    .progress-fill.prepaid {
-      background: linear-gradient(90deg, var(--success), var(--chart-green));
-    }
-    
     .progress-fill.used {
       background: linear-gradient(90deg, var(--chart-blue), var(--primary-color));
     }
     
-    .progress-fill.remaining {
-      background: linear-gradient(90deg, var(--light-bg), var(--border-color));
-    }
-    
-    /* Period selector */
-    .period-selector {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      background: var(--pill);
-      padding: 16px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-    
-    .period-option {
-      flex: 1;
-      text-align: center;
-      padding: 12px;
-      background: white;
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      color: var(--text-color);
-      transition: all 0.3s;
-    }
-    
-    .period-option:hover {
-      border-color: var(--primary-color);
-      background: rgba(99, 171, 143, 0.05);
-    }
-    
-    .period-option.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
-    }
-    
-    /* Month selector dropdown */
+    /* Month selector */
     .month-selector-container {
       display: flex;
       align-items: center;
@@ -407,7 +362,7 @@
       font-weight: 600;
     }
     
-    /* Graph containers and controls */
+    /* Graph containers */
     .graph-controls-row {
       display: flex;
       justify-content: space-between;
@@ -417,9 +372,7 @@
       gap: 12px;
     }
     
-    .graph-selector {
-      min-width: 200px;
-    }
+    .graph-selector { min-width: 200px; }
     
     .graph-selector select {
       padding: 8px 12px;
@@ -442,6 +395,8 @@
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      /* FIX: allow card to grow with chart content */
+      min-height: 0;
     }
     
     .graph-card h3 {
@@ -453,16 +408,21 @@
       gap: 8px;
     }
     
+    /* FIX: chart wrapper controls overflow cleanly */
     .graph-container {
-      height: 300px;
       position: relative;
+      width: 100%;
+      height: 340px;       /* taller to accommodate datalabels */
+      overflow: hidden;    /* clip any stray pixels */
     }
     
-    .trend-indicator {
-      font-size: 12px;
-      margin-left: 4px;
+    .graph-container canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
     }
-    
+
+    .trend-indicator { font-size: 12px; margin-left: 4px; }
     .trend-up { color: var(--increase); }
     .trend-down { color: var(--decrease); }
     .trend-neutral { color: var(--neutral); }
@@ -481,12 +441,7 @@
       gap: 20px;
     }
     
-    .month-info {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
+    .month-info { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
     
     .month-badge {
       background: var(--primary-color);
@@ -496,29 +451,13 @@
       font-weight: 600;
     }
     
-    .month-dates {
-      color: var(--text-light);
-      font-size: 14px;
-    }
+    .month-dates { color: var(--text-light); font-size: 14px; }
     
-    .month-stats {
-      display: flex;
-      gap: 24px;
-    }
+    .month-stats { display: flex; gap: 24px; }
     
-    .stat-item {
-      text-align: center;
-    }
-    
-    .stat-label {
-      font-size: 12px;
-      color: var(--text-light);
-    }
-    
-    .stat-value {
-      font-size: 18px;
-      font-weight: 700;
-    }
+    .stat-item { text-align: center; }
+    .stat-label { font-size: 12px; color: var(--text-light); }
+    .stat-value { font-size: 18px; font-weight: 700; }
     
     /* Table styles */
     .category-header {
@@ -535,59 +474,33 @@
       text-align: left !important;
     }
     
-    .sub-item {
-      padding-left: 40px !important;
-      font-size: 13px;
-      color: var(--text-light);
-    }
-    
-    .sub-item td:first-child:before {
-      content: "↳ ";
-      margin-right: 8px;
-    }
-    
     .total-row {
       background-color: var(--pill) !important;
       font-weight: 700;
       border-top: 2px solid var(--border-color);
     }
     
-    .number-cell {
-      font-family: 'Aptos', monospace, 'Segoe UI', Arial, sans-serif;
-    }
+    .number-cell { font-family: 'Aptos', monospace, 'Segoe UI', Arial, sans-serif; }
     
     .highlight-row {
       background-color: rgba(255, 193, 7, 0.1) !important;
       border-left: 3px solid var(--warning);
     }
-    
-    .highlight-row:hover {
-      background-color: rgba(255, 193, 7, 0.2) !important;
-    }
+    .highlight-row:hover { background-color: rgba(255, 193, 7, 0.2) !important; }
     
     .danger-row {
       background-color: rgba(220, 53, 69, 0.1) !important;
       border-left: 3px solid var(--danger);
     }
-    
-    .danger-row:hover {
-      background-color: rgba(220, 53, 69, 0.2) !important;
-    }
+    .danger-row:hover { background-color: rgba(220, 53, 69, 0.2) !important; }
     
     .success-row {
       background-color: rgba(40, 167, 69, 0.1) !important;
       border-left: 3px solid var(--success);
     }
+    .success-row:hover { background-color: rgba(40, 167, 69, 0.2) !important; }
     
-    .success-row:hover {
-      background-color: rgba(40, 167, 69, 0.2) !important;
-    }
-    
-    .compact-table th,
-    .compact-table td {
-      padding: 12px 16px;
-      font-size: 13px;
-    }
+    .compact-table th, .compact-table td { padding: 12px 16px; font-size: 13px; }
     
     .utilization-indicator {
       display: inline-block;
@@ -601,166 +514,73 @@
     .utilization-medium { background-color: var(--warning); }
     .utilization-low { background-color: var(--success); }
     
-    .note {
-      font-size: 12px;
-      color: var(--text-light);
-      font-style: italic;
-      margin-top: 8px;
-    }
+    .note { font-size: 12px; color: var(--text-light); font-style: italic; margin-top: 8px; }
     
-    /* Column alignment fix */
-    .text-left {
-      text-align: left !important;
-    }
-    
-    .text-center {
-      text-align: center !important;
-    }
-    
-    .text-right {
-      text-align: right !important;
-    }
+    .text-left { text-align: left !important; }
+    .text-center { text-align: center !important; }
+    .text-right { text-align: right !important; }
     
     /* Auth styles */
     .auth-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(255, 255, 255, 0.98);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: flex; justify-content: center; align-items: center;
       z-index: 10000;
     }
     
     .auth-card {
-      max-width: 400px;
-      width: 90%;
-      padding: 40px;
-      background: var(--card-bg);
-      border-radius: 14px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-      text-align: center;
+      max-width: 400px; width: 90%; padding: 40px;
+      background: var(--card-bg); border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center;
     }
     
-    .auth-card h2 {
-      color: var(--primary-color);
-      margin-bottom: 20px;
-    }
+    .auth-card h2 { color: var(--primary-color); margin-bottom: 20px; }
+    .auth-card p { color: var(--text-light); margin-bottom: 30px; }
     
-    .auth-card p {
-      color: var(--text-light);
-      margin-bottom: 30px;
-    }
-    
-    /* Color coding for utilization percentages */
+    /* Utilization text colours */
     .utilization-high-text { color: var(--danger); font-weight: 600; }
     .utilization-medium-text { color: var(--warning); font-weight: 600; }
     .utilization-low-text { color: var(--success); font-weight: 600; }
     
-    /* License breakdown styles */
+    /* License breakdown */
     .license-breakdown {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 12px;
-      max-height: 200px;
-      overflow-y: auto;
-      padding-right: 8px;
+      display: flex; flex-direction: column; gap: 8px;
+      margin-top: 12px; max-height: 200px; overflow-y: auto; padding-right: 8px;
     }
     
     .license-item {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      padding: 4px 0;
+      display: flex; justify-content: space-between;
+      font-size: 12px; padding: 4px 0;
       border-bottom: 1px dashed var(--border-color);
     }
     
-    .license-name {
-      color: var(--text-color);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .license-name { color: var(--text-color); display: flex; align-items: center; gap: 6px; }
+    .license-count { font-weight: 600; color: var(--primary-color); }
     
-    .license-count {
-      font-weight: 600;
-      color: var(--primary-color);
-    }
-    
-    /* Legend styles */
-    .chart-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      margin-top: 12px;
-      font-size: 12px;
-    }
-    
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .legend-color {
-      width: 12px;
-      height: 12px;
-      border-radius: 3px;
-    }
-
-    /* Data label styles - ENHANCED */
-    .data-label {
-      font-size: 12px;
-      font-weight: 600;
-      fill: var(--text-color);
-      text-shadow: 0px 0px 2px white;
-    }
+    /* Chart legend */
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; font-size: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-color { width: 12px; height: 12px; border-radius: 3px; }
 
     .trend-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-left: 8px;
+      display: inline-block; padding: 2px 8px; border-radius: 12px;
+      font-size: 11px; font-weight: 600; margin-left: 8px;
     }
-    
-    .trend-badge-up {
-      background: rgba(40, 167, 69, 0.15);
-      color: var(--increase);
-    }
-    
-    .trend-badge-down {
-      background: rgba(220, 53, 69, 0.15);
-      color: var(--decrease);
-    }
-    
-    .trend-badge-neutral {
-      background: rgba(108, 117, 125, 0.15);
-      color: var(--neutral);
-    }
+    .trend-badge-up { background: rgba(40, 167, 69, 0.15); color: var(--increase); }
+    .trend-badge-down { background: rgba(220, 53, 69, 0.15); color: var(--decrease); }
+    .trend-badge-neutral { background: rgba(108, 117, 125, 0.15); color: var(--neutral); }
 
-    /* Color indicator for licenses */
     .color-dot {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      margin-right: 6px;
+      display: inline-block; width: 10px; height: 10px;
+      border-radius: 2px; margin-right: 6px;
     }
   </style>
   
-  <!-- Chart.js for graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- Chart.js datalabels plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body>
-  <!-- Auth overlay (hidden by default) -->
+  <!-- Auth overlay -->
   <div class="auth-overlay" id="authOverlay" style="display:none;">
     <div class="auth-card">
       <h2>🔐 Authentication Required</h2>
@@ -808,18 +628,15 @@
           </button>
         </div>
         
-        <!-- Saved Organizations Quick Select -->
         <div id="savedOrgsContainer" style="margin-top:12px;display:none;">
-          <label style="font-size:13px;color:var(--text-light);margin-bottom:6px;display:block;">
-            Saved Organizations:
-          </label>
+          <label style="font-size:13px;color:var(--text-light);margin-bottom:6px;display:block;">Saved Organizations:</label>
           <div id="savedOrgsList" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
       </div>
     </header>
 
-    <!-- Month Selector Dropdown (appears on all tabs except Analytics) -->
-    <div class="month-selector-container" id="monthSelectorContainer">
+    <!-- Month Selector (hidden on Analytics tab) -->
+    <div class="month-selector-container" id="monthSelectorContainer" style="display:none;">
       <div class="month-selector-label">📅 Select Month:</div>
       <div class="month-selector-dropdown">
         <select id="monthSelector">
@@ -847,7 +664,6 @@
       <div class="card">
         <h2>📊 Month-on-Month Analytics Dashboard</h2>
         
-        <!-- Month Range Tile -->
         <div class="month-tile" id="monthRangeTile">
           <div class="month-info">
             <div class="month-badge" id="currentMonthName">Current Month</div>
@@ -865,9 +681,8 @@
           </div>
         </div>
         
-        <!-- Graphs Row -->
+        <!-- Graphs -->
         <div class="graphs-row">
-          <!-- Minutes Graph with Dropdown -->
           <div class="graph-card">
             <div class="graph-controls-row">
               <h3>⏱️ <span id="minutesGraphTitle">Speech Minutes</span></h3>
@@ -885,14 +700,12 @@
             </div>
           </div>
           
-          <!-- Licenses Graph with Dropdown -->
           <div class="graph-card">
             <div class="graph-controls-row">
               <h3>👥 <span id="licensesGraphTitle">All License Types</span></h3>
               <div class="graph-selector">
                 <select id="licensesMetricSelector">
                   <option value="all">All License Types</option>
-                  <!-- Dynamic options will be added here -->
                 </select>
               </div>
             </div>
@@ -901,7 +714,6 @@
             </div>
           </div>
           
-          <!-- Resources Graph with Dropdown -->
           <div class="graph-card">
             <div class="graph-controls-row">
               <h3>📦 <span id="volumesGraphTitle">Resource Volumes</span></h3>
@@ -921,7 +733,7 @@
           </div>
         </div>
         
-        <!-- Dynamic License Breakdown Tile -->
+        <!-- Dynamic License Breakdown -->
         <div class="metric-card info" style="margin-bottom: 24px;">
           <div class="metric-header">
             <div>
@@ -930,9 +742,7 @@
             </div>
             <div class="metric-icon">👥</div>
           </div>
-          <div class="license-breakdown" id="dynamicLicenseBreakdown">
-            <!-- Dynamic license items will be inserted here -->
-          </div>
+          <div class="license-breakdown" id="dynamicLicenseBreakdown"></div>
         </div>
         
         <!-- Month-over-Month Comparison Table -->
@@ -952,9 +762,7 @@
               </tr>
             </thead>
             <tbody id="comparisonTableBody">
-              <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
-                Loading comparison data...
-              </td></tr>
+              <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">Loading comparison data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -980,9 +788,7 @@
               </tr>
             </thead>
             <tbody id="usersTableBody">
-              <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
-                Loading user data...
-              </td></tr>
+              <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">Loading user data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1008,9 +814,7 @@
               </tr>
             </thead>
             <tbody id="resourcesTableBody">
-              <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
-                Loading resource data...
-              </td></tr>
+              <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">Loading resource data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1022,7 +826,6 @@
       <div class="card">
         <h2>⚠️ Usage Highlights & Alerts - <span id="highlightsMonthDisplay">Current Month</span></h2>
         
-        <!-- User License Highlights -->
         <div style="margin-bottom: 32px;">
           <h3 style="color: var(--primary-color); margin-bottom: 16px;">👥 User License Utilization</h3>
           <div class="table-container">
@@ -1039,18 +842,15 @@
                 </tr>
               </thead>
               <tbody id="highlightsUsersTable">
-                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
-                  Analyzing user license data...
-                </td></tr>
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">Analyzing user license data...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
         
-        <!-- Speech Analytics Highlight -->
         <div style="margin-bottom: 32px;">
           <h3 style="color: var(--primary-color); margin-bottom: 16px;">🎤 Speech Analytics - Transcription Usage</h3>
-          <div id="speechAnalyticsCard" class="metric-card" style="margin-bottom: 0;">
+          <div id="speechAnalyticsCard" class="metric-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <div>
                 <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Genesys Cloud for Voice Transcription Fair Use (Legacy)</div>
@@ -1067,7 +867,6 @@
               </div>
               <div class="progress-bar">
                 <div class="progress-fill used" id="highlightSpeechUsedBar" style="width:0%"></div>
-                <div class="progress-fill remaining" id="highlightSpeechRemainingBar" style="width:100%"></div>
               </div>
             </div>
             
@@ -1082,13 +881,12 @@
               </div>
               <div style="text-align: center;">
                 <div style="font-size: 20px; font-weight: 700; color: var(--text-light);" id="highlightSpeechDaysLeft">0</div>
-                <div style="font-size: 12px; color: var(--text-light);">Days in Month</div>
+                <div style="font-size: 12px; color: var(--text-light);">Days Remaining in Month</div>
               </div>
             </div>
           </div>
         </div>
         
-        <!-- Resource Highlights -->
         <div>
           <h3 style="color: var(--primary-color); margin-bottom: 16px;">📊 Resource Usage Highlights</h3>
           <div class="table-container">
@@ -1105,9 +903,7 @@
                 </tr>
               </thead>
               <tbody id="highlightsResourcesTable">
-                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
-                  Analyzing resource usage...
-                </td></tr>
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">Analyzing resource usage...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1115,28 +911,20 @@
       </div>
     </div>
 
-    <!-- Actions Card -->
+    <!-- Actions -->
     <div class="card" style="margin-top: 24px;">
       <h2>⚡ Actions</h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-        <button id="btnRefresh" class="btn btn-block">
-          <span>🔄 Refresh All Months</span>
-        </button>
-        <button id="btnExportCSV" class="btn btn-block" style="background: var(--success);">
-          <span>📄 Export CSV</span>
-        </button>
-        <button id="btnExportJSON" class="btn btn-block" style="background: var(--info);">
-          <span>🔧 Export JSON</span>
-        </button>
-        <button id="btnDisconnect" class="btn btn-block" style="background: var(--danger);">
-          <span>🚪 Disconnect</span>
-        </button>
+        <button id="btnRefresh" class="btn btn-block">🔄 Refresh All Months</button>
+        <button id="btnExportCSV" class="btn btn-block" style="background: var(--success);">📄 Export CSV</button>
+        <button id="btnExportJSON" class="btn btn-block" style="background: var(--info);">🔧 Export JSON</button>
+        <button id="btnDisconnect" class="btn btn-block" style="background: var(--danger);">🚪 Disconnect</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Register the datalabels plugin
+    // Register the datalabels plugin globally
     Chart.register(ChartDataLabels);
 
     // ==================== CONFIGURATION ====================
@@ -1147,154 +935,109 @@
       CUSTOMER_NAME: 'JLA',
       ENVIRONMENT_REGION: 'eu-west-2',
       ENVIRONMENTS: {
-        'eu-west-2': { 
-          name: 'EU West (London)', 
-          api: 'https://api.euw2.pure.cloud', 
-          login: 'https://login.euw2.pure.cloud' 
+        'eu-west-2': {
+          name: 'EU West (London)',
+          api: 'https://api.euw2.pure.cloud',
+          login: 'https://login.euw2.pure.cloud'
         }
       },
-      MAX_MONTHS: 6  // Show up to 6 months (0-5)
+      MAX_MONTHS: 6
     };
 
-    // ==================== STATE MANAGEMENT ====================
-    let appState = {
+    // ==================== STATE ====================
+    const appState = {
       currentTab: 'analytics',
       currentPeriod: 0,
       usageData: null,
-      rawApiData: null,
       lastFetchTime: null,
-      billingHistory: {},  // Store data for all months
+      billingHistory: {},
       accessToken: null,
       currentOrgId: CONFIG.TRUSTED_ORG_ID,
       savedOrgs: [],
-      charts: {
-        minutes: null,
-        licenses: null,
-        volumes: null
-      },
-      graphSelections: {
-        minutes: 'speech',
-        licenses: 'all',
-        volumes: 'byoc'
-      },
-      licenseTypes: new Map(), // Store dynamic license types with colors
-      resourceCategories: new Set()
+      charts: { minutes: null, licenses: null, volumes: null },
+      graphSelections: { minutes: 'speech', licenses: 'all', volumes: 'byoc' },
+      licenseTypes: new Map(),
+      resourceCategories: new Set(),
+      // Debounce timer for graph selector changes
+      _chartDebounce: null
     };
 
-    // ==================== DOM ELEMENTS ====================
+    // ==================== DOM REFS ====================
     const el = {
-      authOverlay: document.getElementById('authOverlay'),
-      signinBtn: document.getElementById('signinBtn'),
-      mainContent: document.getElementById('mainContent'),
-      loadingOverlay: document.getElementById('loadingOverlay'),
-      statusContainer: document.getElementById('statusContainer'),
-      lastUpdated: document.getElementById('lastUpdated'),
-      orgNameDisplay: document.getElementById('orgNameDisplay'),
-      
-      // Organization selector
-      orgIdInput: document.getElementById('orgIdInput'),
-      btnLoadOrg: document.getElementById('btnLoadOrg'),
-      btnSaveOrg: document.getElementById('btnSaveOrg'),
-      savedOrgsContainer: document.getElementById('savedOrgsContainer'),
-      savedOrgsList: document.getElementById('savedOrgsList'),
-      
-      // Month selector
+      authOverlay:            document.getElementById('authOverlay'),
+      signinBtn:              document.getElementById('signinBtn'),
+      mainContent:            document.getElementById('mainContent'),
+      loadingOverlay:         document.getElementById('loadingOverlay'),
+      statusContainer:        document.getElementById('statusContainer'),
+      lastUpdated:            document.getElementById('lastUpdated'),
+      orgNameDisplay:         document.getElementById('orgNameDisplay'),
+      orgIdInput:             document.getElementById('orgIdInput'),
+      btnLoadOrg:             document.getElementById('btnLoadOrg'),
+      btnSaveOrg:             document.getElementById('btnSaveOrg'),
+      savedOrgsContainer:     document.getElementById('savedOrgsContainer'),
+      savedOrgsList:          document.getElementById('savedOrgsList'),
       monthSelectorContainer: document.getElementById('monthSelectorContainer'),
-      monthSelector: document.getElementById('monthSelector'),
-      monthRangeBadge: document.getElementById('monthRangeBadge'),
-      
-      // Month displays
-      usersMonthDisplay: document.getElementById('usersMonthDisplay'),
-      resourcesMonthDisplay: document.getElementById('resourcesMonthDisplay'),
+      monthSelector:          document.getElementById('monthSelector'),
+      monthRangeBadge:        document.getElementById('monthRangeBadge'),
+      usersMonthDisplay:      document.getElementById('usersMonthDisplay'),
+      resourcesMonthDisplay:  document.getElementById('resourcesMonthDisplay'),
       highlightsMonthDisplay: document.getElementById('highlightsMonthDisplay'),
-      
-      // Analytics dashboard elements
-      currentMonthName: document.getElementById('currentMonthName'),
-      currentMonthDates: document.getElementById('currentMonthDates'),
-      loadedMonthsCount: document.getElementById('loadedMonthsCount'),
-      dataRange: document.getElementById('dataRange'),
-      
-      // Graph selectors
-      minutesMetricSelector: document.getElementById('minutesMetricSelector'),
+      currentMonthName:       document.getElementById('currentMonthName'),
+      currentMonthDates:      document.getElementById('currentMonthDates'),
+      loadedMonthsCount:      document.getElementById('loadedMonthsCount'),
+      dataRange:              document.getElementById('dataRange'),
+      minutesMetricSelector:  document.getElementById('minutesMetricSelector'),
       licensesMetricSelector: document.getElementById('licensesMetricSelector'),
-      volumesMetricSelector: document.getElementById('volumesMetricSelector'),
-      
-      minutesGraphTitle: document.getElementById('minutesGraphTitle'),
-      licensesGraphTitle: document.getElementById('licensesGraphTitle'),
-      volumesGraphTitle: document.getElementById('volumesGraphTitle'),
-      
-      dynamicLicenseBreakdown: document.getElementById('dynamicLicenseBreakdown'),
-      totalLicensesValue: document.getElementById('totalLicensesValue'),
-      comparisonTableBody: document.getElementById('comparisonTableBody'),
-      
-      // Metric tiles
-      totalUsersValue: document.getElementById('totalUsersValue'),
-      usersUtilization: document.getElementById('usersUtilization'),
-      overageRiskValue: document.getElementById('overageRiskValue'),
-      overageDetail: document.getElementById('overageDetail'),
-      metricUserOverage: document.getElementById('metricUserOverage'),
-      speechUsageValue: document.getElementById('speechUsageValue'),
-      speechUsed: document.getElementById('speechUsed'),
-      speechPrepaid: document.getElementById('speechPrepaid'),
-      speechProgressUsed: document.getElementById('speechProgressUsed'),
-      speechDetail: document.getElementById('speechDetail'),
-      ivrUsageValue: document.getElementById('ivrUsageValue'),
-      ivrDetail: document.getElementById('ivrDetail'),
-      
-      // Tables
-      usersTableBody: document.getElementById('usersTableBody'),
-      resourcesTableBody: document.getElementById('resourcesTableBody'),
-      highlightsUsersTable: document.getElementById('highlightsUsersTable'),
-      highlightsResourcesTable: document.getElementById('highlightsResourcesTable'),
-      
-      // Speech analytics highlights
-      highlightSpeechUsed: document.getElementById('highlightSpeechUsed'),
+      volumesMetricSelector:  document.getElementById('volumesMetricSelector'),
+      minutesGraphTitle:      document.getElementById('minutesGraphTitle'),
+      licensesGraphTitle:     document.getElementById('licensesGraphTitle'),
+      volumesGraphTitle:      document.getElementById('volumesGraphTitle'),
+      dynamicLicenseBreakdown:document.getElementById('dynamicLicenseBreakdown'),
+      totalLicensesValue:     document.getElementById('totalLicensesValue'),
+      comparisonTableBody:    document.getElementById('comparisonTableBody'),
+      usersTableBody:         document.getElementById('usersTableBody'),
+      resourcesTableBody:     document.getElementById('resourcesTableBody'),
+      highlightsUsersTable:   document.getElementById('highlightsUsersTable'),
+      highlightsResourcesTable:document.getElementById('highlightsResourcesTable'),
+      highlightSpeechUsed:    document.getElementById('highlightSpeechUsed'),
       highlightSpeechPrepaid: document.getElementById('highlightSpeechPrepaid'),
-      highlightSpeechRemaining: document.getElementById('highlightSpeechRemaining'),
+      highlightSpeechRemaining:document.getElementById('highlightSpeechRemaining'),
       highlightSpeechUsedBar: document.getElementById('highlightSpeechUsedBar'),
-      highlightSpeechRemainingBar: document.getElementById('highlightSpeechRemainingBar'),
       highlightSpeechUsedPct: document.getElementById('highlightSpeechUsedPct'),
-      highlightSpeechAvailablePct: document.getElementById('highlightSpeechAvailablePct'),
-      highlightSpeechDaysLeft: document.getElementById('highlightSpeechDaysLeft'),
-      
-      // Buttons
-      btnRefresh: document.getElementById('btnRefresh'),
-      btnExportCSV: document.getElementById('btnExportCSV'),
-      btnExportJSON: document.getElementById('btnExportJSON'),
-      btnDisconnect: document.getElementById('btnDisconnect'),
-      
-      // Loading
-      loadingText: document.getElementById('loadingText'),
-      loadingSubtext: document.getElementById('loadingSubtext')
+      highlightSpeechAvailablePct:document.getElementById('highlightSpeechAvailablePct'),
+      highlightSpeechDaysLeft:document.getElementById('highlightSpeechDaysLeft'),
+      btnRefresh:             document.getElementById('btnRefresh'),
+      btnExportCSV:           document.getElementById('btnExportCSV'),
+      btnExportJSON:          document.getElementById('btnExportJSON'),
+      btnDisconnect:          document.getElementById('btnDisconnect'),
+      loadingText:            document.getElementById('loadingText'),
+      loadingSubtext:         document.getElementById('loadingSubtext')
     };
 
-    // ==================== UTILITY FUNCTIONS ====================
+    // ==================== UTILITIES ====================
     function formatNumber(num) {
-      if (num === undefined || num === null) return '0';
+      if (num == null) return '0';
       return new Intl.NumberFormat().format(num);
     }
 
     function showStatusMessage(message, type = 'info') {
+      const icons = { success: '✅', error: '❌', warn: '⚠️', info: '💡' };
+      const colors = { success: '#28a745', error: '#dc3545', warn: '#ffc107', info: '#17a2b8' };
       const msgDiv = document.createElement('div');
       msgDiv.className = 'status-message';
-      const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '💡';
-      const color = type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warn' ? '#ffc107' : '#17a2b8';
-      msgDiv.style.borderLeftColor = color;
+      msgDiv.style.borderLeftColor = colors[type] || colors.info;
       msgDiv.innerHTML = `
-        <span style="font-size:20px;">${icon}</span>
+        <span style="font-size:20px;">${icons[type] || icons.info}</span>
         <div>
           <div style="font-weight:600;">${message}</div>
           <div style="font-size:12px;color:var(--text-light);">${new Date().toLocaleTimeString()}</div>
-        </div>
-      `;
+        </div>`;
       el.statusContainer.appendChild(msgDiv);
-      
       setTimeout(() => {
-        if (msgDiv.parentNode) {
-          msgDiv.style.opacity = '0';
-          msgDiv.style.transform = 'translateX(100%)';
-          setTimeout(() => msgDiv.remove(), 300);
-        }
+        msgDiv.style.transition = 'opacity 0.3s, transform 0.3s';
+        msgDiv.style.opacity = '0';
+        msgDiv.style.transform = 'translateX(100%)';
+        setTimeout(() => msgDiv.remove(), 300);
       }, 5000);
     }
 
@@ -1308,248 +1051,211 @@
       }
     }
 
-    function getMonthName(offset = 0) {
-      const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      
+    // FIX: correct year rollover when offset crosses year boundary
+    function getMonthOffset(offset) {
       const today = new Date();
-      let targetMonth = today.getMonth() - offset;
-      let targetYear = today.getFullYear();
-      
-      if (targetMonth < 0) {
-        targetMonth += 12;
-        targetYear -= 1;
-      }
-      
-      return `${monthNames[targetMonth]} ${targetYear}`;
+      let month = today.getMonth() - offset;
+      let year = today.getFullYear();
+      // Properly handle negative months
+      while (month < 0) { month += 12; year -= 1; }
+      return { month, year };
+    }
+
+    function getMonthName(offset = 0) {
+      const MONTH_NAMES = ['January','February','March','April','May','June',
+                           'July','August','September','October','November','December'];
+      const { month, year } = getMonthOffset(offset);
+      return `${MONTH_NAMES[month]} ${year}`;
     }
 
     function getMonthDates(offset = 0) {
-      const today = new Date();
-      let targetMonth = today.getMonth() - offset;
-      let targetYear = today.getFullYear();
-      
-      if (targetMonth < 0) {
-        targetMonth += 12;
-        targetYear -= 1;
-      }
-      
-      const firstDay = new Date(targetYear, targetMonth, 1);
-      const lastDay = new Date(targetYear, targetMonth + 1, 0);
-      
-      return {
-        month: targetMonth,
-        year: targetYear,
-        firstDay: firstDay.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-        lastDay: lastDay.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-        name: getMonthName(offset)
-      };
+      const { month, year } = getMonthOffset(offset);
+      const firstDay = new Date(year, month, 1);
+      const lastDay  = new Date(year, month + 1, 0);
+      const fmt = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      return { month, year, firstDay: fmt(firstDay), lastDay: fmt(lastDay), name: getMonthName(offset) };
     }
 
-    function getPeriodDisplayName(periodIndex) {
-      if (periodIndex === 0) return `Current Month (${getMonthName(0)})`;
-      if (periodIndex === 1) return `Last Month (${getMonthName(1)})`;
-      return `${periodIndex} Months Ago (${getMonthName(periodIndex)})`;
+    function getPeriodDisplayName(i) {
+      if (i === 0) return `Current Month (${getMonthName(0)})`;
+      if (i === 1) return `Last Month (${getMonthName(1)})`;
+      return `${i} Months Ago (${getMonthName(i)})`;
     }
 
     function updateMonthSelectorOptions() {
       const selector = el.monthSelector;
       selector.innerHTML = '';
-      
       for (let i = 0; i < CONFIG.MAX_MONTHS; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        
-        if (i === 0) option.textContent = `Current Month (${getMonthName(0)})`;
-        else if (i === 1) option.textContent = `Last Month (${getMonthName(1)})`;
-        else option.textContent = `${i} Months Ago (${getMonthName(i)})`;
-        
-        option.selected = (i === appState.currentPeriod);
-        selector.appendChild(option);
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = getPeriodDisplayName(i);
+        opt.selected = (i === appState.currentPeriod);
+        selector.appendChild(opt);
       }
     }
 
-    function getUtilizationClass(utilization) {
-      if (utilization >= 90) return 'danger-row';
-      if (utilization >= 75) return 'highlight-row';
-      if (utilization <= 25) return 'highlight-row';
+    function getUtilizationClass(u) {
+      if (u >= 90) return 'danger-row';
+      if (u >= 75 || u <= 25) return 'highlight-row';
       return 'success-row';
     }
 
-    function getUtilizationIndicator(utilization) {
-      if (utilization >= 75) {
-        return '<span class="utilization-indicator utilization-high"></span><span class="utilization-high-text">High</span>';
-      }
-      if (utilization >= 50) {
-        return '<span class="utilization-indicator utilization-medium"></span><span class="utilization-medium-text">Medium</span>';
-      }
+    function getUtilizationIndicator(u) {
+      if (u >= 75) return '<span class="utilization-indicator utilization-high"></span><span class="utilization-high-text">High</span>';
+      if (u >= 50) return '<span class="utilization-indicator utilization-medium"></span><span class="utilization-medium-text">Medium</span>';
       return '<span class="utilization-indicator utilization-low"></span><span class="utilization-low-text">Low</span>';
     }
 
-    function getUtilizationTextColor(utilization) {
-      if (utilization >= 75) return 'utilization-high-text';
-      if (utilization >= 50) return 'utilization-medium-text';
+    function getUtilizationTextColor(u) {
+      if (u >= 75) return 'utilization-high-text';
+      if (u >= 50) return 'utilization-medium-text';
       return 'utilization-low-text';
     }
 
     function getTrendIcon(current, previous) {
-      if (!previous || previous === 0) return '<span class="trend-indicator trend-neutral">—</span>';
-      
+      if (!previous) return '<span class="trend-indicator trend-neutral">—</span>';
       const change = ((current - previous) / previous) * 100;
-      
-      if (change > 0) {
-        return `<span class="trend-indicator trend-up">▲ ${change.toFixed(1)}%</span>`;
-      } else if (change < 0) {
-        return `<span class="trend-indicator trend-down">▼ ${Math.abs(change).toFixed(1)}%</span>`;
-      } else {
-        return '<span class="trend-indicator trend-neutral">● 0%</span>';
-      }
+      if (Math.abs(change) < 0.1) return '<span class="trend-indicator trend-neutral">● 0%</span>';
+      return change > 0
+        ? `<span class="trend-indicator trend-up">▲ ${change.toFixed(1)}%</span>`
+        : `<span class="trend-indicator trend-down">▼ ${Math.abs(change).toFixed(1)}%</span>`;
     }
 
     function getTrendBadge(current, previous) {
-      if (!previous || previous === 0) return '<span class="trend-badge trend-badge-neutral">—</span>';
-      
+      if (!previous) return '<span class="trend-badge trend-badge-neutral">—</span>';
       const change = ((current - previous) / previous) * 100;
-      
-      if (change > 0) {
-        return `<span class="trend-badge trend-badge-up">▲ ${change.toFixed(1)}%</span>`;
-      } else if (change < 0) {
-        return `<span class="trend-badge trend-badge-down">▼ ${Math.abs(change).toFixed(1)}%</span>`;
-      } else {
-        return '<span class="trend-badge trend-badge-neutral">● 0%</span>';
-      }
+      if (Math.abs(change) < 0.1) return '<span class="trend-badge trend-badge-neutral">● 0%</span>';
+      return change > 0
+        ? `<span class="trend-badge trend-badge-up">▲ ${change.toFixed(1)}%</span>`
+        : `<span class="trend-badge trend-badge-down">▼ ${Math.abs(change).toFixed(1)}%</span>`;
     }
 
-    // Generate a consistent color based on string
+    // Deterministic color from string
     function getColorForString(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      
-      const colors = [
-        'rgba(99, 171, 143, 0.7)',   // primary green
-        'rgba(78, 115, 223, 0.7)',   // blue
-        'rgba(246, 194, 62, 0.7)',   // yellow
-        'rgba(28, 200, 138, 0.7)',   // green
-        'rgba(220, 53, 69, 0.7)',    // red
-        'rgba(111, 66, 193, 0.7)',   // purple
-        'rgba(253, 126, 20, 0.7)',   // orange
-        'rgba(23, 162, 184, 0.7)',   // teal
-        'rgba(108, 117, 125, 0.7)',  // gray
-        'rgba(0, 123, 255, 0.7)',    // blue
-        'rgba(40, 167, 69, 0.7)',    // green
-        'rgba(255, 193, 7, 0.7)'     // yellow
+      const palette = [
+        'rgba(99,171,143,0.75)','rgba(78,115,223,0.75)','rgba(246,194,62,0.75)',
+        'rgba(28,200,138,0.75)','rgba(220,53,69,0.75)','rgba(111,66,193,0.75)',
+        'rgba(253,126,20,0.75)','rgba(23,162,184,0.75)','rgba(108,117,125,0.75)',
+        'rgba(0,123,255,0.75)','rgba(40,167,69,0.75)','rgba(255,193,7,0.75)'
       ];
-      
-      return colors[Math.abs(hash) % colors.length];
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      return palette[Math.abs(hash) % palette.length];
     }
 
-    // ==================== ORGANIZATION MANAGEMENT ====================
+    // ==================== CHART HELPERS ====================
+
+    /**
+     * Shared datalabels config factory.
+     * Reads from a captured `dataArray` so the formatter always has the right series.
+     * FIX: using a captured reference avoids the closure bug in the 'all' multi-dataset case.
+     */
+    function makeDatalabels(dataArray, isPercent = false) {
+      return {
+        anchor: 'end',
+        align: 'end',   // FIX: 'end' keeps label inside the chart area (above bar, within padding)
+        offset: 4,
+        clip: false,
+        formatter(value, context) {
+          if (!value) return '';
+          const idx = context.dataIndex;
+          const prev = idx > 0 ? dataArray[idx - 1] : null;
+          const fmt  = new Intl.NumberFormat().format(value);
+          if (!prev) return fmt;
+          const pct = ((value - prev) / prev) * 100;
+          if (Math.abs(pct) < 0.1) return fmt;
+          return `${fmt}\n${pct > 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%`;
+        },
+        color(context) {
+          const idx = context.dataIndex;
+          const val  = dataArray[idx];
+          const prev = idx > 0 ? dataArray[idx - 1] : null;
+          if (prev) {
+            const pct = ((val - prev) / prev) * 100;
+            if (Math.abs(pct) >= 0.1) return pct > 0 ? '#28a745' : '#dc3545';
+          }
+          return '#2C3E50';
+        },
+        font: { weight: 'bold', size: 10 },
+        backgroundColor: 'rgba(255,255,255,0.88)',
+        borderRadius: 3,
+        padding: { top: 3, bottom: 3, left: 5, right: 5 }
+      };
+    }
+
+    /**
+     * Shared base chart options.
+     * FIX: layout.padding.top gives room for datalabels above the tallest bar.
+     */
+    function baseChartOptions(yTickCallback) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: { top: 48, right: 8, bottom: 0, left: 8 }   // ← KEY FIX
+        },
+        plugins: {
+          legend: { display: false },
+          datalabels: { display: true }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: yTickCallback || ((v) => new Intl.NumberFormat().format(v)) }
+          }
+        }
+      };
+    }
+
+    // ==================== ORG MANAGEMENT ====================
     function loadSavedOrgs() {
       try {
         const saved = localStorage.getItem('genesys_saved_orgs');
-        if (saved) {
-          appState.savedOrgs = JSON.parse(saved);
-          updateSavedOrgsList();
-        }
-      } catch (error) {
-        console.error('Error loading saved orgs:', error);
-      }
+        if (saved) { appState.savedOrgs = JSON.parse(saved); updateSavedOrgsList(); }
+      } catch (e) { console.error('Error loading saved orgs:', e); }
     }
-    
+
     function saveOrganization() {
       const orgId = el.orgIdInput.value.trim();
-      if (!orgId) {
-        showStatusMessage('Please enter an organization ID', 'warn');
-        return;
+      if (!orgId) { showStatusMessage('Please enter an organization ID', 'warn'); return; }
+      if (appState.savedOrgs.find(o => o.id === orgId)) {
+        showStatusMessage('Organization already saved', 'info'); return;
       }
-      
-      // Check if already saved
-      const existing = appState.savedOrgs.find(org => org.id === orgId);
-      if (existing) {
-        showStatusMessage('Organization already saved', 'info');
-        return;
-      }
-      
-      // Get org name from current data if available
-      let orgName = orgId.substring(0, 8) + '...';
-      if (appState.usageData && appState.usageData.organization) {
-        orgName = appState.usageData.organization.name;
-      }
-      
-      // Add to saved orgs
-      appState.savedOrgs.push({
-        id: orgId,
-        name: orgName,
-        savedAt: new Date().toISOString()
-      });
-      
-      // Save to localStorage
+      const orgName = appState.usageData?.organization?.name || orgId.substring(0, 8) + '...';
+      appState.savedOrgs.push({ id: orgId, name: orgName, savedAt: new Date().toISOString() });
       try {
         localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs));
         updateSavedOrgsList();
-        showStatusMessage(`✅ Organization saved: ${orgName}`, 'success');
-      } catch (error) {
-        console.error('Error saving org:', error);
-        showStatusMessage('Failed to save organization', 'error');
-      }
+        showStatusMessage(`Organization saved: ${orgName}`, 'success');
+      } catch (e) { showStatusMessage('Failed to save organization', 'error'); }
     }
-    
+
     function loadOrganization(orgId) {
-      if (!orgId || !orgId.trim()) {
-        showStatusMessage('Please enter a valid organization ID', 'warn');
-        return;
-      }
-      
+      if (!orgId?.trim()) { showStatusMessage('Please enter a valid organization ID', 'warn'); return; }
       appState.currentOrgId = orgId.trim();
       el.orgIdInput.value = appState.currentOrgId;
-      
-      // Clear current data
       appState.usageData = null;
-      appState.rawApiData = null;
       appState.billingHistory = {};
       appState.licenseTypes.clear();
-      
-      // Fetch all months data
+      appState.resourceCategories.clear();
       fetchAllMonthsData();
     }
-    
+
     function updateSavedOrgsList() {
-      if (appState.savedOrgs.length === 0) {
-        el.savedOrgsContainer.style.display = 'none';
-        return;
-      }
-      
+      if (!appState.savedOrgs.length) { el.savedOrgsContainer.style.display = 'none'; return; }
       el.savedOrgsContainer.style.display = 'block';
       el.savedOrgsList.innerHTML = '';
-      
       appState.savedOrgs.forEach((org, index) => {
         const btn = document.createElement('button');
         btn.className = 'btn';
         btn.style.cssText = 'width:auto;padding:8px 16px;font-size:13px;display:inline-flex;align-items:center;gap:8px;';
-        
-        // Highlight if it's the current org
-        if (org.id === appState.currentOrgId) {
-          btn.style.background = 'var(--primary-color)';
-        } else {
-          btn.style.background = 'var(--info)';
-        }
-        
-        btn.innerHTML = `
-          <span>${org.name}</span>
-          <span style="opacity:0.7;font-size:11px;font-family:monospace;">${org.id.substring(0, 8)}...</span>
-        `;
-        
-        btn.onclick = () => loadOrganization(org.id);
-        
-        // Add delete button
-        const deleteBtn = document.createElement('span');
-        deleteBtn.innerHTML = '×';
-        deleteBtn.style.cssText = 'margin-left:8px;padding:0 4px;cursor:pointer;font-size:18px;line-height:1;';
-        deleteBtn.onclick = (e) => {
+        btn.style.background = org.id === appState.currentOrgId ? 'var(--primary-color)' : 'var(--info)';
+        btn.innerHTML = `<span>${org.name}</span><span style="opacity:0.7;font-size:11px;font-family:monospace;">${org.id.substring(0,8)}…</span>`;
+        btn.addEventListener('click', () => loadOrganization(org.id));
+        const del = document.createElement('span');
+        del.innerHTML = '×';
+        del.style.cssText = 'margin-left:8px;padding:0 4px;cursor:pointer;font-size:18px;line-height:1;';
+        del.addEventListener('click', (e) => {
           e.stopPropagation();
           if (confirm(`Remove "${org.name}" from saved organizations?`)) {
             appState.savedOrgs.splice(index, 1);
@@ -1557,32 +1263,28 @@
             updateSavedOrgsList();
             showStatusMessage('Organization removed', 'info');
           }
-        };
-        
-        btn.appendChild(deleteBtn);
+        });
+        btn.appendChild(del);
         el.savedOrgsList.appendChild(btn);
       });
     }
 
-    // ==================== AUTHENTICATION ====================
-    function parseTokenFromHash(){
+    // ==================== AUTH ====================
+    function parseTokenFromHash() {
       const params = new URLSearchParams(location.hash.replace(/^#/, ''));
-      return { 
-        token: params.get('access_token'), 
-        error: params.get('error'), 
-        errorDescription: params.get('error_description') 
-      };
+      return { token: params.get('access_token'), error: params.get('error'), errorDescription: params.get('error_description') };
     }
-    
-    function authUrl(){
-      return `${CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION].login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`;
+
+    function authUrl() {
+      const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
+      return `${env.login}/oauth/authorize?client_id=${encodeURIComponent(CONFIG.CLIENT_ID)}&response_type=token&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`;
     }
-    
+
     function showAuthOverlay() {
       el.authOverlay.style.display = 'flex';
       el.mainContent.style.display = 'none';
     }
-    
+
     function hideAuthOverlay() {
       el.authOverlay.style.display = 'none';
       el.mainContent.style.display = 'block';
@@ -1591,217 +1293,74 @@
     function disconnect() {
       appState.accessToken = null;
       appState.usageData = null;
-      appState.rawApiData = null;
       appState.billingHistory = {};
+      destroyCharts();
       showAuthOverlay();
       showStatusMessage('Disconnected from Genesys Cloud', 'info');
     }
 
-    // ==================== API FUNCTIONS ====================
-    async function apiCall(path, options = {}) {
-      if(!appState.accessToken) {
-        showStatusMessage('Authentication required', 'error');
-        disconnect();
-        throw new Error('Not authenticated');
-      }
-      
-      const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
-      const url = `${env.api}${path}`;
-      
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          'Authorization': `Bearer ${appState.accessToken}`,
-          'Content-Type': 'application/json',
-          ...options.headers
-        }
+    // ==================== API ====================
+    async function apiCall(path) {
+      if (!appState.accessToken) { disconnect(); throw new Error('Not authenticated'); }
+      const url = `${CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION].api}${path}`;
+      const res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${appState.accessToken}`, 'Content-Type': 'application/json' }
       });
-
-      if(response.status === 401 || response.status === 403) {
-        showStatusMessage('Access denied - check your permissions', 'error');
-        throw new Error(`API returned ${response.status} - access denied`);
+      if (res.status === 401 || res.status === 403) {
+        showStatusMessage('Access denied — check permissions', 'error');
+        throw new Error(`API ${res.status}`);
       }
-      
-      if(!response.ok) {
-        const errorText = await response.text().catch(() => '');
-        console.error(`API Error ${response.status}:`, errorText);
-        throw new Error(`API request failed: ${response.status} ${errorText}`);
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`API ${res.status}: ${text}`);
       }
-      
-      return response.json();
+      return res.json();
     }
 
     async function fetchAllMonthsData() {
-      setLoading(true, 'Fetching All Months Data', `Loading 6 months of billing data from Genesys Cloud...`);
-      
-      try {
-        appState.billingHistory = {};
-        appState.licenseTypes.clear();
-        let successCount = 0;
-        
-        for (let i = 0; i < CONFIG.MAX_MONTHS; i++) {
-          try {
-            const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${i}`;
-            console.log(`Fetching month ${i}:`, endpoint);
-            
-            const rawApiResponse = await apiCall(endpoint);
-            
-            // Parse the API response
-            const parsedData = parseApiData(rawApiResponse, i);
-            
-            // Store in history
-            appState.billingHistory[i] = {
-              period: i,
-              periodName: getPeriodDisplayName(i),
-              data: parsedData,
-              rawData: rawApiResponse,
-              timestamp: new Date()
-            };
-            
-            successCount++;
-            
-            // Update loading text
-            el.loadingSubtext.textContent = `Loaded ${i + 1}/${CONFIG.MAX_MONTHS} months...`;
-          } catch (error) {
-            console.error(`Failed to fetch month ${i}:`, error);
-            showStatusMessage(`Month ${i} failed: ${error.message}`, 'warn');
-          }
+      setLoading(true, 'Fetching All Months Data', 'Loading 6 months of billing data…');
+
+      // FIX: clear stale license/resource metadata before re-fetching
+      appState.billingHistory = {};
+      appState.licenseTypes.clear();
+      appState.resourceCategories.clear();
+
+      let successCount = 0;
+      for (let i = 0; i < CONFIG.MAX_MONTHS; i++) {
+        try {
+          el.loadingSubtext.textContent = `Fetching month ${i + 1}/${CONFIG.MAX_MONTHS}…`;
+          const raw = await apiCall(`/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${i}`);
+          const parsed = parseApiData(raw, i);
+          appState.billingHistory[i] = { period: i, periodName: getPeriodDisplayName(i), data: parsed, rawData: raw, timestamp: new Date() };
+          successCount++;
+        } catch (err) {
+          console.error(`Month ${i} fetch failed:`, err);
+          showStatusMessage(`Month ${i} failed: ${err.message}`, 'warn');
         }
-        
-        // Update license selector with dynamic types
-        updateLicenseSelector();
-        
-        appState.lastFetchTime = new Date();
-        appState.currentPeriod = 0; // Default to current month
-        appState.usageData = appState.billingHistory[0]?.data || null;
-        
-        // Update month selector
-        updateMonthSelectorOptions();
-        
-        // Update displays
-        updateAllDisplays();
-        
-        setLoading(false);
-        
-        showStatusMessage(`✅ Loaded ${successCount}/${CONFIG.MAX_MONTHS} months successfully`, 'success');
-        
-      } catch (error) {
-        setLoading(false);
-        console.error('Error fetching billing data:', error);
-        showStatusMessage(`Failed to load billing data: ${error.message}`, 'error');
       }
+
+      updateLicenseSelector();
+      appState.lastFetchTime = new Date();
+      appState.currentPeriod = 0;
+      appState.usageData = appState.billingHistory[0]?.data || null;
+      updateMonthSelectorOptions();
+      updateAllDisplays();
+      setLoading(false);
+      showStatusMessage(`Loaded ${successCount}/${CONFIG.MAX_MONTHS} months successfully`, 'success');
     }
 
-    async function fetchBillingData(periodIndex) {
-      // If we already have this month in history, just use it
-      if (appState.billingHistory[periodIndex]) {
-        appState.currentPeriod = periodIndex;
-        appState.usageData = appState.billingHistory[periodIndex].data;
-        
-        // Update displays based on current tab
-        if (appState.currentTab === 'users') {
-          updateUsersTable(appState.usageData.users);
-        } else if (appState.currentTab === 'resources') {
-          updateResourcesTable(appState.usageData.resources);
-        } else if (appState.currentTab === 'highlights') {
-          updateHighlightsTable(appState.usageData);
-        }
-        
-        // Update month displays
-        el.usersMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
-        el.resourcesMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
-        el.highlightsMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
-        
-        // Update metric tiles
-        updateMetricTiles(appState.usageData);
-        
-        updateMonthSelectorOptions();
-        showStatusMessage(`✅ Switched to ${getPeriodDisplayName(periodIndex)}`, 'success');
-        return;
-      }
-      
-      setLoading(true, 'Fetching Billing Data', `Loading ${getPeriodDisplayName(periodIndex)} from Genesys Cloud...`);
-      
-      try {
-        const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${periodIndex}`;
-        
-        console.log('Calling API endpoint:', endpoint);
-        const rawApiResponse = await apiCall(endpoint);
-        
-        // Parse the API response
-        const parsedData = parseApiData(rawApiResponse, periodIndex);
-        
-        // Store in history
-        appState.billingHistory[periodIndex] = {
-          period: periodIndex,
-          periodName: getPeriodDisplayName(periodIndex),
-          data: parsedData,
-          rawData: rawApiResponse,
-          timestamp: new Date()
-        };
-        
-        appState.lastFetchTime = new Date();
-        appState.currentPeriod = periodIndex;
-        appState.usageData = parsedData;
-        
-        // Update displays based on current tab
-        if (appState.currentTab === 'users') {
-          updateUsersTable(appState.usageData.users);
-        } else if (appState.currentTab === 'resources') {
-          updateResourcesTable(appState.usageData.resources);
-        } else if (appState.currentTab === 'highlights') {
-          updateHighlightsTable(appState.usageData);
-        }
-        
-        // Update month displays
-        el.usersMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
-        el.resourcesMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
-        el.highlightsMonthDisplay.textContent = appState.usageData.monthName || getMonthName(periodIndex);
-        
-        // Update metric tiles
-        updateMetricTiles(appState.usageData);
-        
-        updateMonthSelectorOptions();
-        
-        setLoading(false);
-        
-        showStatusMessage(`✅ ${getPeriodDisplayName(periodIndex)} data loaded successfully`, 'success');
-        
-      } catch (error) {
-        setLoading(false);
-        console.error('Error fetching billing data:', error);
-        showStatusMessage(`Failed to load billing data: ${error.message}`, 'error');
-      }
-    }
-
+    // ==================== DATA PARSING ====================
     function parseApiData(apiData, periodIndex) {
-      console.log('Parsing API data for month', periodIndex, apiData);
-      
-      if (!apiData) {
-        throw new Error('API returned null or undefined');
-      }
-      
-      if (!Array.isArray(apiData.usages)) {
-        console.error('Unable to find usages array in API response');
-        throw new Error(`Invalid API response structure. Expected 'usages' array.`);
-      }
-      
-      const usages = apiData.usages;
-      
-      // Parse user licenses
-      const users = parseUserLicenses(usages);
-      
-      // Parse resources
-      const resources = parseResources(usages);
-      
+      if (!apiData) throw new Error('API returned null');
+      if (!Array.isArray(apiData.usages)) throw new Error("Expected 'usages' array in API response");
       return {
         period: periodIndex,
         periodName: getPeriodDisplayName(periodIndex),
         monthName: getMonthName(periodIndex),
         monthDates: getMonthDates(periodIndex),
-        users: users,
-        resources: resources,
-        rawProducts: usages,
+        users: parseUserLicenses(apiData.usages),
+        resources: parseResources(apiData.usages),
+        rawProducts: apiData.usages,
         organization: apiData.organization,
         currency: apiData.currency,
         billingPeriodStartDate: apiData.billingPeriodStartDate,
@@ -1810,1608 +1369,653 @@
     }
 
     function parseUserLicenses(usages) {
-      const userLicenses = [];
-      
-      // Filter for user license products
-      const userProducts = usages.filter(usage => 
-        usage.name && (
-          usage.grouping === 'user' ||
-          usage.name.includes('Genesys Cloud CX') ||
-          usage.name.includes('CX 2') ||
-          usage.name.includes('WEM') ||
-          usage.name.includes('Communicate') ||
-          usage.name.includes('Collaborate') ||
-          usage.name.includes('Wallboard')
-        )
-      );
-      
-      userProducts.forEach(usage => {
-        const usageQuantity = parseFloat(usage.usageQuantity) || 0;
-        const prepayQuantity = parseFloat(usage.prepayQuantity) || 0;
-        const overageQuantity = Math.max(0, usageQuantity - prepayQuantity);
-        
-        // Store license type dynamically
-        if (!appState.licenseTypes.has(usage.name)) {
-          appState.licenseTypes.set(usage.name, {
-            name: usage.name,
-            color: getColorForString(usage.name),
-            count: 0
-          });
-        }
-        
-        userLicenses.push({
-          name: usage.name,
-          qty: usageQuantity,
-          committed: prepayQuantity,
-          used: usageQuantity,
-          onDemand: overageQuantity,
-          partNumber: usage.partNumber,
-          items: [
-            { name: `Committed${usageQuantity > 0 ? ` (${usageQuantity} used)` : ''}`, qty: prepayQuantity, used: usageQuantity },
-            { name: "On-Demand", qty: overageQuantity, used: overageQuantity }
-          ]
+      return usages
+        .filter(u => u.name && (
+          u.grouping === 'user' ||
+          u.name.includes('Genesys Cloud CX') ||
+          u.name.includes('CX 2') ||
+          u.name.includes('WEM') ||
+          u.name.includes('Communicate') ||
+          u.name.includes('Collaborate') ||
+          u.name.includes('Wallboard')
+        ))
+        .map(u => {
+          const used      = parseFloat(u.usageQuantity)  || 0;
+          const committed = parseFloat(u.prepayQuantity)  || 0;
+          const onDemand  = Math.max(0, used - committed);
+          if (!appState.licenseTypes.has(u.name)) {
+            appState.licenseTypes.set(u.name, { name: u.name, color: getColorForString(u.name) });
+          }
+          return { name: u.name, qty: used, committed, used, onDemand, partNumber: u.partNumber };
         });
-      });
-      
-      return userLicenses;
     }
 
     function parseResources(usages) {
-      const resources = [];
-      const byocItems = [];
-      const messagingItems = [];
-      const storageItems = [];
-      const apiItems = [];
-      const voiceItems = [];
-      const otherItems = [];
-      
-      const resourceProducts = usages.filter(usage => 
-        usage.name && 
-        usage.grouping !== 'user' &&
-        !usage.name.includes('Genesys Cloud CX 2') &&
-        !usage.name.includes('WEM Add-On') &&
-        !usage.name.includes('Communicate User') &&
-        !usage.name.includes('Communicate Standalone') &&
-        !usage.name.includes('Collaborate') &&
-        !usage.name.includes('Wallboard Device')
+      const byoc = [], messaging = [], storage = [], api = [], voice = [], other = [];
+
+      const resourceUsages = usages.filter(u => u.name &&
+        u.grouping !== 'user' &&
+        !u.name.includes('Genesys Cloud CX 2') &&
+        !u.name.includes('WEM Add-On') &&
+        !u.name.includes('Communicate User') &&
+        !u.name.includes('Communicate Standalone') &&
+        !u.name.includes('Collaborate') &&
+        !u.name.includes('Wallboard Device')
       );
-      
-      resourceProducts.forEach(usage => {
-        const usageQuantity = parseFloat(usage.usageQuantity) || 0;
-        const prepayQuantity = parseFloat(usage.prepayQuantity) || 0;
-        const overageQuantity = Math.max(0, usageQuantity - prepayQuantity);
-        
-        let unit = 'units';
-        if (usage.unitOfMeasureType === 'minute') unit = 'minutes';
-        else if (usage.unitOfMeasureType === 'message') unit = 'messages';
-        else if (usage.unitOfMeasureType === 'request') unit = 'requests';
-        else if (usage.unitOfMeasureType === 'gb') unit = 'GB';
-        else if (usage.unitOfMeasureType === 'number') unit = 'units';
-        else unit = usage.unitOfMeasureType || 'units';
-        
-        const resource = {
-          name: usage.name,
-          qty: usageQuantity,
-          unit: unit,
-          included: { 
-            qty: prepayQuantity, 
-            used: Math.min(usageQuantity, prepayQuantity) 
-          },
-          onDemand: overageQuantity,
-          partNumber: usage.partNumber,
-          grouping: usage.grouping
-        };
-        
-        // Categorize resources
-        if (usage.grouping === 'resource' || usage.name.includes('BYOT') || usage.name.includes('BYOC')) {
-          byocItems.push(resource);
-          appState.resourceCategories.add('byoc');
-        } else if (usage.grouping === 'messaging' || usage.grouping === 'messaging-usage' || usage.name.includes('SMS') || usage.name.includes('MMS')) {
-          messagingItems.push(resource);
-          appState.resourceCategories.add('messaging');
-        } else if (usage.grouping === 'storage' || usage.grouping === 'storage-category' || usage.name.includes('Storage') || usage.unit === 'GB') {
-          storageItems.push(resource);
-          appState.resourceCategories.add('storage');
-        } else if (usage.grouping === 'api' || usage.name.includes('API') || usage.unit === 'requests') {
-          apiItems.push(resource);
-          appState.resourceCategories.add('api');
-        } else if (usage.name.includes('Voice') || usage.name.includes('IVR') || usage.unit === 'minutes') {
-          voiceItems.push(resource);
+
+      resourceUsages.forEach(u => {
+        const qty      = parseFloat(u.usageQuantity)  || 0;
+        const prepay   = parseFloat(u.prepayQuantity)  || 0;
+        const onDemand = Math.max(0, qty - prepay);
+        const unitMap  = { minute: 'minutes', message: 'messages', request: 'requests', gb: 'GB', number: 'units' };
+        const unit     = unitMap[u.unitOfMeasureType] || u.unitOfMeasureType || 'units';
+
+        const resource = { name: u.name, qty, unit, included: { qty: prepay, used: Math.min(qty, prepay) }, onDemand, partNumber: u.partNumber, grouping: u.grouping };
+
+        if (u.grouping === 'resource' || u.name.includes('BYOT') || u.name.includes('BYOC')) {
+          byoc.push(resource); appState.resourceCategories.add('byoc');
+        } else if (u.grouping === 'messaging' || u.grouping === 'messaging-usage' || u.name.includes('SMS') || u.name.includes('MMS')) {
+          messaging.push(resource); appState.resourceCategories.add('messaging');
+        } else if (u.grouping === 'storage' || u.grouping === 'storage-category' || u.name.includes('Storage') || unit === 'GB') {
+          storage.push(resource); appState.resourceCategories.add('storage');
+        } else if (u.grouping === 'api' || u.name.includes('API') || unit === 'requests') {
+          api.push(resource); appState.resourceCategories.add('api');
+        } else if (u.name.includes('Voice') || u.name.includes('IVR') || unit === 'minutes') {
+          voice.push(resource);
         } else {
-          otherItems.push(resource);
+          other.push(resource);
         }
       });
-      
-      if (byocItems.length > 0) {
-        resources.push({ category: "BYOC / Carrier Resources", items: byocItems });
-      }
-      
-      if (messagingItems.length > 0) {
-        resources.push({ category: "Messaging (SMS/MMS/WhatsApp)", items: messagingItems });
-      }
-      
-      if (storageItems.length > 0) {
-        resources.push({ category: "Data Storage", items: storageItems });
-      }
-      
-      if (apiItems.length > 0) {
-        resources.push({ category: "API Resources", items: apiItems });
-      }
-      
-      if (voiceItems.length > 0) {
-        resources.push({ category: "Voice Resources", items: voiceItems });
-      }
-      
-      if (otherItems.length > 0) {
-        resources.push({ category: "Other Resources", items: otherItems });
-      }
-      
-      return resources;
+
+      const sections = [
+        { category: 'BYOC / Carrier Resources',        items: byoc },
+        { category: 'Messaging (SMS/MMS/WhatsApp)',     items: messaging },
+        { category: 'Data Storage',                     items: storage },
+        { category: 'API Resources',                    items: api },
+        { category: 'Voice Resources',                  items: voice },
+        { category: 'Other Resources',                  items: other }
+      ];
+
+      return sections.filter(s => s.items.length > 0);
     }
 
     function updateLicenseSelector() {
-      const selector = el.licensesMetricSelector;
-      selector.innerHTML = '';
-      
-      // Add "All License Types" option
-      const allOption = document.createElement('option');
-      allOption.value = 'all';
-      allOption.textContent = 'All License Types';
-      selector.appendChild(allOption);
-      
-      // Add dynamic license types
-      appState.licenseTypes.forEach((value, key) => {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = key;
-        selector.appendChild(option);
+      const sel = el.licensesMetricSelector;
+      sel.innerHTML = '<option value="all">All License Types</option>';
+      appState.licenseTypes.forEach((_, key) => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = key;
+        sel.appendChild(opt);
       });
-      
-      // Add On-Demand option
-      const ondemandOption = document.createElement('option');
-      ondemandOption.value = 'ondemand';
-      ondemandOption.textContent = 'On-Demand Usage';
-      selector.appendChild(ondemandOption);
+      const od = document.createElement('option');
+      od.value = 'ondemand'; od.textContent = 'On-Demand Usage';
+      sel.appendChild(od);
     }
 
-    // ==================== CHART FUNCTIONS ====================
+    // ==================== CHART ENGINE ====================
     function destroyCharts() {
-      if (appState.charts.minutes) {
-        appState.charts.minutes.destroy();
-        appState.charts.minutes = null;
-      }
-      if (appState.charts.licenses) {
-        appState.charts.licenses.destroy();
-        appState.charts.licenses = null;
-      }
-      if (appState.charts.volumes) {
-        appState.charts.volumes.destroy();
-        appState.charts.volumes = null;
-      }
+      ['minutes', 'licenses', 'volumes'].forEach(k => {
+        if (appState.charts[k]) { appState.charts[k].destroy(); appState.charts[k] = null; }
+      });
+    }
+
+    function debouncedUpdateCharts() {
+      clearTimeout(appState._chartDebounce);
+      appState._chartDebounce = setTimeout(updateCharts, 150);
     }
 
     function updateCharts() {
       destroyCharts();
-      
-      const ctxMinutes = document.getElementById('minutesChart')?.getContext('2d');
-      const ctxLicenses = document.getElementById('licensesChart')?.getContext('2d');
-      const ctxVolumes = document.getElementById('volumesChart')?.getContext('2d');
-      
-      if (!ctxMinutes || !ctxLicenses || !ctxVolumes) return;
-      
-      // Get months in chronological order (oldest to newest)
-      const months = [];
-      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
-        months.push(getMonthName(i).split(' ')[0]); // Just month name
-      }
-      
-      // Update minutes graph based on selector
-      updateMinutesGraph(ctxMinutes, months);
-      
-      // Update licenses graph based on selector
-      updateLicensesGraph(ctxLicenses, months);
-      
-      // Update volumes graph based on selector
-      updateVolumesGraph(ctxVolumes, months);
+      // Chronological labels: oldest → newest
+      const labels = [];
+      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) labels.push(getMonthName(i).split(' ')[0]);
+
+      const ctxM = document.getElementById('minutesChart')?.getContext('2d');
+      const ctxL = document.getElementById('licensesChart')?.getContext('2d');
+      const ctxV = document.getElementById('volumesChart')?.getContext('2d');
+
+      if (ctxM) buildMinutesChart(ctxM, labels);
+      if (ctxL) buildLicensesChart(ctxL, labels);
+      if (ctxV) buildVolumesChart(ctxV, labels);
     }
 
-    function updateMinutesGraph(ctx, months) {
-      const metric = appState.graphSelections.minutes;
-      let title = '';
-      let data = [];
-      let backgroundColors = [];
-      
-      // Get data in chronological order (oldest to newest)
+    function chronologicalData(extractFn) {
+      const data = [];
       for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
-        const monthData = appState.billingHistory[i]?.data;
-        
-        if (metric === 'speech') {
-          title = 'Speech Minutes';
-          let speechMinutes = 0;
-          if (monthData) {
-            monthData.resources.forEach(category => {
-              category.items.forEach(resource => {
-                if (resource.name.includes('Voice Transcription')) {
-                  speechMinutes += resource.included.used;
-                }
-              });
-            });
-          }
-          data.push(speechMinutes);
-          backgroundColors.push('rgba(99, 171, 143, 0.7)');
-        } else if (metric === 'ivr') {
-          title = 'IVR Minutes';
-          let ivrMinutes = 0;
-          if (monthData) {
-            monthData.resources.forEach(category => {
-              category.items.forEach(resource => {
-                if (resource.name.includes('IVR')) {
-                  ivrMinutes += resource.included.used;
-                }
-              });
-            });
-          }
-          data.push(ivrMinutes);
-          backgroundColors.push('rgba(78, 115, 223, 0.7)');
-        } else if (metric === 'total') {
-          title = 'Total Minutes';
-          let totalMinutes = 0;
-          if (monthData) {
-            monthData.resources.forEach(category => {
-              category.items.forEach(resource => {
-                if (resource.unit === 'minutes') {
-                  totalMinutes += resource.included.used;
-                }
-              });
-            });
-          }
-          data.push(totalMinutes);
-          backgroundColors.push('rgba(246, 194, 62, 0.7)');
-        } else if (metric === 'speechUtilization') {
-          title = 'Speech Utilization %';
-          let utilization = 0;
-          if (monthData) {
-            monthData.resources.forEach(category => {
-              category.items.forEach(resource => {
-                if (resource.name.includes('Voice Transcription')) {
-                  utilization = resource.included.qty > 0 
-                    ? Math.round((resource.included.used / resource.included.qty) * 100) 
-                    : 0;
-                }
-              });
-            });
-          }
-          data.push(utilization);
-          backgroundColors.push('rgba(220, 53, 69, 0.7)');
-        }
+        data.push(extractFn(appState.billingHistory[i]?.data) ?? 0);
       }
-      
-      el.minutesGraphTitle.textContent = title;
-      
+      return data;
+    }
+
+    function buildMinutesChart(ctx, labels) {
+      const metric = appState.graphSelections.minutes;
+      const CONFIGS = {
+        speech:            { title: 'Speech Minutes',      color: 'rgba(99,171,143,0.75)',  extractor: d => getResourceTotal(d, 'Voice Transcription') },
+        ivr:               { title: 'IVR Minutes',          color: 'rgba(78,115,223,0.75)',  extractor: d => getResourceTotal(d, 'IVR') },
+        total:             { title: 'Total Minutes',        color: 'rgba(246,194,62,0.75)',  extractor: d => getAllMinutes(d) },
+        speechUtilization: { title: 'Speech Utilization %', color: 'rgba(220,53,69,0.75)',   extractor: d => getSpeechUtilization(d) }
+      };
+      const cfg  = CONFIGS[metric] || CONFIGS.speech;
+      const data = chronologicalData(cfg.extractor);
+
+      el.minutesGraphTitle.textContent = cfg.title;
+      const opts = baseChartOptions(metric === 'speechUtilization' ? v => v + '%' : undefined);
+      opts.plugins.tooltip = { callbacks: { label: ctx => `${ctx.dataset.label}: ${formatNumber(ctx.raw)}${metric === 'speechUtilization' ? '%' : ''}` } };
+      opts.plugins.legend  = { display: false };
+
       appState.charts.minutes = new Chart(ctx, {
         type: 'bar',
-        data: {
-          labels: months,
-          datasets: [{
-            label: title,
-            data: data,
-            backgroundColor: backgroundColors,
-            borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
-            borderWidth: 1,
-            datalabels: {
-              anchor: 'end',
-              align: 'top',
-              offset: 8,
-              formatter: (value, context) => {
-                if (value === 0 || value === null || value === undefined) return '';
-                
-                const index = context.dataIndex;
-                const prevValue = index > 0 ? data[index - 1] : null;
-                
-                // Format the number with commas
-                const formattedValue = new Intl.NumberFormat().format(value);
-                
-                // If no previous value, just return the number
-                if (!prevValue || prevValue === 0) {
-                  return formattedValue;
-                }
-                
-                // Calculate trend
-                const change = ((value - prevValue) / prevValue) * 100;
-                const changeFormatted = change.toFixed(1);
-                
-                if (Math.abs(change) < 0.1) {
-                  return formattedValue;
-                }
-                
-                const trendIcon = change > 0 ? '▲' : '▼';
-                
-                // Return a simple string with the value and trend on separate lines
-                return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
-              },
-              color: (context) => {
-                const index = context.dataIndex;
-                const value = data[index];
-                const prevValue = index > 0 ? data[index - 1] : null;
-                
-                if (prevValue && prevValue > 0) {
-                  const change = ((value - prevValue) / prevValue) * 100;
-                  if (Math.abs(change) >= 0.1) {
-                    return change > 0 ? '#28a745' : '#dc3545';
-                  }
-                }
-                return '#2C3E50';
-              },
-              font: {
-                weight: 'bold',
-                size: 11
-              },
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              borderRadius: 4,
-              padding: {
-                top: 4,
-                bottom: 4,
-                left: 6,
-                right: 6
-              }
-            }
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const value = context.raw;
-                  const formattedValue = new Intl.NumberFormat().format(value);
-                  const datasetLabel = context.dataset.label || '';
-                  
-                  if (metric === 'speechUtilization') {
-                    return `${datasetLabel}: ${formattedValue}%`;
-                  }
-                  return `${datasetLabel}: ${formattedValue}`;
-                }
-              }
-            },
-            datalabels: {
-              display: true
-            }
-          },
-          scales: {
-            y: { 
-              beginAtZero: true,
-              ticks: {
-                callback: function(value) {
-                  if (metric === 'speechUtilization') {
-                    return value + '%';
-                  }
-                  return new Intl.NumberFormat().format(value);
-                }
-              }
-            }
-          }
-        }
+        data: { labels, datasets: [{ label: cfg.title, data, backgroundColor: cfg.color, borderColor: cfg.color.replace('0.75','1'), borderWidth: 1, datalabels: makeDatalabels(data) }] },
+        options: opts
       });
     }
 
-    function updateLicensesGraph(ctx, months) {
+    function buildLicensesChart(ctx, labels) {
       const metric = appState.graphSelections.licenses;
-      let title = '';
-      let datasets = [];
-      
+      const opts = baseChartOptions();
+      opts.plugins.legend = { display: false };
+
       if (metric === 'all') {
-        title = 'All License Types';
-        
-        // Create datasets for each license type
-        appState.licenseTypes.forEach((licenseInfo, licenseName) => {
-          const typeData = [];
-          for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
-            const monthData = appState.billingHistory[i]?.data;
-            let count = 0;
-            if (monthData) {
-              monthData.users.forEach(user => {
-                if (user.name === licenseName) {
-                  count += user.qty;
-                }
-              });
-            }
-            typeData.push(count);
-          }
-          
-          // Only add dataset if there's any data
-          if (typeData.some(v => v > 0)) {
-            datasets.push({
-              label: licenseName,
-              data: typeData,
-              backgroundColor: licenseInfo.color,
-              borderColor: licenseInfo.color.replace('0.7', '1'),
-              borderWidth: 1,
-              datalabels: {
-                anchor: 'end',
-                align: 'top',
-                offset: 8,
-                formatter: (value, context) => {
-                  if (value === 0 || value === null || value === undefined) return '';
-                  
-                  const index = context.dataIndex;
-                  const datasetIndex = context.datasetIndex;
-                  const datasetData = datasets[datasetIndex]?.data || [];
-                  const prevValue = index > 0 ? datasetData[index - 1] : null;
-                  
-                  const formattedValue = new Intl.NumberFormat().format(value);
-                  
-                  if (!prevValue || prevValue === 0) {
-                    return formattedValue;
-                  }
-                  
-                  const change = ((value - prevValue) / prevValue) * 100;
-                  const changeFormatted = change.toFixed(1);
-                  
-                  if (Math.abs(change) < 0.1) {
-                    return formattedValue;
-                  }
-                  
-                  const trendIcon = change > 0 ? '▲' : '▼';
-                  
-                  return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
-                },
-                color: (context) => {
-                  const index = context.dataIndex;
-                  const datasetIndex = context.datasetIndex;
-                  const datasetData = datasets[datasetIndex]?.data || [];
-                  const value = datasetData[index];
-                  const prevValue = index > 0 ? datasetData[index - 1] : null;
-                  
-                  if (prevValue && prevValue > 0) {
-                    const change = ((value - prevValue) / prevValue) * 100;
-                    if (Math.abs(change) >= 0.1) {
-                      return change > 0 ? '#28a745' : '#dc3545';
-                    }
-                  }
-                  return '#2C3E50';
-                },
-                font: {
-                  weight: 'bold',
-                  size: 10
-                },
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                borderRadius: 4,
-                padding: {
-                  top: 4,
-                  bottom: 4,
-                  left: 6,
-                  right: 6
-                }
-              }
-            });
-          }
+        el.licensesGraphTitle.textContent = 'All License Types';
+        const datasets = [];
+
+        appState.licenseTypes.forEach((info, name) => {
+          // FIX: capture data BEFORE building datalabels to avoid closure stale-ref bug
+          const data = chronologicalData(d => d?.users.find(u => u.name === name)?.qty ?? 0);
+          if (!data.some(v => v > 0)) return;
+          datasets.push({
+            label: name, data,
+            backgroundColor: info.color,
+            borderColor: info.color.replace('0.75','1'), borderWidth: 1,
+            datalabels: makeDatalabels(data)   // ← data captured per-dataset
+          });
         });
+
+        opts.plugins.legend = {
+          display: datasets.length > 1, position: 'bottom',
+          labels: { font: { size: 10 }, boxWidth: 12 }
+        };
+
+        appState.charts.licenses = new Chart(ctx, { type: 'bar', data: { labels, datasets }, options: opts });
+
       } else if (metric === 'ondemand') {
-        title = 'On-Demand Usage';
-        const data = [];
-        for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
-          const monthData = appState.billingHistory[i]?.data;
-          let count = 0;
-          if (monthData) {
-            monthData.users.forEach(user => count += user.onDemand);
-          }
-          data.push(count);
-        }
-        
-        datasets = [{
-          label: title,
-          data: data,
-          backgroundColor: 'rgba(108, 117, 125, 0.7)',
-          borderColor: 'rgba(108, 117, 125, 1)',
-          borderWidth: 1,
-          datalabels: {
-            anchor: 'end',
-            align: 'top',
-            offset: 8,
-            formatter: (value, context) => {
-              if (value === 0 || value === null || value === undefined) return '';
-              
-              const index = context.dataIndex;
-              const prevValue = index > 0 ? data[index - 1] : null;
-              
-              const formattedValue = new Intl.NumberFormat().format(value);
-              
-              if (!prevValue || prevValue === 0) {
-                return formattedValue;
-              }
-              
-              const change = ((value - prevValue) / prevValue) * 100;
-              const changeFormatted = change.toFixed(1);
-              
-              if (Math.abs(change) < 0.1) {
-                return formattedValue;
-              }
-              
-              const trendIcon = change > 0 ? '▲' : '▼';
-              
-              return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
-            },
-            color: (context) => {
-              const index = context.dataIndex;
-              const value = data[index];
-              const prevValue = index > 0 ? data[index - 1] : null;
-              
-              if (prevValue && prevValue > 0) {
-                const change = ((value - prevValue) / prevValue) * 100;
-                if (Math.abs(change) >= 0.1) {
-                  return change > 0 ? '#28a745' : '#dc3545';
-                }
-              }
-              return '#2C3E50';
-            },
-            font: { weight: 'bold', size: 11 },
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: 4,
-            padding: { top: 4, bottom: 4, left: 6, right: 6 }
-          }
-        }];
+        el.licensesGraphTitle.textContent = 'On-Demand Usage';
+        const data = chronologicalData(d => d?.users.reduce((s, u) => s + u.onDemand, 0) ?? 0);
+        appState.charts.licenses = new Chart(ctx, {
+          type: 'bar',
+          data: { labels, datasets: [{ label: 'On-Demand', data, backgroundColor: 'rgba(108,117,125,0.75)', borderColor: 'rgba(108,117,125,1)', borderWidth: 1, datalabels: makeDatalabels(data) }] },
+          options: opts
+        });
+
       } else {
-        // Single license type from dynamic map
-        const licenseInfo = appState.licenseTypes.get(metric);
-        title = licenseInfo?.name || metric;
-        
-        const data = [];
-        for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
-          const monthData = appState.billingHistory[i]?.data;
-          let count = 0;
-          if (monthData) {
-            monthData.users.forEach(user => {
-              if (user.name === metric) {
-                count += user.qty;
-              }
-            });
-          }
-          data.push(count);
-        }
-        
-        datasets = [{
-          label: title,
-          data: data,
-          backgroundColor: licenseInfo?.color || 'rgba(99, 171, 143, 0.7)',
-          borderColor: (licenseInfo?.color || 'rgba(99, 171, 143, 0.7)').replace('0.7', '1'),
-          borderWidth: 1,
-          datalabels: {
-            anchor: 'end',
-            align: 'top',
-            offset: 8,
-            formatter: (value, context) => {
-              if (value === 0 || value === null || value === undefined) return '';
-              
-              const index = context.dataIndex;
-              const prevValue = index > 0 ? data[index - 1] : null;
-              
-              const formattedValue = new Intl.NumberFormat().format(value);
-              
-              if (!prevValue || prevValue === 0) {
-                return formattedValue;
-              }
-              
-              const change = ((value - prevValue) / prevValue) * 100;
-              const changeFormatted = change.toFixed(1);
-              
-              if (Math.abs(change) < 0.1) {
-                return formattedValue;
-              }
-              
-              const trendIcon = change > 0 ? '▲' : '▼';
-              
-              return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
-            },
-            color: (context) => {
-              const index = context.dataIndex;
-              const value = data[index];
-              const prevValue = index > 0 ? data[index - 1] : null;
-              
-              if (prevValue && prevValue > 0) {
-                const change = ((value - prevValue) / prevValue) * 100;
-                if (Math.abs(change) >= 0.1) {
-                  return change > 0 ? '#28a745' : '#dc3545';
-                }
-              }
-              return '#2C3E50';
-            },
-            font: { weight: 'bold', size: 11 },
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: 4,
-            padding: { top: 4, bottom: 4, left: 6, right: 6 }
-          }
-        }];
+        const info = appState.licenseTypes.get(metric);
+        el.licensesGraphTitle.textContent = info?.name || metric;
+        const data = chronologicalData(d => d?.users.find(u => u.name === metric)?.qty ?? 0);
+        const color = info?.color || 'rgba(99,171,143,0.75)';
+        appState.charts.licenses = new Chart(ctx, {
+          type: 'bar',
+          data: { labels, datasets: [{ label: info?.name || metric, data, backgroundColor: color, borderColor: color.replace('0.75','1'), borderWidth: 1, datalabels: makeDatalabels(data) }] },
+          options: opts
+        });
       }
-      
-      el.licensesGraphTitle.textContent = title;
-      
-      appState.charts.licenses = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: months,
-          datasets: datasets
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { 
-              display: datasets.length > 1,
-              position: 'bottom',
-              labels: {
-                font: { size: 10 }
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const value = context.raw;
-                  const formattedValue = new Intl.NumberFormat().format(value);
-                  const datasetLabel = context.dataset.label || '';
-                  return `${datasetLabel}: ${formattedValue}`;
-                }
-              }
-            },
-            datalabels: {
-              display: true
-            }
-          },
-          scales: {
-            y: { 
-              beginAtZero: true,
-              ticks: {
-                callback: function(value) {
-                  return new Intl.NumberFormat().format(value);
-                }
-              }
-            }
-          }
-        }
-      });
     }
 
-    function updateVolumesGraph(ctx, months) {
+    function buildVolumesChart(ctx, labels) {
       const metric = appState.graphSelections.volumes;
-      let title = '';
-      let data = [];
-      let backgroundColors = [];
-      
-      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
-        const monthData = appState.billingHistory[i]?.data;
-        let value = 0;
-        
-        if (monthData) {
-          if (metric === 'byoc') {
-            title = 'BYOC/Carrier Resources';
-            monthData.resources.forEach(category => {
-              if (category.category.includes('BYOC')) {
-                category.items.forEach(resource => value += resource.qty);
-              }
-            });
-          } else if (metric === 'messaging') {
-            title = 'Messaging (SMS/MMS)';
-            monthData.resources.forEach(category => {
-              if (category.category.includes('Messaging')) {
-                category.items.forEach(resource => value += resource.qty);
-              }
-            });
-          } else if (metric === 'storage') {
-            title = 'Storage (GB)';
-            monthData.resources.forEach(category => {
-              if (category.category.includes('Storage')) {
-                category.items.forEach(resource => {
-                  if (resource.unit === 'GB') value += resource.qty;
-                });
-              }
-            });
-          } else if (metric === 'api') {
-            title = 'API Requests';
-            monthData.resources.forEach(category => {
-              if (category.category.includes('API')) {
-                category.items.forEach(resource => value += resource.qty);
-              }
-            });
-          } else if (metric === 'all') {
-            title = 'All Resources';
-            monthData.resources.forEach(category => {
-              category.items.forEach(resource => value += resource.qty);
-            });
+      const COLORS = { byoc: 'rgba(99,171,143,0.75)', messaging: 'rgba(78,115,223,0.75)', storage: 'rgba(246,194,62,0.75)', api: 'rgba(28,200,138,0.75)', all: 'rgba(220,53,69,0.75)' };
+      const TITLES = { byoc: 'BYOC/Carrier Resources', messaging: 'Messaging (SMS/MMS)', storage: 'Storage (GB)', api: 'API Requests', all: 'All Resources' };
+      const CATEGORY_MATCH = { byoc: 'BYOC', messaging: 'Messaging', storage: 'Storage', api: 'API' };
+
+      el.volumesGraphTitle.textContent = TITLES[metric] || metric;
+      const color = COLORS[metric] || COLORS.byoc;
+
+      const data = chronologicalData(d => {
+        if (!d) return 0;
+        return d.resources.reduce((sum, cat) => {
+          if (metric === 'all' || cat.category.includes(CATEGORY_MATCH[metric] || '')) {
+            return sum + cat.items.reduce((s, r) => {
+              if (metric === 'storage' && r.unit !== 'GB') return s;
+              return s + r.qty;
+            }, 0);
           }
-        }
-        
-        data.push(value);
-        backgroundColors.push(getResourceColor(metric));
-      }
-      
-      el.volumesGraphTitle.textContent = title;
-      
+          return sum;
+        }, 0);
+      });
+
+      const opts = baseChartOptions();
+      opts.plugins.legend = { display: false };
+
       appState.charts.volumes = new Chart(ctx, {
         type: 'bar',
-        data: {
-          labels: months,
-          datasets: [{
-            label: title,
-            data: data,
-            backgroundColor: backgroundColors,
-            borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
-            borderWidth: 1,
-            datalabels: {
-              anchor: 'end',
-              align: 'top',
-              offset: 8,
-              formatter: (value, context) => {
-                if (value === 0 || value === null || value === undefined) return '';
-                
-                const index = context.dataIndex;
-                const prevValue = index > 0 ? data[index - 1] : null;
-                
-                const formattedValue = new Intl.NumberFormat().format(value);
-                
-                if (!prevValue || prevValue === 0) {
-                  return formattedValue;
-                }
-                
-                const change = ((value - prevValue) / prevValue) * 100;
-                const changeFormatted = change.toFixed(1);
-                
-                if (Math.abs(change) < 0.1) {
-                  return formattedValue;
-                }
-                
-                const trendIcon = change > 0 ? '▲' : '▼';
-                
-                return `${formattedValue}\n${trendIcon} ${Math.abs(changeFormatted)}%`;
-              },
-              color: (context) => {
-                const index = context.dataIndex;
-                const value = data[index];
-                const prevValue = index > 0 ? data[index - 1] : null;
-                
-                if (prevValue && prevValue > 0) {
-                  const change = ((value - prevValue) / prevValue) * 100;
-                  if (Math.abs(change) >= 0.1) {
-                    return change > 0 ? '#28a745' : '#dc3545';
-                  }
-                }
-                return '#2C3E50';
-              },
-              font: {
-                weight: 'bold',
-                size: 11
-              },
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              borderRadius: 4,
-              padding: {
-                top: 4,
-                bottom: 4,
-                left: 6,
-                right: 6
-              }
-            }
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const value = context.raw;
-                  const formattedValue = new Intl.NumberFormat().format(value);
-                  const datasetLabel = context.dataset.label || '';
-                  
-                  let unit = '';
-                  if (metric === 'storage') unit = ' GB';
-                  else if (metric === 'api') unit = ' requests';
-                  else if (metric === 'messaging') unit = ' messages';
-                  
-                  return `${datasetLabel}: ${formattedValue}${unit}`;
-                }
-              }
-            },
-            datalabels: {
-              display: true
-            }
-          },
-          scales: {
-            y: { 
-              beginAtZero: true,
-              ticks: {
-                callback: function(value) {
-                  return new Intl.NumberFormat().format(value);
-                }
-              }
-            }
-          }
-        }
+        data: { labels, datasets: [{ label: TITLES[metric], data, backgroundColor: color, borderColor: color.replace('0.75','1'), borderWidth: 1, datalabels: makeDatalabels(data) }] },
+        options: opts
       });
     }
 
-    function getResourceColor(metric) {
-      const colors = {
-        'byoc': 'rgba(99, 171, 143, 0.7)',
-        'messaging': 'rgba(78, 115, 223, 0.7)',
-        'storage': 'rgba(246, 194, 62, 0.7)',
-        'api': 'rgba(28, 200, 138, 0.7)',
-        'all': 'rgba(220, 53, 69, 0.7)'
-      };
-      return colors[metric] || 'rgba(99, 171, 143, 0.7)';
+    // Resource extract helpers
+    function getResourceTotal(data, nameContains) {
+      if (!data) return 0;
+      let t = 0;
+      data.resources.forEach(c => c.items.forEach(r => { if (r.name.includes(nameContains)) t += r.included.used; }));
+      return t;
     }
 
-    // ==================== DISPLAY FUNCTIONS ====================
+    function getAllMinutes(data) {
+      if (!data) return 0;
+      let t = 0;
+      data.resources.forEach(c => c.items.forEach(r => { if (r.unit === 'minutes') t += r.included.used; }));
+      return t;
+    }
+
+    function getSpeechUtilization(data) {
+      if (!data) return 0;
+      let result = 0;
+      data.resources.forEach(c => c.items.forEach(r => {
+        if (r.name.includes('Voice Transcription') && r.included.qty > 0)
+          result = Math.round((r.included.used / r.included.qty) * 100);
+      }));
+      return result;
+    }
+
+    function getResourceTotalByCategory(data, catName) {
+      if (!data) return 0;
+      let t = 0;
+      data.resources.forEach(c => { if (c.category.includes(catName)) c.items.forEach(r => { t += r.qty; }); });
+      return t;
+    }
+
+    // ==================== DISPLAY ====================
     function updateAllDisplays() {
       if (!appState.usageData) return;
-      
       const data = appState.usageData;
-      
-      // Update organization name from API
-      if (data.organization && data.organization.name) {
-        el.orgNameDisplay.textContent = data.organization.name;
-      }
-      
-      // Update last updated time
-      el.lastUpdated.textContent = `Last updated: ${appState.lastFetchTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-      
-      // Update month displays
-      el.usersMonthDisplay.textContent = data.monthName || getMonthName(appState.currentPeriod);
-      el.resourcesMonthDisplay.textContent = data.monthName || getMonthName(appState.currentPeriod);
-      el.highlightsMonthDisplay.textContent = data.monthName || getMonthName(appState.currentPeriod);
-      
-      // Update analytics dashboard
+
+      if (data.organization?.name) el.orgNameDisplay.textContent = data.organization.name;
+      el.lastUpdated.textContent = `Last updated: ${appState.lastFetchTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+      const monthLabel = data.monthName || getMonthName(appState.currentPeriod);
+      el.usersMonthDisplay.textContent      = monthLabel;
+      el.resourcesMonthDisplay.textContent  = monthLabel;
+      el.highlightsMonthDisplay.textContent = monthLabel;
+
       updateAnalyticsDashboard();
-      
-      // Update metric tiles
-      updateMetricTiles(data);
-      
-      // Update tables based on current tab
-      if (appState.currentTab === 'users') {
-        updateUsersTable(data.users);
-      } else if (appState.currentTab === 'resources') {
-        updateResourcesTable(data.resources);
-      } else if (appState.currentTab === 'highlights') {
-        updateHighlightsTable(data);
-      }
+
+      if (appState.currentTab === 'users')      updateUsersTable(data.users);
+      else if (appState.currentTab === 'resources') updateResourcesTable(data.resources);
+      else if (appState.currentTab === 'highlights') updateHighlightsTable(data);
     }
 
     function updateAnalyticsDashboard() {
-      const loadedCount = Object.keys(appState.billingHistory).length;
-      el.loadedMonthsCount.textContent = `${loadedCount}/${CONFIG.MAX_MONTHS}`;
-      el.dataRange.textContent = `0-${CONFIG.MAX_MONTHS-1} months`;
-      
-      // Update month range tile
-      const currentMonth = getMonthDates(0);
-      el.currentMonthName.textContent = currentMonth.name;
-      el.currentMonthDates.textContent = `${currentMonth.firstDay} - ${currentMonth.lastDay}`;
-      
-      // Update dynamic license breakdown
+      const loaded = Object.keys(appState.billingHistory).length;
+      el.loadedMonthsCount.textContent = `${loaded}/${CONFIG.MAX_MONTHS}`;
+      el.dataRange.textContent = `0–${CONFIG.MAX_MONTHS - 1} months`;
+
+      const cm = getMonthDates(0);
+      el.currentMonthName.textContent  = cm.name;
+      el.currentMonthDates.textContent = `${cm.firstDay} – ${cm.lastDay}`;
+
       updateLicenseBreakdown();
-      
-      // Update comparison table
       updateComparisonTable();
-      
-      // Update charts
       updateCharts();
     }
 
     function updateLicenseBreakdown() {
       const container = el.dynamicLicenseBreakdown;
       if (!container) return;
-      
       container.innerHTML = '';
-      
-      let totalLicenses = 0;
-      const licenseCounts = new Map();
-      
-      // Initialize counts
-      appState.licenseTypes.forEach((value, key) => {
-        licenseCounts.set(key, 0);
+
+      if (!appState.usageData) return;
+
+      const counts = new Map();
+      let total = 0;
+      appState.usageData.users.forEach(u => {
+        total += u.qty;
+        counts.set(u.name, (counts.get(u.name) || 0) + u.qty);
       });
-      
-      // Count licenses from current month
-      if (appState.usageData) {
-        appState.usageData.users.forEach(user => {
-          totalLicenses += user.qty;
-          licenseCounts.set(user.name, (licenseCounts.get(user.name) || 0) + user.qty);
+
+      el.totalLicensesValue.textContent = formatNumber(total);
+
+      [...counts.entries()]
+        .filter(([, v]) => v > 0)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([name, count]) => {
+          const color = appState.licenseTypes.get(name)?.color || 'rgba(99,171,143,0.75)';
+          const item  = document.createElement('div');
+          item.className = 'license-item';
+          item.innerHTML = `<span class="license-name"><span class="color-dot" style="background:${color};"></span>${name}</span><span class="license-count">${formatNumber(count)}</span>`;
+          container.appendChild(item);
         });
-      }
-      
-      el.totalLicensesValue.textContent = formatNumber(totalLicenses);
-      
-      // Sort licenses by count (descending)
-      const sortedLicenses = Array.from(licenseCounts.entries())
-        .filter(([_, count]) => count > 0)
-        .sort((a, b) => b[1] - a[1]);
-      
-      sortedLicenses.forEach(([name, count]) => {
-        const licenseInfo = appState.licenseTypes.get(name);
-        const color = licenseInfo?.color || 'rgba(99, 171, 143, 0.7)';
-        
-        const item = document.createElement('div');
-        item.className = 'license-item';
-        item.innerHTML = `
-          <span class="license-name">
-            <span class="color-dot" style="background:${color};"></span>
-            ${name}
-          </span>
-          <span class="license-count">${formatNumber(count)}</span>
-        `;
-        container.appendChild(item);
-      });
     }
 
     function updateComparisonTable() {
       const tbody = el.comparisonTableBody;
       tbody.innerHTML = '';
-      
-      if (Object.keys(appState.billingHistory).length === 0) {
+
+      if (!Object.keys(appState.billingHistory).length) {
         tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;">No comparison data available</td></tr>';
         return;
       }
-      
-      // Get data for all months (oldest to newest)
+
+      // Chronological: oldest → newest
       const months = [];
-      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
-        months.push(appState.billingHistory[i]?.data);
-      }
-      
-      // Build metrics dynamically
-      const metrics = [
-        { name: 'Total User Licenses', 
-          values: months.map(m => m?.users.reduce((sum, u) => sum + u.qty, 0) || 0)
-        },
-        { name: 'On-Demand Licenses', 
-          values: months.map(m => m?.users.reduce((sum, u) => sum + u.onDemand, 0) || 0)
-        }
+      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) months.push(appState.billingHistory[i]?.data);
+
+      // Identify top 5 license types by total volume across all months
+      const licVolumes = new Map();
+      months.forEach(m => m?.users.forEach(u => licVolumes.set(u.name, (licVolumes.get(u.name) || 0) + u.qty)));
+      const topLicenses = [...licVolumes.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n);
+
+      const rows = [
+        { name: 'Total User Licenses',  vals: months.map(m => m?.users.reduce((s, u) => s + u.qty, 0) || 0) },
+        { name: 'On-Demand Licenses',   vals: months.map(m => m?.users.reduce((s, u) => s + u.onDemand, 0) || 0) },
+        ...topLicenses.map(lic => ({
+          name: lic,
+          vals: months.map(m => m?.users.find(u => u.name === lic)?.qty || 0)
+        })),
+        { name: 'Speech Minutes',        vals: months.map(m => getResourceTotal(m, 'Voice Transcription')) },
+        { name: 'IVR Minutes',           vals: months.map(m => getResourceTotal(m, 'IVR')) },
+        ...(appState.resourceCategories.has('api') ? [{ name: 'API Requests', vals: months.map(m => getResourceTotalByCategory(m, 'API')) }] : []),
+        ...(appState.resourceCategories.has('messaging') ? [{ name: 'SMS/MMS Messages', vals: months.map(m => getResourceTotalByCategory(m, 'Messaging')) }] : [])
       ];
-      
-      // Add top license types (up to 5)
-      const licenseCounts = new Map();
-      months.forEach(month => {
-        if (month) {
-          month.users.forEach(user => {
-            licenseCounts.set(user.name, (licenseCounts.get(user.name) || 0) + user.qty);
-          });
-        }
-      });
-      
-      // Get top 5 license types
-      const topLicenses = Array.from(licenseCounts.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([name]) => name);
-      
-      topLicenses.forEach(licenseName => {
-        metrics.push({
-          name: licenseName,
-          values: months.map(m => {
-            if (!m) return 0;
-            const license = m.users.find(u => u.name === licenseName);
-            return license?.qty || 0;
-          })
-        });
-      });
-      
-      // Add resource metrics
-      metrics.push(
-        { name: 'Speech Minutes', 
-          values: months.map(m => getResourceTotal(m, 'Voice Transcription'))
-        },
-        { name: 'IVR Minutes', 
-          values: months.map(m => getResourceTotal(m, 'IVR'))
-        }
-      );
-      
-      if (appState.resourceCategories.has('api')) {
-        metrics.push({
-          name: 'API Requests',
-          values: months.map(m => getResourceTotalByCategory(m, 'API'))
-        });
-      }
-      
-      if (appState.resourceCategories.has('messaging')) {
-        metrics.push({
-          name: 'SMS/MMS Messages',
-          values: months.map(m => getResourceTotalByCategory(m, 'Messaging'))
-        });
-      }
-      
-      metrics.forEach(metric => {
-        const row = document.createElement('tr');
-        const current = metric.values[metric.values.length - 1] || 0;
-        const previous = metric.values[metric.values.length - 2] || 0;
-        
-        let html = `<td class="text-left"><strong>${metric.name}</strong></td>`;
-        
-        // Add all month values
-        metric.values.forEach(value => {
-          html += `<td class="number-cell">${formatNumber(value)}</td>`;
-        });
-        
-        // Add trend
-        html += `<td>${getTrendBadge(current, previous)}</td>`;
-        
-        row.innerHTML = html;
-        tbody.appendChild(row);
-      });
-    }
 
-    function getResourceTotal(data, nameContains) {
-      if (!data) return 0;
-      let total = 0;
-      data.resources.forEach(category => {
-        category.items.forEach(resource => {
-          if (resource.name.includes(nameContains)) {
-            total += resource.included.used;
-          }
-        });
+      rows.forEach(row => {
+        const current  = row.vals.at(-1) || 0;
+        const previous = row.vals.at(-2) || 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="text-left"><strong>${row.name}</strong></td>${row.vals.map(v => `<td class="number-cell">${formatNumber(v)}</td>`).join('')}<td>${getTrendBadge(current, previous)}</td>`;
+        tbody.appendChild(tr);
       });
-      return total;
-    }
-
-    function getResourceTotalByCategory(data, categoryName) {
-      if (!data) return 0;
-      let total = 0;
-      data.resources.forEach(category => {
-        if (category.category.includes(categoryName)) {
-          category.items.forEach(resource => {
-            total += resource.qty;
-          });
-        }
-      });
-      return total;
-    }
-
-    function updateMetricTiles(data) {
-      // Check if all required elements exist
-      if (!el.totalUsersValue || !el.usersUtilization || !el.overageRiskValue || 
-          !el.overageDetail || !el.metricUserOverage || !el.speechUsageValue ||
-          !el.speechUsed || !el.speechPrepaid || !el.speechProgressUsed || 
-          !el.speechDetail || !el.ivrUsageValue || !el.ivrDetail) {
-        console.warn('Some metric tile elements not found');
-        return;
-      }
-      
-      let totalUsers = 0;
-      let totalCommitted = 0;
-      let totalUsed = 0;
-      let totalOnDemand = 0;
-      let overageRisk = 0;
-      
-      data.users.forEach(user => {
-        totalUsers += user.qty;
-        totalCommitted += user.committed;
-        totalUsed += user.used;
-        totalOnDemand += user.onDemand;
-        
-        if (user.onDemand > 0) {
-          overageRisk += user.onDemand;
-        }
-      });
-      
-      const utilizationPct = totalCommitted > 0 ? Math.round((totalUsed / totalCommitted) * 100) : 0;
-      
-      el.totalUsersValue.textContent = formatNumber(totalUsers);
-      el.usersUtilization.innerHTML = `
-        <strong>Utilization:</strong> ${utilizationPct}%<br>
-        <strong>Committed:</strong> ${formatNumber(totalCommitted)} | <strong>Used:</strong> ${formatNumber(totalUsed)} | <strong>On-Demand:</strong> ${formatNumber(totalOnDemand)}
-      `;
-      
-      el.overageRiskValue.textContent = overageRisk > 0 ? `${formatNumber(overageRisk)}` : 'None';
-      const overageTile = el.metricUserOverage;
-      
-      // Check if the metric-icon exists before trying to set textContent
-      const metricIcon = overageTile?.querySelector('.metric-icon');
-      if (metricIcon) {
-        if (overageRisk > 0) {
-          overageTile.className = 'metric-card danger';
-          metricIcon.textContent = '🚨';
-          el.overageDetail.textContent = `${formatNumber(overageRisk)} user licenses on-demand (potential overage)`;
-        } else {
-          overageTile.className = 'metric-card success';
-          metricIcon.textContent = '✅';
-          el.overageDetail.textContent = 'All licenses are committed (no overage risk)';
-        }
-      }
-      
-      let speechPrepaid = 0;
-      let speechUsed = 0;
-      let ivrPrepaid = 0;
-      let ivrUsed = 0;
-      
-      data.resources.forEach(category => {
-        category.items.forEach(resource => {
-          if (resource.name.includes('Voice Transcription')) {
-            speechPrepaid = resource.included.qty;
-            speechUsed = resource.included.used;
-          }
-          if (resource.name.includes('IVR Basic')) {
-            ivrPrepaid = resource.included.qty;
-            ivrUsed = resource.included.used;
-          }
-        });
-      });
-      
-      const speechUtilization = speechPrepaid > 0 ? Math.round((speechUsed / speechPrepaid) * 100) : 0;
-      const ivrUtilization = ivrPrepaid > 0 ? Math.round((ivrUsed / ivrPrepaid) * 100) : 0;
-      
-      el.speechUsageValue.textContent = `${speechUtilization}%`;
-      el.speechUsed.textContent = formatNumber(speechUsed);
-      el.speechPrepaid.textContent = formatNumber(speechPrepaid);
-      if (el.speechProgressUsed) {
-        el.speechProgressUsed.style.width = `${speechUtilization}%`;
-      }
-      el.speechDetail.textContent = `${formatNumber(speechUsed)} of ${formatNumber(speechPrepaid)} minutes used`;
-      
-      el.ivrUsageValue.textContent = `${ivrUtilization}%`;
-      el.ivrDetail.textContent = `${formatNumber(ivrUsed)} of ${formatNumber(ivrPrepaid)} minutes used`;
     }
 
     function updateUsersTable(users) {
       const tbody = el.usersTableBody;
       tbody.innerHTML = '';
-      
-      if (!users || users.length === 0) {
-        tbody.innerHTML = `
-          <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
-            No user license data available
-          </td></tr>
-        `;
+      if (!users?.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">No user license data available</td></tr>';
         return;
       }
-      
-      // Get previous month data for comparison
-      const previousData = appState.billingHistory[appState.currentPeriod + 1]?.data;
-      
+      const prevData = appState.billingHistory[appState.currentPeriod + 1]?.data;
       users.forEach(user => {
-        const utilization = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
-        const rowClass = getUtilizationClass(utilization);
-        const utilizationColorClass = getUtilizationTextColor(utilization);
-        
-        // Find previous month usage for this user
-        let previousQty = 0;
-        if (previousData) {
-          const prevUser = previousData.users.find(u => u.name === user.name);
-          if (prevUser) previousQty = prevUser.qty;
-        }
-        
-        const trendIcon = getTrendIcon(user.qty, previousQty);
-        
-        const row = document.createElement('tr');
-        row.className = rowClass;
-        row.innerHTML = `
+        const util = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
+        const prevQty = prevData?.users.find(u => u.name === user.name)?.qty || 0;
+        const tr = document.createElement('tr');
+        tr.className = getUtilizationClass(util);
+        tr.innerHTML = `
           <td class="text-left"><strong>${user.name}</strong></td>
           <td class="number-cell">${formatNumber(user.qty)}</td>
           <td class="number-cell">${formatNumber(user.committed)}</td>
           <td class="number-cell">${formatNumber(user.used)}</td>
           <td class="number-cell">${formatNumber(user.onDemand)}</td>
-          <td class="number-cell ${utilizationColorClass}">${utilization}%</td>
-          <td>${getUtilizationIndicator(utilization)}</td>
-          <td>${trendIcon}</td>
-        `;
-        tbody.appendChild(row);
+          <td class="number-cell ${getUtilizationTextColor(util)}">${util}%</td>
+          <td>${getUtilizationIndicator(util)}</td>
+          <td>${getTrendIcon(user.qty, prevQty)}</td>`;
+        tbody.appendChild(tr);
       });
     }
 
     function updateResourcesTable(resources) {
       const tbody = el.resourcesTableBody;
       tbody.innerHTML = '';
-      
-      if (!resources || resources.length === 0) {
-        tbody.innerHTML = `
-          <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">
-            No resource data available
-          </td></tr>
-        `;
+      if (!resources?.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-light);">No resource data available</td></tr>';
         return;
       }
-      
-      // Get previous month data for comparison
-      const previousData = appState.billingHistory[appState.currentPeriod + 1]?.data;
-      
-      resources.forEach(category => {
-        if (category.category) {
-          const headerRow = document.createElement('tr');
-          headerRow.className = 'category-header';
-          headerRow.innerHTML = `
-            <td colspan="8" style="font-weight:700;font-size:14px;" class="text-left">${category.category}</td>
-          `;
-          tbody.appendChild(headerRow);
+      const prevData = appState.billingHistory[appState.currentPeriod + 1]?.data;
+      resources.forEach(cat => {
+        if (cat.category) {
+          const hr = document.createElement('tr');
+          hr.className = 'category-header';
+          hr.innerHTML = `<td colspan="8" class="text-left">${cat.category}</td>`;
+          tbody.appendChild(hr);
         }
-        
-        category.items.forEach(resource => {
-          const includedQty = resource.included.qty;
-          const usedQty = resource.included.used;
-          const utilization = includedQty > 0 ? Math.round((usedQty / includedQty) * 100) : 0;
-          const utilizationColorClass = getUtilizationTextColor(utilization);
-          
-          // Find previous month usage for this resource
-          let previousQty = 0;
-          if (previousData) {
-            previousData.resources.forEach(prevCategory => {
-              const prevResource = prevCategory.items.find(r => r.name === resource.name);
-              if (prevResource) previousQty = prevResource.qty;
-            });
-          }
-          
-          const trendIcon = getTrendIcon(resource.qty, previousQty);
-          
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td class="text-left">${resource.name}</td>
-            <td class="number-cell">${formatNumber(resource.qty)}</td>
-            <td>${resource.unit}</td>
-            <td class="number-cell">${formatNumber(includedQty)}</td>
-            <td class="number-cell">${formatNumber(usedQty)}</td>
-            <td class="number-cell">${formatNumber(resource.onDemand)}</td>
-            <td class="number-cell ${utilizationColorClass}">${includedQty > 0 ? `${utilization}%` : 'N/A'}</td>
-            <td>${trendIcon}</td>
-          `;
-          tbody.appendChild(row);
+        cat.items.forEach(r => {
+          const util = r.included.qty > 0 ? Math.round((r.included.used / r.included.qty) * 100) : 0;
+          let prevQty = 0;
+          prevData?.resources.forEach(pc => { const pr = pc.items.find(x => x.name === r.name); if (pr) prevQty = pr.qty; });
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="text-left">${r.name}</td>
+            <td class="number-cell">${formatNumber(r.qty)}</td>
+            <td>${r.unit}</td>
+            <td class="number-cell">${formatNumber(r.included.qty)}</td>
+            <td class="number-cell">${formatNumber(r.included.used)}</td>
+            <td class="number-cell">${formatNumber(r.onDemand)}</td>
+            <td class="number-cell ${getUtilizationTextColor(util)}">${r.included.qty > 0 ? util + '%' : 'N/A'}</td>
+            <td>${getTrendIcon(r.qty, prevQty)}</td>`;
+          tbody.appendChild(tr);
         });
       });
     }
 
     function updateHighlightsTable(data) {
+      // Users section
       const userTbody = el.highlightsUsersTable;
       userTbody.innerHTML = '';
-      
-      if (!data.users || data.users.length === 0) {
-        userTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
-            No user license data available
-          </td></tr>
-        `;
-        return;
-      }
-      
-      data.users.forEach(user => {
-        const utilization = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
-        const utilizationColorClass = getUtilizationTextColor(utilization);
-        let status = '';
-        
-        if (utilization <= 25) {
-          status = '<span style="color:var(--danger);">⚠️ Underutilized</span>';
-        } else if (user.onDemand > 0) {
-          status = '<span style="color:var(--warning);">⚠️ Using On-Demand</span>';
-        } else if (utilization >= 90) {
-          status = '<span style="color:var(--danger);">🚨 Near Capacity</span>';
-        } else {
-          status = '<span style="color:var(--success);">✅ Optimal</span>';
-        }
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="text-left"><strong>${user.name}</strong></td>
-          <td class="number-cell">${formatNumber(user.qty)}</td>
-          <td class="number-cell">${formatNumber(user.committed)}</td>
-          <td class="number-cell">${formatNumber(user.used)}</td>
-          <td class="number-cell">${formatNumber(user.onDemand)}</td>
-          <td class="number-cell ${utilizationColorClass}">${utilization}%</td>
-          <td>${status}</td>
-        `;
-        userTbody.appendChild(row);
-      });
-      
-      // Update speech analytics highlights
-      let speechResource = null;
-      data.resources.forEach(category => {
-        category.items.forEach(resource => {
-          if (resource.name.includes('Voice Transcription')) {
-            speechResource = resource;
-          }
+      if (!data.users?.length) {
+        userTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">No user license data available</td></tr>';
+      } else {
+        data.users.forEach(user => {
+          const util = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
+          let status;
+          if (util <= 25) status = '<span style="color:var(--danger);">⚠️ Underutilized</span>';
+          else if (user.onDemand > 0) status = '<span style="color:var(--warning);">⚠️ Using On-Demand</span>';
+          else if (util >= 90) status = '<span style="color:var(--danger);">🚨 Near Capacity</span>';
+          else status = '<span style="color:var(--success);">✅ Optimal</span>';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="text-left"><strong>${user.name}</strong></td>
+            <td class="number-cell">${formatNumber(user.qty)}</td>
+            <td class="number-cell">${formatNumber(user.committed)}</td>
+            <td class="number-cell">${formatNumber(user.used)}</td>
+            <td class="number-cell">${formatNumber(user.onDemand)}</td>
+            <td class="number-cell ${getUtilizationTextColor(util)}">${util}%</td>
+            <td>${status}</td>`;
+          userTbody.appendChild(tr);
         });
-      });
-      
+      }
+
+      // Speech card
+      let speechResource = null;
+      data.resources.forEach(c => c.items.forEach(r => { if (r.name.includes('Voice Transcription')) speechResource = r; }));
       if (speechResource) {
-        const speechPrepaid = speechResource.included.qty;
-        const speechUsed = speechResource.included.used;
-        const speechRemaining = speechPrepaid - speechUsed;
-        const speechUtilization = speechPrepaid > 0 ? Math.round((speechUsed / speechPrepaid) * 100) : 0;
-        
-        el.highlightSpeechUsed.textContent = formatNumber(speechUsed);
-        el.highlightSpeechPrepaid.textContent = formatNumber(speechPrepaid);
-        el.highlightSpeechRemaining.textContent = formatNumber(speechRemaining);
-        el.highlightSpeechUsedBar.style.width = `${speechUtilization}%`;
-        el.highlightSpeechRemainingBar.style.width = `${100 - speechUtilization}%`;
-        el.highlightSpeechUsedPct.textContent = `${speechUtilization}%`;
-        el.highlightSpeechAvailablePct.textContent = `${100 - speechUtilization}%`;
-        
+        const prepaid   = speechResource.included.qty;
+        const used      = speechResource.included.used;
+        const remaining = prepaid - used;
+        const pct       = prepaid > 0 ? Math.round((used / prepaid) * 100) : 0;
+
+        el.highlightSpeechUsed.textContent      = formatNumber(used);
+        el.highlightSpeechPrepaid.textContent   = formatNumber(prepaid);
+        el.highlightSpeechRemaining.textContent = formatNumber(remaining);
+        el.highlightSpeechUsedBar.style.width   = `${pct}%`;
+        el.highlightSpeechUsedPct.textContent   = `${pct}%`;
+        el.highlightSpeechAvailablePct.textContent = `${100 - pct}%`;
+
         const today = new Date();
         const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
         el.highlightSpeechDaysLeft.textContent = daysInMonth - today.getDate();
       }
-      
-      const resourceTbody = el.highlightsResourcesTable;
-      resourceTbody.innerHTML = '';
-      
-      if (!data.resources || data.resources.length === 0) {
-        resourceTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
-            No resource data available
-          </td></tr>
-        `;
+
+      // Resources section
+      const resTbody = el.highlightsResourcesTable;
+      resTbody.innerHTML = '';
+      const highlights = [];
+      data.resources.forEach(c => c.items.forEach(r => {
+        if (r.qty > 0 && (r.name.includes('Voice Transcription') || r.name.includes('IVR') || r.name.includes('API Resource')))
+          highlights.push(r);
+      }));
+
+      if (!highlights.length) {
+        resTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">No highlight resources found</td></tr>';
         return;
       }
-      
-      const highlightResources = [];
-      data.resources.forEach(category => {
-        category.items.forEach(resource => {
-          if (resource.qty > 0 && (resource.name.includes('Voice Transcription') || 
-                                   resource.name.includes('IVR') || 
-                                   resource.name.includes('API Resource'))) {
-            highlightResources.push(resource);
-          }
-        });
-      });
-      
-      if (highlightResources.length === 0) {
-        resourceTbody.innerHTML = `
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
-            No highlight resources found
-          </td></tr>
-        `;
-        return;
-      }
-      
-      highlightResources.forEach(resource => {
-        const total = resource.qty;
-        const used = resource.included.used;
-        const available = resource.included.qty - resource.included.used;
-        const utilization = resource.included.qty > 0 
-          ? Math.round((used / resource.included.qty) * 100)
-          : 0;
-        const utilizationColorClass = getUtilizationTextColor(utilization);
-        
-        let status = '';
-        if (resource.name.includes('Voice Transcription')) {
-          if (utilization > 50) {
-            status = '<span style="color:var(--warning);">⚠️ High Usage</span>';
-          } else {
-            status = '<span style="color:var(--success);">✅ Normal</span>';
-          }
-        } else if (resource.name.includes('IVR')) {
-          if (utilization > 10) {
-            status = '<span style="color:var(--warning);">⚠️ Monitor</span>';
-          } else {
-            status = '<span style="color:var(--success);">✅ Low</span>';
-          }
-        } else {
-          status = '<span style="color:var(--info);">📊 Active</span>';
-        }
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="text-left">${resource.name}</td>
-          <td class="number-cell">${formatNumber(total)} ${resource.unit}</td>
-          <td class="number-cell">${formatNumber(used)} ${resource.unit}</td>
-          <td class="number-cell">${formatNumber(available)} ${resource.unit}</td>
-          <td class="number-cell">${formatNumber(resource.onDemand)} ${resource.unit}</td>
-          <td class="number-cell ${utilizationColorClass}">${utilization}%</td>
-          <td>${status}</td>
-        `;
-        resourceTbody.appendChild(row);
+
+      highlights.forEach(r => {
+        const util    = r.included.qty > 0 ? Math.round((r.included.used / r.included.qty) * 100) : 0;
+        const avail   = r.included.qty - r.included.used;
+        let status;
+        if (r.name.includes('Voice Transcription')) status = util > 50 ? '<span style="color:var(--warning);">⚠️ High Usage</span>' : '<span style="color:var(--success);">✅ Normal</span>';
+        else if (r.name.includes('IVR'))            status = util > 10  ? '<span style="color:var(--warning);">⚠️ Monitor</span>'   : '<span style="color:var(--success);">✅ Low</span>';
+        else                                         status = '<span style="color:var(--info);">📊 Active</span>';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-left">${r.name}</td>
+          <td class="number-cell">${formatNumber(r.qty)} ${r.unit}</td>
+          <td class="number-cell">${formatNumber(r.included.used)} ${r.unit}</td>
+          <td class="number-cell">${formatNumber(avail)} ${r.unit}</td>
+          <td class="number-cell">${formatNumber(r.onDemand)} ${r.unit}</td>
+          <td class="number-cell ${getUtilizationTextColor(util)}">${util}%</td>
+          <td>${status}</td>`;
+        resTbody.appendChild(tr);
       });
     }
 
-    // ==================== EXPORT FUNCTIONS ====================
-    function exportToCSV() {
-      if (Object.keys(appState.billingHistory).length === 0) {
-        showStatusMessage('No data to export', 'warn');
-        return;
-      }
-      
-      let csv = `Genesys Cloud Usage Dashboard - Multi-Month Export\n`;
-      csv += `Generated,${new Date().toLocaleString()}\n`;
-      csv += `Organization,${appState.currentOrgId}\n\n`;
-      
-      // Export each month in chronological order
-      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
-        const monthData = appState.billingHistory[i]?.data;
-        if (!monthData) continue;
-        
-        csv += `\n=== ${monthData.monthName} ===\n\n`;
-        
-        // Users section
-        csv += 'USER LICENSES\n';
-        csv += 'Service,Total Qty,Committed,Used,On-Demand,Utilization%\n';
-        
-        monthData.users.forEach(user => {
-          const utilization = user.committed > 0 ? Math.round((user.used / user.committed) * 100) : 0;
-          csv += `"${user.name}",${user.qty},${user.committed},${user.used},${user.onDemand},${utilization}%\n`;
-        });
-        
-        csv += '\nRESOURCES\n';
-        csv += 'Resource,Total Qty,Unit,Included Qty,Used,On-Demand,Utilization%\n';
-        
-        monthData.resources.forEach(category => {
-          category.items.forEach(resource => {
-            const utilization = resource.included.qty > 0 
-              ? Math.round((resource.included.used / resource.included.qty) * 100)
-              : 0;
-            csv += `"${resource.name}",${resource.qty},${resource.unit},${resource.included.qty},${resource.included.used},${resource.onDemand},${utilization}%\n`;
-          });
-        });
-      }
-      
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      a.href = url;
-      a.download = `genesys_usage_multimonth_${dateStr}.csv`;
+    // ==================== EXPORT ====================
+    function triggerDownload(content, filename, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = filename;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      showStatusMessage('✅ Multi-month CSV exported successfully', 'success');
+      // Clean up after browser has chance to start download
+      requestAnimationFrame(() => { document.body.removeChild(a); URL.revokeObjectURL(url); });
+    }
+
+    function exportToCSV() {
+      if (!Object.keys(appState.billingHistory).length) { showStatusMessage('No data to export', 'warn'); return; }
+      let csv = `Genesys Cloud Usage Dashboard - Multi-Month Export\nGenerated,${new Date().toLocaleString()}\nOrganization,${appState.currentOrgId}\n\n`;
+      for (let i = CONFIG.MAX_MONTHS - 1; i >= 0; i--) {
+        const md = appState.billingHistory[i]?.data;
+        if (!md) continue;
+        csv += `\n=== ${md.monthName} ===\n\nUSER LICENSES\nService,Total Qty,Committed,Used,On-Demand,Utilization%\n`;
+        md.users.forEach(u => {
+          const util = u.committed > 0 ? Math.round((u.used / u.committed) * 100) : 0;
+          csv += `"${u.name}",${u.qty},${u.committed},${u.used},${u.onDemand},${util}%\n`;
+        });
+        csv += `\nRESOURCES\nResource,Total Qty,Unit,Included Qty,Used,On-Demand,Utilization%\n`;
+        md.resources.forEach(c => c.items.forEach(r => {
+          const util = r.included.qty > 0 ? Math.round((r.included.used / r.included.qty) * 100) : 0;
+          csv += `"${r.name}",${r.qty},${r.unit},${r.included.qty},${r.included.used},${r.onDemand},${util}%\n`;
+        }));
+      }
+      triggerDownload(csv, `genesys_usage_multimonth_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
+      showStatusMessage('CSV exported successfully', 'success');
     }
 
     function exportToJSON() {
-      if (Object.keys(appState.billingHistory).length === 0) {
-        showStatusMessage('No data to export', 'warn');
-        return;
-      }
-      
-      const exportData = {
-        generated: new Date().toISOString(),
-        organizationId: appState.currentOrgId,
-        maxMonths: CONFIG.MAX_MONTHS,
-        billingHistory: appState.billingHistory
-      };
-      
-      const json = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const dateStr = new Date().toISOString().split('T')[0];
-      a.href = url;
-      a.download = `genesys_usage_multimonth_${dateStr}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      showStatusMessage('✅ Multi-month JSON exported successfully', 'success');
+      if (!Object.keys(appState.billingHistory).length) { showStatusMessage('No data to export', 'warn'); return; }
+      const payload = { generated: new Date().toISOString(), organizationId: appState.currentOrgId, maxMonths: CONFIG.MAX_MONTHS, billingHistory: appState.billingHistory };
+      triggerDownload(JSON.stringify(payload, null, 2), `genesys_usage_multimonth_${new Date().toISOString().split('T')[0]}.json`, 'application/json;charset=utf-8;');
+      showStatusMessage('JSON exported successfully', 'success');
     }
 
-    // ==================== EVENT HANDLERS ====================
+    // ==================== EVENT LISTENERS ====================
     function setupEventListeners() {
-      // Signin button
-      el.signinBtn.addEventListener('click', function() {
-        location.assign(authUrl());
-      });
-      
-      // Organization management
-      el.btnLoadOrg.addEventListener('click', function() {
-        loadOrganization(el.orgIdInput.value);
-      });
-      
-      el.btnSaveOrg.addEventListener('click', function() {
-        saveOrganization();
-      });
-      
-      // Allow Enter key to load org
-      el.orgIdInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          loadOrganization(el.orgIdInput.value);
+      el.signinBtn.addEventListener('click', () => location.assign(authUrl()));
+      el.btnLoadOrg.addEventListener('click', () => loadOrganization(el.orgIdInput.value));
+      el.btnSaveOrg.addEventListener('click', saveOrganization);
+      el.orgIdInput.addEventListener('keypress', e => { if (e.key === 'Enter') loadOrganization(el.orgIdInput.value); });
+
+      el.monthSelector.addEventListener('change', function () {
+        const val = parseInt(this.value, 10);
+        if (isNaN(val) || appState.currentTab === 'analytics') return;
+        if (appState.billingHistory[val]) {
+          appState.currentPeriod = val;
+          appState.usageData = appState.billingHistory[val].data;
+          const label = appState.usageData.monthName;
+          el.usersMonthDisplay.textContent = el.resourcesMonthDisplay.textContent = el.highlightsMonthDisplay.textContent = label;
+          if (appState.currentTab === 'users')           updateUsersTable(appState.usageData.users);
+          else if (appState.currentTab === 'resources')  updateResourcesTable(appState.usageData.resources);
+          else if (appState.currentTab === 'highlights') updateHighlightsTable(appState.usageData);
+          updateMonthSelectorOptions();
+          showStatusMessage(`Switched to ${getPeriodDisplayName(val)}`, 'success');
+        } else {
+          // Month not yet in cache — fetch it
+          appState.currentPeriod = val;
+          (async () => {
+            try {
+              setLoading(true, 'Fetching Data', getPeriodDisplayName(val));
+              const raw = await apiCall(`/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${val}`);
+              const parsed = parseApiData(raw, val);
+              appState.billingHistory[val] = { period: val, data: parsed, rawData: raw, timestamp: new Date() };
+              appState.usageData = parsed;
+              updateAllDisplays();
+              setLoading(false);
+              showStatusMessage(`Loaded ${getPeriodDisplayName(val)}`, 'success');
+            } catch (err) { setLoading(false); showStatusMessage(err.message, 'error'); }
+          })();
         }
       });
-      
-      // Month selector (affects all tabs except analytics)
-      el.monthSelector.addEventListener('change', function() {
-        const selectedMonth = parseInt(this.value);
-        
-        // Only change if not on analytics tab
-        if (appState.currentTab !== 'analytics') {
-          fetchBillingData(selectedMonth);
-        }
-      });
-      
-      // Graph selectors
-      el.minutesMetricSelector.addEventListener('change', function() {
+
+      // Graph selectors — debounced to avoid flicker on rapid changes
+      el.minutesMetricSelector.addEventListener('change', function () {
         appState.graphSelections.minutes = this.value;
-        updateCharts();
+        debouncedUpdateCharts();
       });
-      
-      el.licensesMetricSelector.addEventListener('change', function() {
+      el.licensesMetricSelector.addEventListener('change', function () {
         appState.graphSelections.licenses = this.value;
-        updateCharts();
+        debouncedUpdateCharts();
       });
-      
-      el.volumesMetricSelector.addEventListener('change', function() {
+      el.volumesMetricSelector.addEventListener('change', function () {
         appState.graphSelections.volumes = this.value;
-        updateCharts();
+        debouncedUpdateCharts();
       });
-      
-      // Tab switching
+
+      // Tabs
       document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', function() {
+        tab.addEventListener('click', function () {
           const tabId = this.dataset.tab;
           appState.currentTab = tabId;
-          
           document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
           this.classList.add('active');
-          
-          document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-            if (content.id === `tab-${tabId}`) content.classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(c => {
+            c.classList.toggle('active', c.id === `tab-${tabId}`);
           });
-          
-          // Show/hide month selector based on tab
+
           if (tabId === 'analytics') {
             el.monthSelectorContainer.style.display = 'none';
-            // Refresh analytics dashboard
             updateAnalyticsDashboard();
           } else {
             el.monthSelectorContainer.style.display = 'flex';
-            // Update month selector to current period
             el.monthSelector.value = appState.currentPeriod;
-            // Refresh current tab data
             if (appState.usageData) {
-              if (tabId === 'users') updateUsersTable(appState.usageData.users);
-              else if (tabId === 'resources') updateResourcesTable(appState.usageData.resources);
+              if (tabId === 'users')           updateUsersTable(appState.usageData.users);
+              else if (tabId === 'resources')  updateResourcesTable(appState.usageData.resources);
               else if (tabId === 'highlights') updateHighlightsTable(appState.usageData);
             }
           }
         });
       });
-      
-      // Action buttons
-      el.btnRefresh.addEventListener('click', function() {
-        fetchAllMonthsData();
-      });
-      
+
+      el.btnRefresh.addEventListener('click', fetchAllMonthsData);
       el.btnExportCSV.addEventListener('click', exportToCSV);
       el.btnExportJSON.addEventListener('click', exportToJSON);
       el.btnDisconnect.addEventListener('click', disconnect);
     }
 
-    // ==================== INITIALIZATION ====================
+    // ==================== INIT ====================
     function initializeApp() {
-      // Load saved organizations from localStorage
       loadSavedOrgs();
-      
-      // Populate the input field with current org ID
       el.orgIdInput.value = appState.currentOrgId;
-      
-      // Update month selector options
       updateMonthSelectorOptions();
-      
-      // Hide month selector initially (analytics tab is active)
-      el.monthSelectorContainer.style.display = 'none';
-      
-      // Fetch all months data
+      el.monthSelectorContainer.style.display = 'none'; // Analytics tab default
       fetchAllMonthsData();
     }
 
-    // ==================== START APPLICATION ====================
-    document.addEventListener('DOMContentLoaded', function() {
-      const {token, error, errorDescription} = parseTokenFromHash();
-      
-      // Clear hash from URL
-      if(location.hash) history.replaceState(null,'',location.pathname);
-      
-      // Setup event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      const { token, error, errorDescription } = parseTokenFromHash();
+      if (location.hash) history.replaceState(null, '', location.pathname);
       setupEventListeners();
-      
-      if(token) {
-        // We have a token from OAuth callback
+      if (token) {
         appState.accessToken = token;
         hideAuthOverlay();
         initializeApp();
-        showStatusMessage('✅ Successfully authenticated', 'success');
+        showStatusMessage('Successfully authenticated', 'success');
       } else if (error) {
-        // Auth error
         showAuthOverlay();
         showStatusMessage(`Authentication error: ${errorDescription || error}`, 'error');
       } else {
-        // No token, show auth overlay
         showAuthOverlay();
       }
     });
