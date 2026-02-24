@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Genesys Cloud · Multi‑month Usage Dashboard</title>
+  <title>Genesys Cloud · Usage + Analytics</title>
   <style>
     :root{
       --primary-color:#63AB8F; --secondary-color:#4A8C7D; --border-color:#DEE2E6;
@@ -110,13 +110,14 @@
     .tabs{
       display:flex;border-bottom:2px solid var(--border-color);
       margin-bottom:28px;background:white;border-radius:10px 10px 0 0;
+      flex-wrap:wrap;
     }
 
     .tab{
       padding:18px 28px;background:none;border:none;
       border-bottom:2px solid transparent;font-size:16px;
       font-weight:600;color:var(--text-light);cursor:pointer;
-      transition:all 0.3s;flex:1;text-align:center;
+      transition:all 0.3s;flex:0 1 auto;text-align:center;
       font-family:'Aptos','Segoe UI',Arial,sans-serif;
     }
 
@@ -322,62 +323,43 @@
       background: linear-gradient(90deg, var(--light-bg), var(--border-color));
     }
     
-    /* Month selector (replaces old period pills) */
-    .month-selector-panel {
+    /* analytics specific */
+    .analytics-controls {
       background: var(--pill);
       border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 24px;
+      padding: 20px;
+      margin-bottom: 28px;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       gap: 20px;
-      flex-wrap: wrap;
     }
-    
-    .month-selector-panel label {
-      font-weight: 600;
-      margin: 0;
-      color: var(--text-color);
-      font-size: 15px;
+    .range-selector {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-    
-    .month-selector-panel select {
+    .range-selector select {
       width: auto;
-      min-width: 260px;
       background: white;
-      border: 1px solid var(--border-color);
-      font-size: 15px;
-      cursor: pointer;
     }
-    
-    .month-badge {
+    .badge-month {
       background: white;
+      padding: 5px 14px;
       border-radius: 30px;
-      padding: 6px 18px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--primary-color);
       border: 1px solid var(--primary-color);
-    }
-    
-    /* change pill inside tiles */
-    .trend-indicator {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-size: 12px;
+      color: var(--primary-color);
       font-weight: 600;
-      margin-left: 6px;
     }
-    
-    .trend-up { background: rgba(220, 53, 69, 0.1); color: var(--danger); }
-    .trend-down { background: rgba(40, 167, 69, 0.1); color: var(--success); }
-    .trend-flat { background: rgba(108, 117, 125, 0.1); color: var(--text-light); }
-    
-    /* Table styles */
+    .trend-table th {
+      background-color: var(--info);
+    }
+    .trend-up { color: var(--danger); font-weight: 600; }
+    .trend-down { color: var(--success); font-weight: 600; }
+    .trend-flat { color: var(--text-light); }
+    .spark-line { font-size: 18px; letter-spacing: 2px; }
+    /* keep existing styles */
     .category-header {
       background-color: var(--light-bg) !important;
       font-weight: 700;
@@ -386,114 +368,12 @@
       border-top: 2px solid var(--border-color);
       border-bottom: 2px solid var(--border-color);
     }
-    
-    .category-header td {
-      padding: 20px 18px;
-      text-align: left !important;
-    }
-    
-    .sub-item {
-      padding-left: 40px !important;
-      font-size: 13px;
-      color: var(--text-light);
-    }
-    
-    .sub-item td:first-child:before {
-      content: "↳ ";
-      margin-right: 8px;
-    }
-    
-    .total-row {
-      background-color: var(--pill) !important;
-      font-weight: 700;
-      border-top: 2px solid var(--border-color);
-    }
-    
-    .number-cell {
-      font-family: 'Aptos', monospace, 'Segoe UI', Arial, sans-serif;
-    }
-    
-    .highlight-row {
-      background-color: rgba(255, 193, 7, 0.1) !important;
-      border-left: 3px solid var(--warning);
-    }
-    
-    .danger-row {
-      background-color: rgba(220, 53, 69, 0.1) !important;
-      border-left: 3px solid var(--danger);
-    }
-    
-    .success-row {
-      background-color: rgba(40, 167, 69, 0.1) !important;
-      border-left: 3px solid var(--success);
-    }
-    
-    .compact-table th,
-    .compact-table td {
-      padding: 12px 16px;
-      font-size: 13px;
-    }
-    
-    .utilization-indicator {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      margin-right: 8px;
-    }
-    
-    .utilization-high { background-color: var(--danger); }
-    .utilization-medium { background-color: var(--warning); }
-    .utilization-low { background-color: var(--success); }
-    
-    .note {
-      font-size: 12px;
-      color: var(--text-light);
-      font-style: italic;
-      margin-top: 8px;
-    }
-    
-    .text-left { text-align: left !important; }
-    .text-center { text-align: center !important; }
-    .text-right { text-align: right !important; }
-    
-    /* Auth styles */
-    .auth-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.98);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
-    }
-    
-    .auth-card {
-      max-width: 400px;
-      width: 90%;
-      padding: 40px;
-      background: var(--card-bg);
-      border-radius: 14px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    
-    .auth-card h2 {
-      color: var(--primary-color);
-      margin-bottom: 20px;
-    }
-    
-    .auth-card p {
-      color: var(--text-light);
-      margin-bottom: 30px;
-    }
-    
+    .category-header td { padding: 20px 18px; text-align: left !important; }
+    .number-cell { font-family: 'Aptos', monospace; }
     .utilization-high-text { color: var(--danger); font-weight: 600; }
     .utilization-medium-text { color: var(--warning); font-weight: 600; }
     .utilization-low-text { color: var(--success); font-weight: 600; }
+    .text-left { text-align: left !important; }
   </style>
 </head>
 <body>
@@ -501,8 +381,8 @@
   <div class="auth-overlay" id="authOverlay" style="display:none;">
     <div class="auth-card">
       <h2>🔐 Authentication Required</h2>
-      <p>Please sign in to Genesys Cloud to access your usage dashboard.</p>
-      <button id="signinBtn" class="btn-block">Sign in to Genesys Cloud</button>
+      <p>Sign in to Genesys Cloud to access your usage dashboard.</p>
+      <button id="signinBtn" class="btn-block">Sign in</button>
     </div>
   </div>
 
@@ -510,14 +390,14 @@
 
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
-    <div id="loadingText" style="font-size:20px;font-weight:600;margin-bottom:12px;">Loading Usage Data...</div>
-    <div id="loadingSubtext" style="font-size:15px;color:var(--text-light);text-align:center;max-width:500px;"></div>
+    <div id="loadingText" style="font-size:20px;font-weight:600;margin-bottom:12px;">Loading...</div>
+    <div id="loadingSubtext" style="font-size:15px;color:var(--text-light);"></div>
   </div>
 
   <!-- Main Content -->
   <div class="container" id="mainContent" style="display:none;">
     <header>
-      <h1>📊 Genesys Cloud · Multi‑month Usage</h1>
+      <h1>📊 Genesys Cloud · Usage & Analytics</h1>
       <div class="subtitle" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <span id="orgNameDisplay">Loading...</span>
         <span id="lastUpdated" style="font-size:14px;background:var(--pill);padding:6px 12px;border-radius:20px;">Loading...</span>
@@ -540,164 +420,150 @@
       </div>
     </header>
 
-    <!-- Month selector: now a dropdown with month names, not numbers -->
-    <div class="month-selector-panel">
-      <label>📅 <span style="font-size:16px;">Billing period:</span></label>
-      <select id="monthSelector">
-        <option value="0" selected>Current month (active)</option>
-        <option value="1">Last month</option>
-        <option value="2">2 months ago</option>
-        <!-- extendable: add more as needed -->
-        <option value="3">3 months ago</option>
-        <option value="4">4 months ago</option>
-        <option value="5">5 months ago</option>
-        <option value="6">6 months ago</option>
-      </select>
-      <span class="month-badge" id="selectedMonthDisplay">Current month</span>
-      <span style="margin-left:auto; font-size:14px; color:var(--text-light);">MoM changes shown in tiles</span>
-    </div>
-
-    <!-- METRIC TILES (now enhanced with month-over-month deltas) -->
-    <div class="metric-grid" id="metricTiles">
-      <div class="metric-card info" id="metricTotalUsers">
-        <div class="metric-header">
-          <div>
-            <div class="metric-label">Total User Licenses</div>
-            <div class="metric-value" id="totalUsersValue">0</div>
-          </div>
-          <div class="metric-icon">👥</div>
-        </div>
-        <div class="metric-subtext" id="usersUtilization">Loading...</div>
-        <div id="userChangeBadge" style="margin-top:8px; font-size:13px;"></div>
-      </div>
-      
-      <div class="metric-card warning" id="metricUserOverage">
-        <div class="metric-header">
-          <div>
-            <div class="metric-label">On‑demand / Overage</div>
-            <div class="metric-value" id="overageRiskValue">0</div>
-          </div>
-          <div class="metric-icon">⚠️</div>
-        </div>
-        <div class="metric-subtext" id="overageDetail">No overage detected</div>
-        <div id="overageChangeBadge"></div>
-      </div>
-      
-      <div class="metric-card success" id="metricSpeechAnalytics">
-        <div class="metric-header">
-          <div>
-            <div class="metric-label">Speech Analytics (transcription)</div>
-            <div class="metric-value" id="speechUsageValue">0%</div>
-          </div>
-          <div class="metric-icon">🎤</div>
-        </div>
-        <div class="progress-container">
-          <div class="progress-label">
-            <span>Used: <span id="speechUsed">0</span> min</span>
-            <span>Prepaid: <span id="speechPrepaid">0</span> min</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill used" id="speechProgressUsed" style="width:0%"></div>
-          </div>
-        </div>
-        <div class="metric-subtext" id="speechDetail"></div>
-        <div id="speechChangeBadge"></div>
-      </div>
-      
-      <div class="metric-card info" id="metricIVRUsage">
-        <div class="metric-header">
-          <div>
-            <div class="metric-label">IVR Usage</div>
-            <div class="metric-value" id="ivrUsageValue">0%</div>
-          </div>
-          <div class="metric-icon">📞</div>
-        </div>
-        <div class="metric-subtext" id="ivrDetail"></div>
-        <div id="ivrChangeBadge"></div>
-      </div>
-    </div>
-
-    <!-- Tabs (same) -->
+    <!-- TABS: original three + new ANALYTICS tab -->
     <div class="tabs">
       <button class="tab active" data-tab="users">👥 User Licenses</button>
       <button class="tab" data-tab="resources">📦 Resources</button>
       <button class="tab" data-tab="highlights">⚠️ Highlights</button>
+      <button class="tab" data-tab="analytics">📈 Analytics & Trends</button>
     </div>
 
-    <!-- Users Tab -->
+    <!-- Users Tab (exactly as originally) -->
     <div id="tab-users" class="tab-content active">
       <div class="card">
-        <h2>👥 User Licenses <span style="font-size:14px; font-weight:normal; margin-left:12px;" id="usersPeriodNote"></span></h2>
+        <h2>👥 User Licenses</h2>
         <div class="table-container">
-          <table id="usersTable"><thead><tr><th class="text-left">Service Name</th><th>Total Qty</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="usersTableBody"></tbody></table>
+          <table id="usersTable">
+            <thead><tr><th class="text-left">Service Name</th><th>Total Qty</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- Resources Tab -->
+    <!-- Resources Tab (original) -->
     <div id="tab-resources" class="tab-content">
       <div class="card">
-        <h2>📦 Resources (excludes Cloud Voice) <span style="font-size:14px;" id="resourcesPeriodNote"></span></h2>
+        <h2>📦 Resources (excludes Cloud Voice charges)</h2>
         <div class="table-container">
-          <table id="resourcesTable" class="compact-table"><thead><tr><th class="text-left">Resource Name</th><th>Qty</th><th>Unit</th><th>Included</th><th>Used</th><th>On-Demand</th><th>Utilization</th></tr></thead><tbody id="resourcesTableBody"></tbody></table>
+          <table id="resourcesTable" class="compact-table">
+            <thead><tr><th class="text-left">Resource Name</th><th>Qty</th><th>Unit</th><th>Included</th><th>Used</th><th>On-Demand</th><th>Utilization</th></tr></thead>
+            <tbody id="resourcesTableBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- Highlights Tab (includes token usage + transcription focus) -->
+    <!-- Highlights Tab (original) -->
     <div id="tab-highlights" class="tab-content">
       <div class="card">
-        <h2>⚠️ Usage Highlights · <span id="highlightsPeriodNote"></span></h2>
-        
-        <!-- User License Highlights -->
-        <div style="margin-bottom: 32px;">
-          <h3 style="color: var(--primary-color);">👥 User License Utilization</h3>
+        <h2>⚠️ Usage Highlights & Alerts</h2>
+        <!-- user highlights -->
+        <div style="margin-bottom:32px;"><h3 style="color:var(--primary-color);">👥 User License Utilization</h3>
           <div class="table-container"><table><thead><tr><th class="text-left">License Type</th><th>Total</th><th>Committed</th><th>Used</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="highlightsUsersTable"></tbody></table></div>
         </div>
-        
-        <!-- Speech Analytics (transcription) deep dive -->
-        <div style="margin-bottom: 32px;">
-          <h3 style="color: var(--primary-color);">🎤 Transcription Usage (Speech Analytics)</h3>
-          <div id="speechAnalyticsCard" class="metric-card" style="margin-bottom: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-              <div><div style="font-size: 18px; font-weight: 600;">Genesys Cloud for Voice Transcription</div><div style="font-size: 14px; color: var(--text-light);">prepaid vs used</div></div>
-              <div style="font-size: 24px;">🎤</div>
-            </div>
-            <div class="progress-container" style="margin-bottom: 20px;">
-              <div class="progress-label"><span>Used: <span id="highlightSpeechUsed">0</span> min</span><span>Prepaid: <span id="highlightSpeechPrepaid">0</span> min</span><span>Remaining: <span id="highlightSpeechRemaining">0</span> min</span></div>
-              <div class="progress-bar"><div class="progress-fill used" id="highlightSpeechUsedBar" style="width:0%"></div><div class="progress-fill remaining" id="highlightSpeechRemainingBar" style="width:100%"></div></div>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px;">
-              <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: var(--chart-blue);" id="highlightSpeechUsedPct">0%</div><div style="font-size: 12px;">Used</div></div>
-              <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: var(--success);" id="highlightSpeechAvailablePct">0%</div><div style="font-size: 12px;">Available</div></div>
-              <div style="text-align: center;"><div style="font-size: 20px; font-weight: 700; color: var(--text-light);" id="highlightSpeechDaysLeft">0</div><div style="font-size: 12px;">Days left</div></div>
-            </div>
+        <!-- speech analytics -->
+        <div style="margin-bottom:32px;"><h3 style="color:var(--primary-color);">🎤 Speech Analytics - Transcription Usage</h3>
+          <div id="speechAnalyticsCard" class="metric-card" style="margin-bottom:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><div><div style="font-size:18px;font-weight:600;">Genesys Cloud for Voice Transcription Fair Use (Legacy)</div><div style="font-size:14px;color:var(--text-light);">Prepaid vs Used Analysis</div></div><div style="font-size:24px;">🎤</div></div>
+            <div class="progress-container" style="margin-bottom:20px;"><div class="progress-label"><span>Used: <span id="highlightSpeechUsed">0</span> min</span><span>Prepaid: <span id="highlightSpeechPrepaid">0</span> min</span><span>Remaining: <span id="highlightSpeechRemaining">0</span> min</span></div><div class="progress-bar"><div class="progress-fill used" id="highlightSpeechUsedBar" style="width:0%"></div><div class="progress-fill remaining" id="highlightSpeechRemainingBar" style="width:100%"></div></div></div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;"><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--chart-blue);" id="highlightSpeechUsedPct">0%</div><div style="font-size:12px;">Used</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--success);" id="highlightSpeechAvailablePct">0%</div><div style="font-size:12px;">Available</div></div><div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--text-light);" id="highlightSpeechDaysLeft">0</div><div style="font-size:12px;">Days left</div></div></div>
           </div>
         </div>
-        
-        <!-- Token usage (example: API requests, STT/TTS) -->
-        <div style="margin-bottom: 32px;">
-          <h3 style="color: var(--primary-color);">🔑 Token / API Usage</h3>
-          <div class="table-container"><table><thead><tr><th>Resource</th><th>Total</th><th>Used</th><th>Available</th><th>On-Demand</th><th>Utilization</th></tr></thead><tbody id="tokenUsageTable"></tbody></table></div>
+        <!-- resource highlights -->
+        <div><h3 style="color:var(--primary-color);">📊 Resource Usage Highlights</h3>
+          <div class="table-container"><table><thead><tr><th class="text-left">Resource</th><th>Total</th><th>Used</th><th>Available</th><th>On-Demand</th><th>Utilization</th><th>Status</th></tr></thead><tbody id="highlightsResourcesTable"></tbody></table></div>
         </div>
+      </div>
+    </div>
+
+    <!-- NEW ANALYTICS TAB : trends & comparisons -->
+    <div id="tab-analytics" class="tab-content">
+      <div class="card">
+        <h2>📈 Month-over-month trends · Licensing, Transcription, Tokens</h2>
+        
+        <!-- controls: load all months + month range picker -->
+        <div class="analytics-controls">
+          <button id="btnLoadAllMonths" class="btn" style="background:var(--chart-purple); width:auto;">📅 Load months 0‑6</button>
+          <div class="range-selector">
+            <label>From:</label>
+            <select id="analyticsMonthFrom">
+              <option value="0">Current (0)</option><option value="1">1 month ago</option><option value="2">2 months ago</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            </select>
+            <label>To:</label>
+            <select id="analyticsMonthTo">
+              <option value="0">Current (0)</option><option value="1" selected>1 month ago</option><option value="2">2 months ago</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            </select>
+            <button id="btnApplyTrendRange" class="btn" style="width:auto; background:var(--primary-color);">Apply</button>
+          </div>
+          <span class="badge-month" id="analyticsRangeBadge">current vs last month</span>
+        </div>
+
+        <!-- KPI trend tiles (licensing changes) -->
+        <h3 style="color:var(--primary-color); margin-bottom:16px;">👥 User licensing changes</h3>
+        <div class="metric-grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="metric-card info">
+            <div class="metric-header"><div><div class="metric-label">Total licenses</div><div class="metric-value" id="trendTotalUsers">0</div></div><div class="metric-icon">👥</div></div>
+            <div id="trendTotalUsersChange" class="metric-subtext" style="font-weight:600;">vs previous month</div>
+          </div>
+          <div class="metric-card warning">
+            <div class="metric-header"><div><div class="metric-label">On‑demand seats</div><div class="metric-value" id="trendOndemand">0</div></div><div class="metric-icon">⚠️</div></div>
+            <div id="trendOndemandChange" class="metric-subtext"></div>
+          </div>
+          <div class="metric-card success">
+            <div class="metric-header"><div><div class="metric-label">Utilization %</div><div class="metric-value" id="trendUtilPct">0%</div></div><div class="metric-icon">📊</div></div>
+            <div id="trendUtilChange" class="metric-subtext"></div>
+          </div>
+        </div>
+
+        <!-- Transcription trend -->
+        <h3 style="color:var(--primary-color); margin:28px 0 16px;">🎤 Transcription minutes</h3>
+        <div style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:32px;">
+          <div class="metric-card" style="flex:1;">
+            <div class="metric-label">Used (selected range)</div>
+            <div style="font-size:32px; font-weight:700;" id="trendSpeechUsed">0</div>
+            <div id="trendSpeechChange" style="margin-top:8px;"></div>
+          </div>
+          <div class="metric-card" style="flex:1;">
+            <div class="metric-label">Prepaid included</div>
+            <div style="font-size:32px; font-weight:700;" id="trendSpeechPrepaid">0</div>
+            <div id="trendSpeechPrepaidChange"></div>
+          </div>
+          <div class="metric-card" style="flex:1;">
+            <div class="metric-label">Utilization %</div>
+            <div style="font-size:32px; font-weight:700;" id="trendSpeechUtil">0%</div>
+            <div id="trendSpeechUtilChange"></div>
+          </div>
+        </div>
+
+        <!-- Token usage trend table (API / STT / TTS) -->
+        <h3 style="color:var(--primary-color); margin:20px 0 16px;">🔑 Token / API usage (STT, TTS, NLU, etc.)</h3>
+        <div class="table-container">
+          <table class="trend-table">
+            <thead><tr><th>Resource</th><th>Unit</th><th>From month</th><th>To month</th><th>Change</th><th>Trend</th></tr></thead>
+            <tbody id="trendTokenTableBody">
+              <tr><td colspan="6" style="padding:36px;">Load months and select range</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note" style="margin-top:12px;">* Only resources with API, speech, transcription, STT, TTS in name are shown.</p>
       </div>
     </div>
 
     <!-- Actions Card -->
     <div class="card">
       <h2>⚡ Actions</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px;">
         <button id="btnRefresh" class="btn-block"><span>🔄 Refresh current month</span></button>
-        <button id="btnLoadAllMonths" class="btn-block" style="background: var(--chart-purple);"><span>📅 Load all months (0‑6)</span></button>
-        <button id="btnExportCSV" class="btn-block" style="background: var(--success);"><span>📄 Export CSV</span></button>
-        <button id="btnDisconnect" class="btn-block" style="background: var(--danger);"><span>🚪 Disconnect</span></button>
+        <button id="btnExportCSV" class="btn-block" style="background:var(--success);"><span>📄 Export CSV</span></button>
+        <button id="btnDisconnect" class="btn-block" style="background:var(--danger);"><span>🚪 Disconnect</span></button>
       </div>
     </div>
   </div>
 
   <script>
     (function() {
-      // ==================== CONFIG ====================
+      // ---------- CONFIG ----------
       const CONFIG = {
         CLIENT_ID: '4ab97fe2-54c0-4deb-8b9a-a4b5720d6c67',
         REDIRECT_URI: 'https://gmcglynn88.github.io/Billing/',
@@ -706,11 +572,11 @@
         ENVIRONMENTS: { 'eu-west-2': { name: 'EU West (London)', api: 'https://api.euw2.pure.cloud', login: 'https://login.euw2.pure.cloud' } }
       };
 
-      // ==================== STATE ====================
+      // ---------- STATE ----------
       let appState = {
         currentTab: 'users',
-        currentPeriod: 0,               // displayed month index
-        usageData: null,                 // only for currentPeriod
+        currentPeriod: 0,               // shown month index
+        usageData: null,                 // for currentPeriod
         rawApiData: null,
         billingHistory: {},               // key: periodIndex -> {data, raw, timestamp}
         accessToken: null,
@@ -718,81 +584,39 @@
         savedOrgs: []
       };
 
-      // DOM shortcuts
-      const el = {
-        authOverlay: document.getElementById('authOverlay'),
-        signinBtn: document.getElementById('signinBtn'),
-        mainContent: document.getElementById('mainContent'),
-        loadingOverlay: document.getElementById('loadingOverlay'),
-        statusContainer: document.getElementById('statusContainer'),
-        lastUpdated: document.getElementById('lastUpdated'),
-        orgNameDisplay: document.getElementById('orgNameDisplay'),
-        orgIdInput: document.getElementById('orgIdInput'),
-        btnLoadOrg: document.getElementById('btnLoadOrg'),
-        btnSaveOrg: document.getElementById('btnSaveOrg'),
-        savedOrgsContainer: document.getElementById('savedOrgsContainer'),
-        savedOrgsList: document.getElementById('savedOrgsList'),
-        monthSelector: document.getElementById('monthSelector'),
-        selectedMonthDisplay: document.getElementById('selectedMonthDisplay'),
-        btnRefresh: document.getElementById('btnRefresh'),
-        btnLoadAllMonths: document.getElementById('btnLoadAllMonths'),
-        btnExportCSV: document.getElementById('btnExportCSV'),
-        btnDisconnect: document.getElementById('btnDisconnect'),
-        loadingText: document.getElementById('loadingText'),
-        loadingSubtext: document.getElementById('loadingSubtext'),
+      // DOM elements shortcuts
+      const el = {};
+      function cacheElements() {
+        const ids = ['authOverlay','signinBtn','mainContent','loadingOverlay','statusContainer',
+          'lastUpdated','orgNameDisplay','orgIdInput','btnLoadOrg','btnSaveOrg','savedOrgsContainer','savedOrgsList',
+          'btnRefresh','btnDisconnect','btnExportCSV','btnLoadAllMonths',
+          'totalUsersValue','usersUtilization','overageRiskValue','overageDetail','metricUserOverage',
+          'speechUsageValue','speechUsed','speechPrepaid','speechProgressUsed','speechDetail',
+          'ivrUsageValue','ivrDetail','usersTableBody','resourcesTableBody','highlightsUsersTable',
+          'highlightsResourcesTable','highlightSpeechUsed','highlightSpeechPrepaid','highlightSpeechRemaining',
+          'highlightSpeechUsedBar','highlightSpeechRemainingBar','highlightSpeechUsedPct','highlightSpeechAvailablePct',
+          'highlightSpeechDaysLeft','analyticsMonthFrom','analyticsMonthTo','analyticsRangeBadge','btnApplyTrendRange',
+          'trendTotalUsers','trendTotalUsersChange','trendOndemand','trendOndemandChange','trendUtilPct','trendUtilChange',
+          'trendSpeechUsed','trendSpeechChange','trendSpeechPrepaid','trendSpeechPrepaidChange','trendSpeechUtil','trendSpeechUtilChange',
+          'trendTokenTableBody','loadingText','loadingSubtext'];
+        ids.forEach(id => el[id] = document.getElementById(id));
+        // extra
+        el.monthFrom = document.getElementById('analyticsMonthFrom');
+        el.monthTo = document.getElementById('analyticsMonthTo');
+        el.applyRange = document.getElementById('btnApplyTrendRange');
+        el.loadAllBtn = document.getElementById('btnLoadAllMonths');
+      }
 
-        // metric tiles
-        totalUsersValue: document.getElementById('totalUsersValue'),
-        usersUtilization: document.getElementById('usersUtilization'),
-        overageRiskValue: document.getElementById('overageRiskValue'),
-        overageDetail: document.getElementById('overageDetail'),
-        metricUserOverage: document.getElementById('metricUserOverage'),
-        speechUsageValue: document.getElementById('speechUsageValue'),
-        speechUsed: document.getElementById('speechUsed'),
-        speechPrepaid: document.getElementById('speechPrepaid'),
-        speechProgressUsed: document.getElementById('speechProgressUsed'),
-        speechDetail: document.getElementById('speechDetail'),
-        ivrUsageValue: document.getElementById('ivrUsageValue'),
-        ivrDetail: document.getElementById('ivrDetail'),
-
-        // change badges
-        userChangeBadge: document.getElementById('userChangeBadge'),
-        overageChangeBadge: document.getElementById('overageChangeBadge'),
-        speechChangeBadge: document.getElementById('speechChangeBadge'),
-        ivrChangeBadge: document.getElementById('ivrChangeBadge'),
-
-        // tables bodies
-        usersTableBody: document.getElementById('usersTableBody'),
-        resourcesTableBody: document.getElementById('resourcesTableBody'),
-        highlightsUsersTable: document.getElementById('highlightsUsersTable'),
-        tokenUsageTable: document.getElementById('tokenUsageTable'),
-        // speech highlights
-        highlightSpeechUsed: document.getElementById('highlightSpeechUsed'),
-        highlightSpeechPrepaid: document.getElementById('highlightSpeechPrepaid'),
-        highlightSpeechRemaining: document.getElementById('highlightSpeechRemaining'),
-        highlightSpeechUsedBar: document.getElementById('highlightSpeechUsedBar'),
-        highlightSpeechRemainingBar: document.getElementById('highlightSpeechRemainingBar'),
-        highlightSpeechUsedPct: document.getElementById('highlightSpeechUsedPct'),
-        highlightSpeechAvailablePct: document.getElementById('highlightSpeechAvailablePct'),
-        highlightSpeechDaysLeft: document.getElementById('highlightSpeechDaysLeft'),
-
-        // period notes
-        usersPeriodNote: document.getElementById('usersPeriodNote'),
-        resourcesPeriodNote: document.getElementById('resourcesPeriodNote'),
-        highlightsPeriodNote: document.getElementById('highlightsPeriodNote')
-      };
-
-      // ========== helpers ==========
+      // ---------- helpers ----------
       function formatNumber(num) { return (num ?? 0).toLocaleString(); }
       function showStatusMessage(msg, type='info') {
-        const div = document.createElement('div');
-        div.className = 'status-message';
+        const d = document.createElement('div'); d.className='status-message';
         const icon = {success:'✅',error:'❌',warn:'⚠️',info:'💡'}[type]||'💡';
         const color = {success:'#28a745',error:'#dc3545',warn:'#ffc107',info:'#17a2b8'}[type]||'#17a2b8';
-        div.style.borderLeftColor = color;
-        div.innerHTML = `<span style="font-size:20px;">${icon}</span><div><div style="font-weight:600;">${msg}</div><div style="font-size:12px;">${new Date().toLocaleTimeString()}</div></div>`;
-        el.statusContainer.appendChild(div);
-        setTimeout(() => { if(div.parentNode) div.remove(); }, 5000);
+        d.style.borderLeftColor = color;
+        d.innerHTML = `<span style="font-size:20px;">${icon}</span><div><div style="font-weight:600;">${msg}</div><div style="font-size:12px;">${new Date().toLocaleTimeString()}</div></div>`;
+        el.statusContainer.appendChild(d);
+        setTimeout(() => { if(d.parentNode) d.remove(); }, 5000);
       }
       function setLoading(show, text='', subtext='') {
         if(show) {
@@ -805,14 +629,8 @@
         const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - offset);
         return d.toLocaleString('default',{month:'long',year:'numeric'});
       }
-      function updatePeriodNotes(period) {
-        const name = getMonthName(period);
-        if(el.usersPeriodNote) el.usersPeriodNote.textContent = `(${name})`;
-        if(el.resourcesPeriodNote) el.resourcesPeriodNote.textContent = `(${name})`;
-        if(el.highlightsPeriodNote) el.highlightsPeriodNote.textContent = name;
-      }
 
-      // ========== api call ==========
+      // ---------- API ----------
       async function apiCall(path, options={}) {
         if(!appState.accessToken) { disconnect(); throw new Error('Not authenticated'); }
         const env = CONFIG.ENVIRONMENTS[CONFIG.ENVIRONMENT_REGION];
@@ -823,7 +641,7 @@
         return res.json();
       }
 
-      // ========== fetch one period ==========
+      // ---------- fetch one period ----------
       async function fetchBillingData(periodIndex, force=false) {
         if(appState.billingHistory[periodIndex] && !force) {
           appState.usageData = appState.billingHistory[periodIndex].data;
@@ -833,7 +651,7 @@
           updateDisplay();
           return;
         }
-        setLoading(true, `Loading ${getMonthName(periodIndex)}`, 'Fetching from Genesys Cloud...');
+        setLoading(true, `Loading ${getMonthName(periodIndex)}`, 'Fetching...');
         try {
           const endpoint = `/api/v2/billing/trusteebillingoverview/${appState.currentOrgId}?billingPeriodIndex=${periodIndex}`;
           const raw = await apiCall(endpoint);
@@ -850,9 +668,9 @@
         } finally { setLoading(false); }
       }
 
-      // ========== load all months 0..6 ==========
+      // ---------- load all months 0..6 ----------
       async function loadAllMonths() {
-        setLoading(true, 'Loading all months (0‑6)', 'this may take a moment...');
+        setLoading(true, 'Loading months 0‑6', 'this may take a moment...');
         try {
           for(let idx=0; idx<=6; idx++) {
             if(!appState.billingHistory[idx]) {
@@ -862,19 +680,17 @@
               appState.billingHistory[idx] = { data: parsed, rawData: raw, timestamp: new Date(), periodName: getMonthName(idx) };
             }
           }
-          // set current to 0 (or keep current)
           if(appState.billingHistory[0]) {
             appState.usageData = appState.billingHistory[0].data;
-            appState.rawApiData = appState.billingHistory[0].rawData;
             appState.currentPeriod = 0;
           }
           updateDisplay();
-          showStatusMessage('All months (0‑6) loaded', 'success');
-        } catch(e) { showStatusMessage(`Multi‑month error: ${e.message}`, 'error'); }
+          showStatusMessage('All months 0‑6 loaded', 'success');
+        } catch(e) { showStatusMessage(`Multi error: ${e.message}`, 'error'); }
         finally { setLoading(false); }
       }
 
-      // ========== parse ==========
+      // ---------- parse (same as original, keeps structure) ----------
       function parseApiData(apiData, periodIdx) {
         if(!apiData||!Array.isArray(apiData.usages)) throw new Error('Invalid structure');
         const users = parseUserLicenses(apiData.usages);
@@ -886,17 +702,14 @@
           billingPeriodEndDate: apiData.billingPeriodEndDate
         };
       }
-
       function parseUserLicenses(usages) {
         return usages.filter(u => u.name && (u.grouping==='user'||u.name.includes('Genesys Cloud CX')||u.name.includes('WEM')||u.name.includes('Communicate User'))).map(u => {
           const qty = parseFloat(u.usageQuantity)||0, prepay = parseFloat(u.prepayQuantity)||0, overage = Math.max(0,qty-prepay);
           return { name: u.name, qty, committed: prepay, used: qty, onDemand: overage, partNumber: u.partNumber };
         });
       }
-
       function parseResources(usages) {
-        const cats = [];
-        const byoc=[], msg=[], storage=[], api=[], other=[];
+        const cats = []; let byoc=[], msg=[], storage=[], api=[], other=[];
         usages.filter(u => u.name && u.grouping!=='user' && !u.name.includes('Genesys Cloud CX 2')).forEach(u => {
           const qty = parseFloat(u.usageQuantity)||0, prepay = parseFloat(u.prepayQuantity)||0;
           let unit = 'units';
@@ -913,96 +726,23 @@
           else other.push(resource);
         });
         if(byoc.length) cats.push({category:'BYOC / Carrier', items:byoc});
-        if(msg.length) cats.push({category:'Messaging (SMS/MMS/WhatsApp)', items:msg});
+        if(msg.length) cats.push({category:'Messaging', items:msg});
         if(storage.length) cats.push({category:'Data Storage', items:storage});
         if(api.length) cats.push({category:'API Resources', items:api});
-        if(other.length) cats.push({category:'Other Resources', items:other});
+        if(other.length) cats.push({category:'Other', items:other});
         return cats;
       }
 
-      // ========== display ==========
-      function getPrevPeriodData() {
-        if(appState.currentPeriod===undefined) return null;
-        const prev = appState.currentPeriod+1; // prior billing cycle (1=last month relative to current)
-        return appState.billingHistory[prev]?.data || null;
+      // ---------- display update (original tabs) ----------
+      function updateDisplay() {
+        if(!appState.usageData) return;
+        const data = appState.usageData;
+        if(data.organization?.name) el.orgNameDisplay.textContent = data.organization.name;
+        el.lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+        updateUsersTable(data.users);
+        updateResourcesTable(data.resources);
+        updateHighlights(data);
       }
-
-      function computeChange(current, prev, field) {
-        if(!prev) return null;
-        let curVal=0, prevVal=0;
-        if(field==='totalUsers') { curVal=current.users.reduce((a,u)=>a+u.qty,0); prevVal=prev.users.reduce((a,u)=>a+u.qty,0); }
-        else if(field==='overage') { curVal=current.users.reduce((a,u)=>a+u.onDemand,0); prevVal=prev.users.reduce((a,u)=>a+u.onDemand,0); }
-        else if(field==='speech') {
-          let cur=0, prev=0;
-          current.resources.forEach(c=>c.items.forEach(r=>{if(r.name.includes('Voice Transcription')) cur=r.included.used;}));
-          prev?.resources.forEach(c=>c.items.forEach(r=>{if(r.name.includes('Voice Transcription')) prev=r.included.used;}));
-          return {curVal:cur, prevVal:prev, diff:cur-prev};
-        } else if(field==='ivr') {
-          let cur=0, prev=0;
-          current.resources.forEach(c=>c.items.forEach(r=>{if(r.name.includes('IVR')) cur=r.included.used;}));
-          prev?.resources.forEach(c=>c.items.forEach(r=>{if(r.name.includes('IVR')) prev=r.included.used;}));
-          return {curVal:cur, prevVal:prev, diff:cur-prev};
-        }
-        return {curVal, prevVal, diff:curVal-prevVal};
-      }
-
-      function renderChangeBadge(changeObj, formatter=(v)=>v) {
-        if(!changeObj||changeObj.prevVal===undefined) return '<span class="trend-flat trend-indicator">—</span>';
-        const diff = changeObj.diff;
-        if(diff>0) return `<span class="trend-up trend-indicator">↑ +${formatter(diff)} vs last month</span>`;
-        if(diff<0) return `<span class="trend-down trend-indicator">↓ ${formatter(diff)} vs last month</span>`;
-        return '<span class="trend-flat trend-indicator">→ no change</span>';
-      }
-
-      function updateMetricTiles(data) {
-        const prevData = getPrevPeriodData();
-        // users
-        const totalUsers = data.users.reduce((a,u)=>a+u.qty,0);
-        const totalCommitted = data.users.reduce((a,u)=>a+u.committed,0);
-        const totalUsed = data.users.reduce((a,u)=>a+u.used,0);
-        const totalOnDemand = data.users.reduce((a,u)=>a+u.onDemand,0);
-        const util = totalCommitted>0 ? Math.round((totalUsed/totalCommitted)*100) : 0;
-        el.totalUsersValue.textContent = formatNumber(totalUsers);
-        el.usersUtilization.innerHTML = `<strong>Utilization:</strong> ${util}%<br> Committed:${formatNumber(totalCommitted)} Used:${formatNumber(totalUsed)} On‑demand:${formatNumber(totalOnDemand)}`;
-        const userChange = computeChange(data, prevData, 'totalUsers');
-        if(el.userChangeBadge) el.userChangeBadge.innerHTML = renderChangeBadge(userChange, formatNumber);
-
-        // overage risk
-        el.overageRiskValue.textContent = totalOnDemand>0 ? formatNumber(totalOnDemand) : 'None';
-        if(totalOnDemand>0) {
-          el.metricUserOverage.className='metric-card danger';
-          el.metricUserOverage.querySelector('.metric-icon').textContent='🚨';
-          el.overageDetail.textContent = `${formatNumber(totalOnDemand)} licenses on‑demand`;
-        } else {
-          el.metricUserOverage.className='metric-card success';
-          el.metricUserOverage.querySelector('.metric-icon').textContent='✅';
-          el.overageDetail.textContent = 'All committed';
-        }
-        const overageChange = computeChange(data, prevData, 'overage');
-        if(el.overageChangeBadge) el.overageChangeBadge.innerHTML = renderChangeBadge(overageChange, formatNumber);
-
-        // speech
-        let speechPrepaid=0, speechUsed=0;
-        data.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('Voice Transcription')) { speechPrepaid=r.included.qty; speechUsed=r.included.used; } }));
-        const speechPct = speechPrepaid>0 ? Math.round((speechUsed/speechPrepaid)*100) : 0;
-        el.speechUsageValue.textContent = speechPct+'%';
-        el.speechUsed.textContent = formatNumber(speechUsed);
-        el.speechPrepaid.textContent = formatNumber(speechPrepaid);
-        el.speechProgressUsed.style.width = speechPct+'%';
-        el.speechDetail.textContent = `${formatNumber(speechUsed)} of ${formatNumber(speechPrepaid)} minutes`;
-        const speechChange = computeChange(data, prevData, 'speech');
-        if(el.speechChangeBadge) el.speechChangeBadge.innerHTML = renderChangeBadge(speechChange, formatNumber);
-
-        // ivr
-        let ivrPrepaid=0, ivrUsed=0;
-        data.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('IVR')) { ivrPrepaid=r.included.qty; ivrUsed=r.included.used; } }));
-        const ivrPct = ivrPrepaid>0 ? Math.round((ivrUsed/ivrPrepaid)*100) : 0;
-        el.ivrUsageValue.textContent = ivrPct+'%';
-        el.ivrDetail.textContent = `${formatNumber(ivrUsed)} of ${formatNumber(ivrPrepaid)} minutes`;
-        const ivrChange = computeChange(data, prevData, 'ivr');
-        if(el.ivrChangeBadge) el.ivrChangeBadge.innerHTML = renderChangeBadge(ivrChange, formatNumber);
-      }
-
       function updateUsersTable(users) {
         const tbody = el.usersTableBody; tbody.innerHTML = '';
         if(!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No user data</td></tr>'; return; }
@@ -1013,7 +753,6 @@
           tbody.appendChild(row);
         });
       }
-
       function updateResourcesTable(resources) {
         const tbody = el.resourcesTableBody; tbody.innerHTML = '';
         if(!resources.length) { tbody.innerHTML = '<tr><td colspan="7" style="padding:48px;">No resources</td></tr>'; return; }
@@ -1029,54 +768,98 @@
           });
         });
       }
-
       function updateHighlights(data) {
         const userTbody = el.highlightsUsersTable; userTbody.innerHTML = '';
         data.users.forEach(u => {
           const util = u.committed>0 ? Math.round((u.used/u.committed)*100) : 0;
           userTbody.innerHTML += `<tr><td class="text-left">${u.name}</td><td>${formatNumber(u.qty)}</td><td>${formatNumber(u.committed)}</td><td>${formatNumber(u.used)}</td><td>${formatNumber(u.onDemand)}</td><td>${util}%</td><td>${util>75?'⚠️':'✅'}</td></tr>`;
         });
-        // speech highlight
+        // speech
         let speechPrepaid=0, speechUsed=0;
         data.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('Voice Transcription')) { speechPrepaid=r.included.qty; speechUsed=r.included.used; } }));
-        const remaining = speechPrepaid - speechUsed;
-        const pct = speechPrepaid>0 ? Math.round((speechUsed/speechPrepaid)*100) : 0;
+        const rem = speechPrepaid - speechUsed, pct = speechPrepaid>0 ? Math.round((speechUsed/speechPrepaid)*100) : 0;
         el.highlightSpeechUsed.textContent = formatNumber(speechUsed);
         el.highlightSpeechPrepaid.textContent = formatNumber(speechPrepaid);
-        el.highlightSpeechRemaining.textContent = formatNumber(remaining);
+        el.highlightSpeechRemaining.textContent = formatNumber(rem);
         el.highlightSpeechUsedBar.style.width = pct+'%';
         el.highlightSpeechRemainingBar.style.width = (100-pct)+'%';
         el.highlightSpeechUsedPct.textContent = pct+'%';
         el.highlightSpeechAvailablePct.textContent = (100-pct)+'%';
-        const today = new Date(); const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-        el.highlightSpeechDaysLeft.textContent = daysInMonth - today.getDate();
-
-        // token usage table (filter api resources)
-        const tokenBody = el.tokenUsageTable; tokenBody.innerHTML = '';
-        data.resources.forEach(cat => cat.items.forEach(r => {
-          if(r.grouping==='api' || r.name.includes('API') || r.name.includes('STT') || r.name.includes('TTS') || r.name.includes('Speech')) {
+        const today = new Date(); const dim = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+        el.highlightSpeechDaysLeft.textContent = dim - today.getDate();
+        // resource highlights (simplified)
+        const resTbody = el.highlightsResourcesTable; resTbody.innerHTML = '';
+        data.resources.forEach(cat=>cat.items.forEach(r=>{
+          if(r.qty>0 && (r.name.includes('Voice')||r.name.includes('IVR')||r.name.includes('API'))) {
             const util = r.included.qty>0 ? Math.round((r.included.used/r.included.qty)*100) : 0;
-            tokenBody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${formatNumber(r.qty)}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.included.qty - r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td></tr>`;
+            resTbody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${formatNumber(r.qty)} ${r.unit}</td><td>${formatNumber(r.included.used)}</td><td>${formatNumber(r.included.qty - r.included.used)}</td><td>${formatNumber(r.onDemand)}</td><td>${util}%</td><td>🟢</td></tr>`;
           }
         }));
-        if(!tokenBody.children.length) tokenBody.innerHTML = '<tr><td colspan="6" style="padding:24px;">No token/API resources</td></tr>';
       }
 
-      function updateDisplay() {
-        if(!appState.usageData) return;
-        const data = appState.usageData;
-        if(data.organization?.name) el.orgNameDisplay.textContent = data.organization.name;
-        el.lastUpdated.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
-        const monthName = getMonthName(appState.currentPeriod);
-        el.selectedMonthDisplay.textContent = monthName;
-        updatePeriodNotes(appState.currentPeriod);
-        updateMetricTiles(data);
-        updateUsersTable(data.users);
-        updateResourcesTable(data.resources);
-        updateHighlights(data);
+      // ---------- ANALYTICS render ----------
+      function renderAnalytics() {
+        const fromIdx = parseInt(el.analyticsMonthFrom?.value || '0',10);
+        const toIdx = parseInt(el.analyticsMonthTo?.value || '1',10);
+        if(!appState.billingHistory[fromIdx] || !appState.billingHistory[toIdx]) {
+          showStatusMessage('Load months first', 'warn'); return;
+        }
+        const dFrom = appState.billingHistory[fromIdx].data;
+        const dTo = appState.billingHistory[toIdx].data;
+        el.analyticsRangeBadge.textContent = `${getMonthName(fromIdx)} → ${getMonthName(toIdx)}`;
+
+        // licensing
+        const fromUsers = dFrom.users.reduce((a,u)=>a+u.qty,0);
+        const toUsers = dTo.users.reduce((a,u)=>a+u.qty,0);
+        const fromOndemand = dFrom.users.reduce((a,u)=>a+u.onDemand,0);
+        const toOndemand = dTo.users.reduce((a,u)=>a+u.onDemand,0);
+        const fromUtil = dFrom.users.reduce((a,u)=>a+u.used,0) / (dFrom.users.reduce((a,u)=>a+u.committed,0)||1) *100;
+        const toUtil = dTo.users.reduce((a,u)=>a+u.used,0) / (dTo.users.reduce((a,u)=>a+u.committed,0)||1) *100;
+        el.trendTotalUsers.textContent = toUsers;
+        el.trendTotalUsersChange.innerHTML = changeHTML(toUsers - fromUsers, 'license');
+        el.trendOndemand.textContent = toOndemand;
+        el.trendOndemandChange.innerHTML = changeHTML(toOndemand - fromOndemand, 'seat');
+        el.trendUtilPct.textContent = Math.round(toUtil)+'%';
+        el.trendUtilChange.innerHTML = changeHTML(Math.round(toUtil - fromUtil), 'pp');
+
+        // speech
+        let spFrom=0, spTo=0, prepayFrom=0, prepayTo=0;
+        dFrom.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('Voice Transcription')) { spFrom=r.included.used; prepayFrom=r.included.qty; } }));
+        dTo.resources.forEach(c=>c.items.forEach(r=>{ if(r.name.includes('Voice Transcription')) { spTo=r.included.used; prepayTo=r.included.qty; } }));
+        el.trendSpeechUsed.textContent = formatNumber(spTo);
+        el.trendSpeechChange.innerHTML = changeHTML(spTo - spFrom, 'min');
+        el.trendSpeechPrepaid.textContent = formatNumber(prepayTo);
+        el.trendSpeechPrepaidChange.innerHTML = changeHTML(prepayTo - prepayFrom, 'min');
+        const utilFrom = prepayFrom>0 ? (spFrom/prepayFrom)*100 : 0;
+        const utilTo = prepayTo>0 ? (spTo/prepayTo)*100 : 0;
+        el.trendSpeechUtil.textContent = Math.round(utilTo)+'%';
+        el.trendSpeechUtilChange.innerHTML = changeHTML(Math.round(utilTo - utilFrom), 'pp');
+
+        // token/api table
+        const tbody = el.trendTokenTableBody; tbody.innerHTML = '';
+        const tokenResources = [];
+        dTo.resources.forEach(cat=>cat.items.forEach(r=>{
+          if(r.grouping==='api' || r.name.match(/(STT|TTS|NLU|Speech|Transcription|Voice|API|Token)/i)) tokenResources.push(r);
+        }));
+        if(tokenResources.length===0) tbody.innerHTML = '<tr><td colspan="6">No token/api resources found</td></tr>';
+        else tokenResources.forEach(r => {
+          // find same resource in from data
+          let fromVal = 0, fromIncluded=0;
+          dFrom.resources.forEach(cat=>cat.items.forEach(fr=>{ if(fr.name===r.name) { fromVal = fr.included.used; fromIncluded = fr.included.qty; } }));
+          const toVal = r.included.used;
+          const diff = toVal - fromVal;
+          const arrow = diff>0 ? '↑' : (diff<0 ? '↓' : '→');
+          const cls = diff>0 ? 'trend-up' : (diff<0 ? 'trend-down' : 'trend-flat');
+          tbody.innerHTML += `<tr><td class="text-left">${r.name}</td><td>${r.unit}</td><td>${formatNumber(fromVal)}</td><td>${formatNumber(toVal)}</td><td class="${cls}">${diff>0?'+':''}${formatNumber(diff)}</td><td class="${cls} spark-line">${arrow} ${Math.abs(diff)}</td></tr>`;
+        });
+      }
+      function changeHTML(diff, unit='') {
+        if(diff>0) return `<span class="trend-up">↑ +${diff} ${unit}</span>`;
+        if(diff<0) return `<span class="trend-down">↓ ${diff} ${unit}</span>`;
+        return `<span class="trend-flat">→ no change</span>`;
       }
 
-      // ========== auth ==========
+      // ---------- auth & org ----------
       function parseTokenFromHash() {
         const p = new URLSearchParams(location.hash.replace(/^#/,''));
         return { token: p.get('access_token'), error: p.get('error'), errorDescription: p.get('error_description') };
@@ -1086,53 +869,44 @@
       function hideAuthOverlay() { el.authOverlay.style.display='none'; el.mainContent.style.display='block'; }
       function disconnect() { appState.accessToken=null; showAuthOverlay(); showStatusMessage('Disconnected','info'); }
 
-      // ========== orgs ==========
-      function loadSavedOrgs() { try { const s = localStorage.getItem('genesys_saved_orgs'); if(s) appState.savedOrgs = JSON.parse(s); } catch(e){} }
-      function saveOrg() {
-        const id = el.orgIdInput.value.trim(); if(!id) return;
-        if(!appState.savedOrgs.find(o=>o.id===id)) appState.savedOrgs.push({id,name:id.substring(0,8),savedAt:new Date().toISOString()});
-        localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs));
-        showStatusMessage('Saved','success');
-      }
-      function loadOrganization(orgId) { appState.currentOrgId = orgId; el.orgIdInput.value = orgId; appState.billingHistory={}; fetchBillingData(0); }
-
-      // ========== events ==========
+      // ---------- init ----------
       function init() {
-        loadSavedOrgs();
+        cacheElements();
+        // load saved orgs
+        try { const s = localStorage.getItem('genesys_saved_orgs'); if(s) appState.savedOrgs = JSON.parse(s); } catch(e){}
         el.orgIdInput.value = appState.currentOrgId;
         el.signinBtn.onclick = ()=>location.assign(authUrl());
-        el.btnLoadOrg.onclick = ()=>loadOrganization(el.orgIdInput.value);
-        el.btnSaveOrg.onclick = saveOrg;
-        el.btnRefresh.onclick = ()=>fetchBillingData(appState.currentPeriod, true);
-        el.btnLoadAllMonths.onclick = loadAllMonths;
-        el.btnDisconnect.onclick = disconnect;
-        el.btnExportCSV.onclick = ()=>{
-          if(!appState.usageData) return;
-          let csv = 'Multi-month data. For full history use JSON.\n';
-          const blob = new Blob([csv],{type:'text/csv'}); // simplistic
-          const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='export.csv'; a.click();
+        el.btnLoadOrg.onclick = ()=>{
+          const id = el.orgIdInput.value.trim(); if(id) { appState.currentOrgId = id; appState.billingHistory={}; fetchBillingData(0); }
         };
-        el.monthSelector.addEventListener('change', function(e) {
-          const val = parseInt(e.target.value,10);
-          fetchBillingData(val);
-        });
+        el.btnSaveOrg.onclick = ()=>{
+          const id = el.orgIdInput.value.trim(); if(id && !appState.savedOrgs.find(o=>o.id===id)) appState.savedOrgs.push({id,name:id.substring(0,8)});
+          localStorage.setItem('genesys_saved_orgs', JSON.stringify(appState.savedOrgs)); showStatusMessage('Saved','success');
+        };
+        el.btnRefresh.onclick = ()=>fetchBillingData(appState.currentPeriod, true);
+        el.btnDisconnect.onclick = disconnect;
+        el.btnExportCSV.onclick = ()=>{ if(appState.usageData) { alert('CSV export placeholder'); } };
+        el.loadAllBtn.onclick = loadAllMonths;
+        el.applyRange.onclick = renderAnalytics;
+
+        // tabs
         document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function() {
           document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
           this.classList.add('active');
           document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
           document.getElementById(`tab-${this.dataset.tab}`).classList.add('active');
+          if(this.dataset.tab === 'analytics') renderAnalytics();
         }));
-      }
 
-      // start
-      document.addEventListener('DOMContentLoaded', ()=>{
+        // token from url
         const {token,error} = parseTokenFromHash();
         if(location.hash) history.replaceState(null,'',location.pathname);
-        init();
-        if(token) { appState.accessToken=token; hideAuthOverlay(); fetchBillingData(0); showStatusMessage('Authenticated','success'); }
+        if(token) { appState.accessToken = token; hideAuthOverlay(); fetchBillingData(0); showStatusMessage('Authenticated','success'); }
         else if(error) { showAuthOverlay(); showStatusMessage('Auth error','error'); }
         else showAuthOverlay();
-      });
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
     })();
   </script>
 </body>
